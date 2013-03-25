@@ -1,0 +1,18 @@
+{
+	"name": "odata-to-abstract-sql",
+	"version": "0.0.0",
+	"description": "A consumer of the OData parser, written in OMeta",
+	"main": "odata-to-abstract-sql.ometajs",
+	"scripts": {
+		"test": "mocha"
+	},
+	"repository": "",
+	"author": "",
+	"license": "BSD",
+	"dependencies": {
+		"ometa-js": "1.x",
+		"coffee-script": "latest",
+		"chai": "latest",
+		"chai-things": "latest"
+	}
+}

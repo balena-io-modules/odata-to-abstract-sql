@@ -1,0 +1,25 @@
+_ = require('lodash')
+
+ometa OData2AbstractSQL {
+
+	Process =
+		PathSegment
+	,
+	PathSegment =
+		:path
+		(	?_.isEmpty(path)
+			-> []
+		|	?path.resource
+			{[['From', path.resource]]}:query
+			(	?path.property
+				PathSegment(path.property):childQuery
+				{query.concat(childQuery)}:query
+			)?
+			(	?path.key
+				-> query.push(['Where', ['Equals', ['ReferencedField', path.resource, 'id'], ['Number', path.key]]])
+			)?
+			-> query
+		)
+}
+
+module.exports = OData2AbstractSQL;
