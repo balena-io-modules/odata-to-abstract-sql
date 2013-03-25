@@ -14,8 +14,8 @@ chai.use((chai, utils) ->
 	bodyClause = (bodyType) ->
 		(bodyClauses...) ->
 			obj = utils.flag(@, 'object')
-			for bodyClause in bodyClauses
-				expect(obj).to.contain.something.that.deep.equals([bodyType, bodyClause])
+			for bodyClause, i in bodyClauses
+				expect(obj).to.contain.something.that.deep.equals([bodyType, bodyClause], bodyType + ' - ' + i)
 			return @
 	select = bodyClause('Select')
 	utils.addMethod(assertionPrototype, 'select', select)
@@ -43,4 +43,10 @@ test '/model(1)', (result) ->
 
 test '/model(1)/child', (result) ->
 	it 'should select from model with id', ->
-		expect(result).to.be.a.query.that.selects(['child', '*']).from('model', 'child').where(['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]])
+		expect(result).to.be.a.query.that.
+			selects(['child', '*']).
+			from('model', 'child').
+			where(
+				['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'child', 'id'], ['ReferencedField', 'model', 'child']]
+			)

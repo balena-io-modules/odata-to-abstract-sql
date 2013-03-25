@@ -14,6 +14,7 @@ ometa OData2AbstractSQL {
 			(	?path.property
 				PathSegment(path.property):childQuery
 				{query.concat(childQuery)}:query
+				-> query.push(['Where', ['Equals', ['ReferencedField', path.property.resource, 'id'], ['ReferencedField', path.resource, path.property.resource]]])
 			|	-> query.push(['Select', [path.resource, '*']])
 			)?
 			(	?path.key
