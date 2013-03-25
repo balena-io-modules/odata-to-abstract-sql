@@ -33,14 +33,14 @@ test '/', (result) ->
 
 test '/model', (result) ->
 	it 'should select from model', ->
-		expect(result).to.be.a.query.that.selects.from('model')
+		expect(result).to.be.a.query.that.selects(['model', '*']).from('model')
 
 
 test '/model(1)', (result) ->
 	it 'should select from model with id', ->
-		expect(result).to.be.a.query.that.selects.from('model').where(['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]])
+		expect(result).to.be.a.query.that.selects(['model', '*']).from('model').where(['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]])
 
 
 test '/model(1)/child', (result) ->
 	it 'should select from model with id', ->
-		expect(result).to.be.a.query.that.selects.from('model', 'child').where(['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]])
+		expect(result).to.be.a.query.that.selects(['child', '*']).from('model', 'child').where(['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]])
