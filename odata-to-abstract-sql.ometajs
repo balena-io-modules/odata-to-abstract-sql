@@ -39,11 +39,15 @@ ometa OData2AbstractSQL {
 	,
 
 	FilterBy =
-		[	'eq'
+		[	(	'eq'
+				-> 'Equals'
+			|	'ne'
+				-> 'NotEquals'
+			):operation
 			Operand:op1
 			Operand:op2
 		]
-		-> ['Equals', op1, op2]
+		-> [operation, op1, op2]
 	,
 
 	Operand =
