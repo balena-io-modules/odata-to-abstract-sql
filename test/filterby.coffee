@@ -31,5 +31,7 @@ operandTest('ge', 2)
 operandTest('lt', 2)
 operandTest('le', 2)
 
-operandTest('eq', "'bar'")
-operandTest('eq', 2.5)
+# Test each combination of operands
+for lhs, v of operands
+	for rhs, v of operands
+		operandTest('eq', lhs, rhs)
