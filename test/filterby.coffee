@@ -5,6 +5,7 @@ test = require('./test')
 sqlOps =
 	eq: 'Equals'
 	ne: 'NotEquals'
+	gt: 'GreaterThan'
 
 operandTest = (op) ->
 	test '/resource?$filterby=Foo ' + op + ' 2', (result) ->
@@ -17,3 +18,4 @@ operandTest = (op) ->
 
 operandTest('eq')
 operandTest('ne')
+operandTest('gt')
