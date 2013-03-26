@@ -45,6 +45,12 @@ ometa OData2AbstractSQL {
 				-> 'NotEquals'
 			|	'gt'
 				-> 'GreaterThan'
+			|	'ge'
+				-> 'GreaterThanOrEqual'
+			|	'lt'
+				-> 'LessThan'
+			|	'le'
+				-> 'LessThanOrEqual'
 			):operation
 			Operand:op1
 			Operand:op2

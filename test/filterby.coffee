@@ -6,6 +6,9 @@ sqlOps =
 	eq: 'Equals'
 	ne: 'NotEquals'
 	gt: 'GreaterThan'
+	ge: 'GreaterThanOrEqual'
+	lt: 'LessThan'
+	le: 'LessThanOrEqual'
 
 operandTest = (op) ->
 	test '/resource?$filterby=Foo ' + op + ' 2', (result) ->
@@ -19,3 +22,6 @@ operandTest = (op) ->
 operandTest('eq')
 operandTest('ne')
 operandTest('gt')
+operandTest('ge')
+operandTest('lt')
+operandTest('le')
