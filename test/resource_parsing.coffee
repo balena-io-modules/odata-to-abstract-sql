@@ -42,7 +42,7 @@ test '/model(1)', (result) ->
 
 
 test '/model(1)/child', (result) ->
-	it 'should select from model with id', ->
+	it 'should select from the child of model with id', ->
 		expect(result).to.be.a.query.that.
 			selects(['child', '*']).
 			from('model', 'child').
@@ -50,3 +50,11 @@ test '/model(1)/child', (result) ->
 				['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]]
 				['Equals', ['ReferencedField', 'child', 'id'], ['ReferencedField', 'model', 'child']]
 			)
+
+
+test '/model(1)/$links/child', (result) ->
+	it 'should select the list of children ids, for generating the links', ->
+		expect(result).to.be.a.query.that.
+			selects(['ReferencedField', 'model', 'child']).
+			from('model').
+			where(['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]])
