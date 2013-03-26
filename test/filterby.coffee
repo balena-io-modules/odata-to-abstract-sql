@@ -10,18 +10,25 @@ sqlOps =
 	lt: 'LessThan'
 	le: 'LessThanOrEqual'
 
-operandTest = (op) ->
-	test '/resource?$filterby=Foo ' + op + ' 2', (result) ->
-		it 'should select from resource where "Foo" "' + op + '" 2', ->
+operands =
+	2: ['Number', 2]
+	"'bar'": ['Text', 'bar']
+	"Foo": ['Field', 'Foo']
+
+operandTest = (op, lhs, rhs = 'Foo') ->
+	test '/resource?$filterby=' + lhs + ' ' + op + ' ' + rhs, (result) ->
+		it 'should select from resource where "' + lhs + '" "' + op + '" "' + rhs + '"', ->
 			expect(result).to.be.a.query.that.
 				selects(['resource', '*']).
 				from('resource').
-				where([sqlOps[op], ['Field', 'Foo'], ['Number', 2]])
+				where([sqlOps[op], operands[lhs], operands[rhs]])
 
+operandTest('eq', 2)
+operandTest('ne', 2)
+operandTest('gt', 2)
+operandTest('ge', 2)
+operandTest('lt', 2)
+operandTest('le', 2)
 
-operandTest('eq')
-operandTest('ne')
-operandTest('gt')
-operandTest('ge')
-operandTest('lt')
-operandTest('le')
+operandTest('eq', "'bar'")
+

@@ -60,6 +60,7 @@ ometa OData2AbstractSQL {
 
 	Operand =
 			Number
+		|	Text
 		|	Property
 	,
 
@@ -72,6 +73,11 @@ ometa OData2AbstractSQL {
 	Number =
 		number:num
 		-> ['Number', num]
+	,
+
+	Text =
+		string:text
+		-> ['Text', text]
 }
 
 module.exports = OData2AbstractSQL;
