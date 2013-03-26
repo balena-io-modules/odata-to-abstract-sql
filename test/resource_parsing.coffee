@@ -58,3 +58,7 @@ test '/model(1)/$links/child', (result) ->
 			selects(['ReferencedField', 'model', 'child']).
 			from('model').
 			where(['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]])
+
+
+test.skip '/method(1)/child?foo=bar', (result) ->
+	it 'should do something..'
