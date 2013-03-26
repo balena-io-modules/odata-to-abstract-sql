@@ -1,6 +1,6 @@
 require('ometa-js')
-{ODataParser} = require('odata-parser')
-OData2AbstractSQL = require('../odata-to-abstract-sql')
+ODataParser = require('odata-parser').ODataParser.createInstance()
+OData2AbstractSQL = require('../odata-to-abstract-sql').createInstance()
 
 module.exports = (input, expectation) ->
 
