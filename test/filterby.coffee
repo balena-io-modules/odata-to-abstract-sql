@@ -12,6 +12,7 @@ sqlOps =
 
 operands =
 	2: ['Number', 2]
+	2.5: ['Number', 2.5]
 	"'bar'": ['Text', 'bar']
 	"Foo": ['Field', 'Foo']
 
@@ -31,4 +32,4 @@ operandTest('lt', 2)
 operandTest('le', 2)
 
 operandTest('eq', "'bar'")
-
+operandTest('eq', 2.5)
