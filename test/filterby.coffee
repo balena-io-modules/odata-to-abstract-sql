@@ -28,23 +28,23 @@ createExpression = (lhs, op, rhs) ->
 		abstractsql: [sqlOps[op], lhs.abstractsql ? operandToAbstractSQL(lhs), rhs.abstractsql ? operandToAbstractSQL(rhs)]
 	}
 
-operandTest = (op, lhs, rhs = 'Foo') ->
+operandTest = (op, lhs, rhs = 'name') ->
 	{odata, abstractsql} = createExpression(lhs, op, rhs)
-	test '/resource?$filterby=' + odata, (result) ->
-		it 'should select from resource where "' + odata + '"', ->
+	test '/pilot?$filterby=' + odata, (result) ->
+		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-				selects(['resource', '*']).
-				from('resource').
+				selects(['pilot', '*']).
+				from('pilot').
 				where(abstractsql)
 
 notTest = (expression) ->
 	odata = 'not ' + if expression.odata? then '(' + expression.odata + ')' else expression
 	abstractsql = ['Not', expression.abstractsql ? operandToAbstractSQL(expression)]
-	test '/resource?$filterby=' + odata, (result) ->
-		it 'should select from resource where "' + odata + '"', ->
+	test '/pilot?$filterby=' + odata, (result) ->
+		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-				selects(['resource', '*']).
-				from('resource').
+				selects(['pilot', '*']).
+				from('pilot').
 				where(abstractsql)
 
 operandTest('eq', 2)
@@ -60,16 +60,16 @@ do ->
 			2
 			2.5
 			"'bar'"
-			"Foo"
+			"name"
 		]
 	for lhs in operands
 		for rhs in operands
 			operandTest('eq', lhs, rhs)
 
 do ->
-	left = createExpression('Foo', 'gt', 2)
-	right = createExpression('Foo', 'lt', 10)
+	left = createExpression('age', 'gt', 2)
+	right = createExpression('age', 'lt', 10)
 	operandTest('and', left, right)
 	operandTest('or', left, right)
-	notTest('Foo')
+	notTest('is_experienced')
 	notTest(left)

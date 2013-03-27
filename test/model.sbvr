@@ -1,0 +1,19 @@
+Term:       name
+	Concept Type: Short Text (Type)
+
+Term:       age
+	Concept Type: Integer (Type)
+
+Term:       plane
+
+Term:       pilot
+
+Fact type:  pilot is experienced
+
+Fact type:  pilot has name
+	Necessity: each pilot has exactly one name
+
+Fact type:  pilot has age
+	Necessity: each pilot has exactly one age
+
+Fact type:  pilot can fly plane

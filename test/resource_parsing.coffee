@@ -7,33 +7,33 @@ test '/', (result) ->
 		expect(result).to.be.empty
 
 
-test '/model', (result) ->
-	it 'should select from model', ->
-		expect(result).to.be.a.query.that.selects(['model', '*']).from('model')
+test '/pilot', (result) ->
+	it 'should select from pilot', ->
+		expect(result).to.be.a.query.that.selects(['pilot', '*']).from('pilot')
 
 
-test '/model(1)', (result) ->
-	it 'should select from model with id', ->
-		expect(result).to.be.a.query.that.selects(['model', '*']).from('model').where(['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]])
+test '/pilot(1)', (result) ->
+	it 'should select from pilot with id', ->
+		expect(result).to.be.a.query.that.selects(['pilot', '*']).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
 
-test '/model(1)/child', (result) ->
-	it 'should select from the child of model with id', ->
+test '/pilot(1)/plane', (result) ->
+	it 'should select from the plane of pilot with id', ->
 		expect(result).to.be.a.query.that.
-			selects(['child', '*']).
-			from('model', 'child').
+			selects(['plane', '*']).
+			from('pilot', 'plane').
 			where(
-				['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]]
-				['Equals', ['ReferencedField', 'child', 'id'], ['ReferencedField', 'model', 'child']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'pilot', 'plane']]
 			)
 
 
-test '/model(1)/$links/child', (result) ->
-	it 'should select the list of children ids, for generating the links', ->
+test '/pilot(1)/$links/plane', (result) ->
+	it 'should select the list of plane ids, for generating the links', ->
 		expect(result).to.be.a.query.that.
-			selects(['ReferencedField', 'model', 'child']).
-			from('model').
-			where(['Equals', ['ReferencedField', 'model', 'id'], ['Number', 1]])
+			selects(['ReferencedField', 'pilot', 'plane']).
+			from('pilot').
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
 
 test.skip '/method(1)/child?foo=bar', (result) ->
