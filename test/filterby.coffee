@@ -38,8 +38,8 @@ operandTest = (op, lhs, rhs = 'Foo') ->
 				where(abstractsql)
 
 notTest = (expression) ->
-	odata = 'not ' + (expression.odata ? expression)
-	abstractsql = ['Not', operandToAbstractSQL(expression) ? expression.abstractsql]
+	odata = 'not ' + if expression.odata? then '(' + expression.odata + ')' else expression
+	abstractsql = ['Not', expression.abstractsql ? operandToAbstractSQL(expression)]
 	test '/resource?$filterby=' + odata, (result) ->
 		it 'should select from resource where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
@@ -72,3 +72,4 @@ do ->
 	operandTest('and', left, right)
 	operandTest('or', left, right)
 	notTest('Foo')
+	notTest(left)
