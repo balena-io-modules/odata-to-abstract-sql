@@ -53,3 +53,13 @@ do ->
 	for lhs in operands
 		for rhs in operands
 			operandTest('eq', lhs, rhs)
+
+do ->
+	left = createExpression('Foo', 'gt', 2)
+	right = createExpression('Foo', 'lt', 10)
+	test '/resource?$filterby=' + left.odata + ' and ' + right.odata, (result) ->
+		it 'should select from resource where price > 5 and price < 10', ->
+			expect(result).to.be.a.query.that.
+				selects(['resource', '*']).
+				from('resource').
+				where(['And', left.abstractsql, right.abstractsql])

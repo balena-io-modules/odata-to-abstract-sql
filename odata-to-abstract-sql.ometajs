@@ -27,7 +27,7 @@ ometa OData2AbstractSQL {
 			)
 			(	?(!path.options)
 			|	(	?(!path.options.$filterby)
-				|	FilterBy(path.options.$filterby):filter
+				|	Boolean(path.options.$filterby):filter
 					-> query.push(['Where', filter])
 				)
 			)
@@ -38,7 +38,7 @@ ometa OData2AbstractSQL {
 		)
 	,
 
-	FilterBy =
+	Boolean =
 		[	(	'eq'
 				-> 'Equals'
 			|	'ne'
@@ -54,12 +54,18 @@ ometa OData2AbstractSQL {
 			):operation
 			Operand:op1
 			Operand:op2
+		|	(	'and'
+				-> 'And'
+			):operation
+			Boolean:op1
+			Boolean:op2
 		]
 		-> [operation, op1, op2]
 	,
 
 	Operand =
-			Number
+			Boolean
+		|	Number
 		|	Text
 		|	Property
 	,
