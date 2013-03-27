@@ -8,13 +8,9 @@ runExpectation = (describe, input, expectation) ->
 		try
 			input = ODataParser.matchAll(input, 'OData')
 			result = OData2AbstractSQL.match(input, 'Process')
+			expectation(result)
 		catch e
-			console.error e, e.stack
-			throw e
-
-		# I had error code here, might add it for
-		# negative testing later
-		expectation(result)
+			expectation(e)
 
 module.exports = runExpectation.bind(null, describe)
 module.exports.skip = runExpectation.bind(null, describe.skip)
