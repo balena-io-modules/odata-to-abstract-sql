@@ -1,6 +1,6 @@
 _ = require('lodash')
 
-ometa OData2AbstractSQL {
+export ometa OData2AbstractSQL {
 
 	Process =
 		PathSegment:query
@@ -100,5 +100,3 @@ ometa OData2AbstractSQL {
 		string:text
 		-> ['Text', text]
 }
-
-module.exports = OData2AbstractSQL;
