@@ -1,5 +1,5 @@
 require('ometa-js')
-ODataParser = require('odata-parser').ODataParser.createInstance()
+ODataParser = require('odata-parser').createInstance()
 OData2AbstractSQL = require('../odata-to-abstract-sql').createInstance()
 
 runExpectation = (describe, input, expectation) ->
