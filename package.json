@@ -2,9 +2,10 @@
 	"name": "odata-to-abstract-sql",
 	"version": "0.0.0",
 	"description": "A consumer of the OData parser, written in OMeta",
-	"main": "odata-to-abstract-sql.ometajs",
+	"main": "odata-to-abstract-sql.js",
 	"scripts": {
-		"test": "mocha"
+		"test": "mocha",
+		"postinstall": "npm install ometa-js@1.x && node node_modules/ometa-js/bin/ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
 	},
 	"repository": "",
 	"author": "",
