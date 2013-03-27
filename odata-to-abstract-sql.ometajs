@@ -39,37 +39,41 @@ ometa OData2AbstractSQL {
 	,
 
 	Boolean =
-		[	(	'eq'
-				-> 'Equals'
-			|	'ne'
-				-> 'NotEquals'
-			|	'gt'
-				-> 'GreaterThan'
-			|	'ge'
-				-> 'GreaterThanOrEqual'
-			|	'lt'
-				-> 'LessThan'
-			|	'le'
-				-> 'LessThanOrEqual'
-			):operation
-			Operand:op1
-			Operand:op2
-		|	(	'and'
-				-> 'And'
-			|	'or'
-				-> 'Or'
-			):operation
-			Boolean:op1
-			Boolean:op2
-		]
-		-> [operation, op1, op2]
+			[	(	'eq'
+					-> 'Equals'
+				|	'ne'
+					-> 'NotEquals'
+				|	'gt'
+					-> 'GreaterThan'
+				|	'ge'
+					-> 'GreaterThanOrEqual'
+				|	'lt'
+					-> 'LessThan'
+				|	'le'
+					-> 'LessThanOrEqual'
+				):operation
+				Operand:op1
+				Operand:op2
+			|	(	'and'
+					-> 'And'
+				|	'or'
+					-> 'Or'
+				):operation
+				Boolean:op1
+				Boolean:op2
+			]
+			-> [operation, op1, op2]
+		|	[	'not'
+				Boolean:bool
+			]
+			-> ['Not', bool]
+		|	Property
 	,
 
 	Operand =
 			Boolean
 		|	Number
 		|	Text
-		|	Property
 	,
 
 	Property =
