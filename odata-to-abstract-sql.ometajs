@@ -12,18 +12,21 @@ ometa OData2AbstractSQL {
 		(	?_.isEmpty(path)
 			-> []
 		|	?path.resource
-			{[['From', path.resource]]}:query
+			Resource(path.resource):resource
+			{[['From', resource.resourceName]]}:query
 			(	?path.property
+				Resource(path.property.resource):propertyResource
 				PathSegment(path.property):childQuery
 				{query.concat(childQuery)}:query
-				-> query.push(['Where', ['Equals', ['ReferencedField', path.property.resource, 'id'], ['ReferencedField', path.resource, path.property.resource]]])
+				-> query.push(['Where', ['Equals', ['ReferencedField', propertyResource.resourceName, propertyResource.idField], ['ReferencedField', resource.resourceName, propertyResource.resourceName]]])
 			|	?path.link
-				{['ReferencedField', path.resource, path.link.resource]}:referencedField
+				Resource(path.link.resource):linkResource
+				{['ReferencedField', resource.resourceName, linkResource.resourceName]}:referencedField
 				(	?path.link.key
 					-> query.push(['Where', ['Equals', referencedField, ['Number', path.key]]])
 				)?
 				-> query.push(['Select', referencedField])
-			|	-> query.push(['Select', [path.resource, '*']])
+			|	-> query.push(['Select', [resource.resourceName, '*']])
 			)
 			(	?(!path.options)
 			|	(	?(!path.options.$filterby)
@@ -32,10 +35,16 @@ ometa OData2AbstractSQL {
 				)
 			)
 			(	?path.key
-				-> query.push(['Where', ['Equals', ['ReferencedField', path.resource, 'id'], ['Number', path.key]]])
+				-> query.push(['Where', ['Equals', ['ReferencedField', resource.resourceName, resource.idField], ['Number', path.key]]])
 			)?
 			-> query
 		)
+	,
+
+	Resource :resourceName =
+			?this.clientModel.resources[resourceName]
+			-> this.clientModel.resources[resourceName]
+		|	{throw 'Unknown resource: ' + resourceName}
 	,
 
 	Boolean =

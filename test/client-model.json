@@ -1,0 +1,278 @@
+{
+	"resources": {
+		"plane": {
+			"resourceName": "plane",
+			"modelName": "plane",
+			"topLevel": true,
+			"fields": [
+				{
+					"dataType": "Serial",
+					"fieldName": "id",
+					"required": true,
+					"index": "PRIMARY KEY"
+				}
+			],
+			"idField": "id",
+			"referenceScheme": "id",
+			"actions": [
+				"view",
+				"add",
+				"edit",
+				"delete"
+			]
+		},
+		"pilot": {
+			"resourceName": "pilot",
+			"modelName": "pilot",
+			"topLevel": true,
+			"fields": [
+				{
+					"dataType": "Serial",
+					"fieldName": "id",
+					"required": true,
+					"index": "PRIMARY KEY"
+				},
+				{
+					"dataType": "Boolean",
+					"fieldName": "is experienced",
+					"required": true
+				},
+				{
+					"dataType": "Short Text",
+					"fieldName": "name",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "name",
+						"fieldName": null
+					}
+				},
+				{
+					"dataType": "Integer",
+					"fieldName": "age",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "age",
+						"fieldName": null
+					}
+				}
+			],
+			"idField": "id",
+			"referenceScheme": "id",
+			"actions": [
+				"view",
+				"add",
+				"edit",
+				"delete"
+			]
+		},
+		"pilot__is_experienced": {
+			"resourceName": "pilot__is_experienced",
+			"modelName": "pilot is experienced",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "Boolean",
+					"fieldName": "is experienced",
+					"required": true
+				}
+			],
+			"idField": "pilot",
+			"referenceScheme": "is experienced",
+			"actions": [
+				"view",
+				"add",
+				"delete"
+			]
+		},
+		"pilot__has__name": {
+			"resourceName": "pilot__has__name",
+			"modelName": "pilot has name",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "Short Text",
+					"fieldName": "name",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "name",
+						"fieldName": null
+					}
+				}
+			],
+			"idField": "pilot",
+			"referenceScheme": "name",
+			"actions": [
+				"view",
+				"add",
+				"delete"
+			]
+		},
+		"pilot__has__age": {
+			"resourceName": "pilot__has__age",
+			"modelName": "pilot has age",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "Integer",
+					"fieldName": "age",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "age",
+						"fieldName": null
+					}
+				}
+			],
+			"idField": "pilot",
+			"referenceScheme": "age",
+			"actions": [
+				"view",
+				"add",
+				"delete"
+			]
+		},
+		"pilot__can_fly__plane": {
+			"resourceName": "pilot__can_fly__plane",
+			"modelName": "pilot can fly plane",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "plane",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "plane",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "Serial",
+					"fieldName": "id",
+					"required": true,
+					"index": "PRIMARY KEY"
+				}
+			],
+			"idField": "id",
+			"actions": [
+				"view",
+				"add",
+				"edit",
+				"delete"
+			]
+		}
+	},
+	"resourceToSQLMappings": {
+		"plane": {
+			"id": [
+				"plane",
+				"id"
+			]
+		},
+		"pilot": {
+			"id": [
+				"pilot",
+				"id"
+			],
+			"is experienced": [
+				"pilot",
+				"is experienced"
+			],
+			"name": [
+				"pilot",
+				"name"
+			],
+			"age": [
+				"pilot",
+				"age"
+			]
+		},
+		"pilot__is_experienced": {
+			"pilot": [
+				"pilot",
+				"id"
+			],
+			"is experienced": [
+				"pilot",
+				"is experienced"
+			]
+		},
+		"pilot__has__name": {
+			"pilot": [
+				"pilot",
+				"id"
+			],
+			"name": [
+				"pilot",
+				"name"
+			]
+		},
+		"pilot__has__age": {
+			"pilot": [
+				"pilot",
+				"id"
+			],
+			"age": [
+				"pilot",
+				"age"
+			]
+		},
+		"pilot__can_fly__plane": {
+			"pilot": [
+				"pilot-can_fly-plane",
+				"pilot"
+			],
+			"plane": [
+				"pilot-can_fly-plane",
+				"plane"
+			],
+			"id": [
+				"pilot-can_fly-plane",
+				"id"
+			]
+		}
+	}
+}
