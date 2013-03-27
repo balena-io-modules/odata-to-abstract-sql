@@ -56,6 +56,8 @@ ometa OData2AbstractSQL {
 			Operand:op2
 		|	(	'and'
 				-> 'And'
+			|	'or'
+				-> 'Or'
 			):operation
 			Boolean:op1
 			Boolean:op2
