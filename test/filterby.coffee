@@ -10,6 +10,7 @@ sqlOps =
 	ge: 'GreaterThanOrEqual'
 	lt: 'LessThan'
 	le: 'LessThanOrEqual'
+	and: 'And'
 
 operandToAbstractSQL = (operand) ->
 	if _.isNumber(operand)
@@ -22,8 +23,8 @@ operandToAbstractSQL = (operand) ->
 
 createExpression = (lhs, op, rhs) ->
 	return {
-		odata: lhs + ' ' + op + ' ' + rhs
-		abstractsql: [sqlOps[op], operandToAbstractSQL(lhs), operandToAbstractSQL(rhs)]
+		odata: (lhs.odata ? lhs) + ' ' + op + ' ' + (rhs.odata ? rhs)
+		abstractsql: [sqlOps[op], lhs.abstractsql ? operandToAbstractSQL(lhs), rhs.abstractsql ? operandToAbstractSQL(rhs)]
 	}
 
 operandTest = (op, lhs, rhs = 'Foo') ->
@@ -57,9 +58,4 @@ do ->
 do ->
 	left = createExpression('Foo', 'gt', 2)
 	right = createExpression('Foo', 'lt', 10)
-	test '/resource?$filterby=' + left.odata + ' and ' + right.odata, (result) ->
-		it 'should select from resource where price > 5 and price < 10', ->
-			expect(result).to.be.a.query.that.
-				selects(['resource', '*']).
-				from('resource').
-				where(['And', left.abstractsql, right.abstractsql])
+	operandTest('and', left, right)
