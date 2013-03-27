@@ -10,6 +10,7 @@
 	"author": "",
 	"license": "BSD",
 	"dependencies": {
+		"odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git",
 		"ometa-js": "1.x",
 		"coffee-script": "latest",
 		"chai": "latest",
