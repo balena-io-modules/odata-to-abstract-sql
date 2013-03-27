@@ -1,6 +1,7 @@
 expect = require('chai').expect
 require('./chai-sql')
 test = require('./test')
+_ = require('lodash')
 
 sqlOps =
 	eq: 'Equals'
@@ -10,19 +11,29 @@ sqlOps =
 	lt: 'LessThan'
 	le: 'LessThanOrEqual'
 
-operands =
-	2: ['Number', 2]
-	2.5: ['Number', 2.5]
-	"'bar'": ['Text', 'bar']
-	"Foo": ['Field', 'Foo']
+operandToAbstractSQL = (operand) ->
+	if _.isNumber(operand)
+		return ['Number', operand]
+	if _.isString(operand)
+		if operand.charAt(0) is "'"
+			return ['Text', operand[1...(operand.length - 1)]]
+		return ['Field', operand]
+	throw 'Unknown operand type: ' + operand
+
+createExpression = (lhs, op, rhs) ->
+	return {
+		odata: lhs + ' ' + op + ' ' + rhs
+		abstractsql: [sqlOps[op], operandToAbstractSQL(lhs), operandToAbstractSQL(rhs)]
+	}
 
 operandTest = (op, lhs, rhs = 'Foo') ->
-	test '/resource?$filterby=' + lhs + ' ' + op + ' ' + rhs, (result) ->
-		it 'should select from resource where "' + lhs + '" "' + op + '" "' + rhs + '"', ->
+	{odata, abstractsql} = createExpression(lhs, op, rhs)
+	test '/resource?$filterby=' + odata, (result) ->
+		it 'should select from resource where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
 				selects(['resource', '*']).
 				from('resource').
-				where([sqlOps[op], operands[lhs], operands[rhs]])
+				where(abstractsql)
 
 operandTest('eq', 2)
 operandTest('ne', 2)
@@ -32,6 +43,13 @@ operandTest('lt', 2)
 operandTest('le', 2)
 
 # Test each combination of operands
-for lhs, v of operands
-	for rhs, v of operands
-		operandTest('eq', lhs, rhs)
+do ->
+	operands = [
+			2
+			2.5
+			"'bar'"
+			"Foo"
+		]
+	for lhs in operands
+		for rhs in operands
+			operandTest('eq', lhs, rhs)
