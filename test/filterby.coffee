@@ -30,7 +30,7 @@ createExpression = (lhs, op, rhs) ->
 
 operandTest = (op, lhs, rhs = 'name') ->
 	{odata, abstractsql} = createExpression(lhs, op, rhs)
-	test '/pilot?$filterby=' + odata, (result) ->
+	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
 				selects(['pilot', '*']).
@@ -40,7 +40,7 @@ operandTest = (op, lhs, rhs = 'name') ->
 notTest = (expression) ->
 	odata = 'not ' + if expression.odata? then '(' + expression.odata + ')' else expression
 	abstractsql = ['Not', expression.abstractsql ? operandToAbstractSQL(expression)]
-	test '/pilot?$filterby=' + odata, (result) ->
+	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
 				selects(['pilot', '*']).

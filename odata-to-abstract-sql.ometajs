@@ -29,8 +29,8 @@ export ometa OData2AbstractSQL {
 			|	-> query.push(['Select', [resource.resourceName, '*']])
 			)
 			(	?(!path.options)
-			|	(	?(!path.options.$filterby)
-				|	Boolean(path.options.$filterby):filter
+			|	(	?(!path.options.$filter)
+				|	Boolean(path.options.$filter):filter
 					-> query.push(['Where', filter])
 				)
 			)
