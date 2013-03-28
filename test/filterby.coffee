@@ -12,6 +12,7 @@ sqlOps =
 	le: 'LessThanOrEqual'
 	and: 'And'
 	or: 'Or'
+	add: 'Add'
 
 operandToAbstractSQL = (operand) ->
 	if _.isNumber(operand)
@@ -73,3 +74,7 @@ do ->
 	operandTest('or', left, right)
 	notTest('is_experienced')
 	notTest(left)
+
+do ->
+	add = createExpression('age', 'add', 2)
+	operandTest('gt', add, 10)

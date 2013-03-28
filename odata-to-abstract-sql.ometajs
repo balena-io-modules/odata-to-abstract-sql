@@ -102,6 +102,15 @@ export ometa OData2AbstractSQL {
 			Boolean
 		|	Number
 		|	Text
+		|	Add
+	,
+
+	Add =
+		[	'add'
+			Operand:op1
+			Operand:op2
+		]
+		-> ['Add', op1, op2]
 	,
 
 	Property =
