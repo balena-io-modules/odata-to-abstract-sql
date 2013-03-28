@@ -2,43 +2,62 @@ _ = require('lodash')
 
 export ometa OData2AbstractSQL {
 
-	Process =
-		PathSegment:query
-		end
-		-> query
-	,
-	PathSegment =
+	Process :method =
 		:path
+		end
 		(	?_.isEmpty(path)
 			-> []
-		|	?path.resource
-			Resource(path.resource):resource
-			{[['From', resource.resourceName]]}:query
-			(	?path.property
-				Resource(path.property.resource):propertyResource
-				PathSegment(path.property):childQuery
-				{query.concat(childQuery)}:query
-				-> query.push(['Where', ['Equals', ['ReferencedField', propertyResource.resourceName, propertyResource.idField], ['ReferencedField', resource.resourceName, propertyResource.resourceName]]])
-			|	?path.link
-				Resource(path.link.resource):linkResource
-				{['ReferencedField', resource.resourceName, linkResource.resourceName]}:referencedField
-				(	?path.link.key
-					-> query.push(['Where', ['Equals', referencedField, ['Number', path.key]]])
-				)?
-				-> query.push(['Select', referencedField])
-			|	-> query.push(['Select', [resource.resourceName, '*']])
+		|	PathSegment(method, path):query
+			(	?(method == 'GET')
+				-> ['SelectQuery'].concat(query)
+			|	?(method == 'PUT')
+				-> ['UpsertQuery'].concat(query)
+			|	?(method == 'POST')
+				-> ['InsertQuery'].concat(query)
+			|	?(method == 'DELETE')
+				-> ['DeleteQuery'].concat(query)
 			)
-			(	?(!path.options)
-			|	(	?(!path.options.$filter)
-				|	Boolean(path.options.$filter):filter
-					-> query.push(['Where', filter])
-				)
-			)
-			(	?path.key
-				-> query.push(['Where', ['Equals', ['ReferencedField', resource.resourceName, resource.idField], ['Number', path.key]]])
-			)?
-			-> query
 		)
+	,
+	PathSegment :method :path =
+		?path.resource
+		Resource(path.resource):resource
+		{[['From', resource.resourceName]]}:query
+		(	?path.property
+			Resource(path.property.resource):propertyResource
+			PathSegment(method, path.property):childQuery
+			{query.concat(childQuery)}:query
+			-> query.push(['Where', ['Equals', ['ReferencedField', propertyResource.resourceName, propertyResource.idField], ['ReferencedField', resource.resourceName, propertyResource.resourceName]]])
+		|	?path.link
+			Resource(path.link.resource):linkResource
+			{['ReferencedField', resource.resourceName, linkResource.resourceName]}:referencedField
+			(	?path.link.key
+				-> query.push(['Where', ['Equals', referencedField, ['Number', path.key]]])
+			)?
+			-> query.push(['Select', referencedField])
+		|	?(method == 'PUT' || method == 'POST')
+			Fields(resource.resourceName, resource.fields):fields
+			-> query.push(['Fields', fields])
+		|	-> query.push(['Select', [resource.resourceName, '*']])
+		)
+		(	?(!path.options)
+		|	(	?(!path.options.$filter)
+			|	Boolean(path.options.$filter):filter
+				-> query.push(['Where', filter])
+			)
+		)
+		(	?path.key
+			-> query.push(['Where', ['Equals', ['ReferencedField', resource.resourceName, resource.idField], ['Number', path.key]]])
+		)?
+		-> query
+	,
+
+	Fields :tableName =
+		[	(	:field
+				-> [field.fieldName,['Bind', tableName, field.fieldName]]
+			)*:fields
+		]
+		-> fields
 	,
 
 	Resource :resourceName =

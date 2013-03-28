@@ -19,4 +19,5 @@ chai.use((chai, utils) ->
 	utils.addChainableMethod(assertionPrototype, 'selects', select)
 	utils.addMethod(assertionPrototype, 'from', bodyClause('From'))
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))
+	utils.addMethod(assertionPrototype, 'fields', bodyClause('Fields'))
 )
