@@ -29,7 +29,7 @@ createExpression = (lhs, op, rhs) ->
 		abstractsql: [sqlOps[op], lhs.abstractsql ? operandToAbstractSQL(lhs), rhs.abstractsql ? operandToAbstractSQL(rhs)]
 	}
 
-operandTest = (op, lhs, rhs = 'name') ->
+operandTest = (lhs, op, rhs = 'name') ->
 	{odata, abstractsql} = createExpression(lhs, op, rhs)
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
@@ -48,12 +48,12 @@ notTest = (expression) ->
 				from('pilot').
 				where(abstractsql)
 
-operandTest('eq', 2)
-operandTest('ne', 2)
-operandTest('gt', 2)
-operandTest('ge', 2)
-operandTest('lt', 2)
-operandTest('le', 2)
+operandTest(2, 'eq')
+operandTest(2, 'ne')
+operandTest(2, 'gt')
+operandTest(2, 'ge')
+operandTest(2, 'lt')
+operandTest(2, 'le')
 
 # Test each combination of operands
 do ->
@@ -65,16 +65,16 @@ do ->
 		]
 	for lhs in operands
 		for rhs in operands
-			operandTest('eq', lhs, rhs)
+			operandTest(lhs, 'eq', rhs)
 
 do ->
 	left = createExpression('age', 'gt', 2)
 	right = createExpression('age', 'lt', 10)
-	operandTest('and', left, right)
-	operandTest('or', left, right)
+	operandTest(left, 'and', right)
+	operandTest(left, 'or', right)
 	notTest('is_experienced')
 	notTest(left)
 
 do ->
 	add = createExpression('age', 'add', 2)
-	operandTest('gt', add, 10)
+	operandTest(add, 'gt', 10)
