@@ -45,11 +45,23 @@ export ometa OData2AbstractSQL {
 			|	Boolean(path.options.$filter):filter
 				-> query.push(['Where', filter])
 			)
+			(	?(!path.options.$orderby)
+			|	OrderBy(path.options.$orderby.properties):orderby
+				-> query.push(['OrderBy'].concat(orderby))
+			)
 		)
 		(	?path.key
 			-> query.push(['Where', ['Equals', ['ReferencedField', resource.resourceName, resource.idField], ['Number', path.key]]])
 		)?
 		-> query
+	,
+
+	OrderBy =
+		[	(	:ordering
+				-> [ordering.order.toUpperCase(), ordering.name]
+			)+:orderby
+		]
+		-> orderby
 	,
 
 	Fields :tableName =
