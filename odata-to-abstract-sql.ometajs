@@ -110,6 +110,8 @@ export ometa OData2AbstractSQL {
 				-> 'Add'
 			|	'sub'
 				-> 'Sub'
+			|	'mul'
+				-> 'Multiply'
 			):operation
 			Operand:op1
 			Operand:op2
