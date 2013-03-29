@@ -20,5 +20,10 @@ chai.use((chai, utils) ->
 	utils.addMethod(assertionPrototype, 'fields', bodyClause('Fields'))
 	utils.addMethod(assertionPrototype, 'from', bodyClause('From'))
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))
-	utils.addMethod(assertionPrototype, 'orderby', bodyClause('OrderBy'))
+	utils.addMethod(assertionPrototype, 'orderby', (bodyClauses...) ->
+		bodyType = 'OrderBy'
+		obj = utils.flag(@, 'object')
+		expect(obj).to.contain.something.that.deep.equals([bodyType].concat(bodyClauses), bodyType)
+		return @
+	)
 )
