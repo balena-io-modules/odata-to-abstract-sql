@@ -58,7 +58,7 @@ export ometa OData2AbstractSQL {
 
 	OrderBy =
 		[	(	:ordering
-				-> [ordering.order.toUpperCase(), ordering.name]
+				-> [ordering.order.toUpperCase(), ['Field', ordering.name]]
 			)+:orderby
 		]
 		-> orderby

@@ -7,7 +7,7 @@ test '/pilot?$orderby=name', (result) ->
 		expect(result).to.be.a.query.that.
 			selects(['pilot', '*']).
 			from('pilot').
-			orderby(['DESC', 'name'])
+			orderby(['DESC', ['Field', 'name']])
 
 
 test '/pilot?$orderby=name,age', (result) ->
@@ -16,6 +16,6 @@ test '/pilot?$orderby=name,age', (result) ->
 			selects(['pilot', '*']).
 			from('pilot').
 			orderby(
-				['DESC', 'name']
-				['DESC', 'age']
+				['DESC', ['Field', 'name']]
+				['DESC', ['Field', 'age']]
 			)
