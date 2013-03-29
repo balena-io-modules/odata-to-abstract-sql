@@ -4,6 +4,9 @@ Term:       name
 Term:       age
 	Concept Type: Integer (Type)
 
+Term:       favourite colour
+	Concept Type: Color (Type)
+
 Term:       plane
 
 Term:       pilot
@@ -15,5 +18,8 @@ Fact type:  pilot has name
 
 Fact type:  pilot has age
 	Necessity: each pilot has exactly one age
+
+Fact type:  pilot has favourite colour
+	Necessity: each pilot has exactly one favourite colour
 
 Fact type:  pilot can fly plane

@@ -46,3 +46,7 @@ test '/pilot?$orderby=name asc,age desc', (result) ->
 				['ASC', ['Field', 'name']]
 				['DESC', ['Field', 'age']]
 			)
+
+
+test.skip '/pilot?$orderby=favourite_colour/red', (result) ->
+	it "should order by how red the pilot's favourite colour is"

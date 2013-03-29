@@ -37,6 +37,7 @@ do ->
 					['is experienced', ['Bind', 'pilot', 'is experienced']]
 					['name',  ['Bind', 'pilot', 'name']]
 					['age',  ['Bind', 'pilot', 'age']]
+					['favourite colour',  ['Bind', 'pilot', 'favourite colour']]
 				]).
 				from('pilot').
 				where(
@@ -52,6 +53,10 @@ test '/pilot(1)/$links/plane', (result) ->
 			selects(['ReferencedField', 'pilot', 'plane']).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+
+
+test.skip '/pilot(1)/favourite_colour/red', (result) ->
+	it "should select the red component of the pilot's favourite colour"
 
 
 test.skip '/method(1)/child?foo=bar', (result) ->

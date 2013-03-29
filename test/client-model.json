@@ -56,6 +56,16 @@
 						"tableName": "age",
 						"fieldName": null
 					}
+				},
+				{
+					"dataType": "Color",
+					"fieldName": "favourite colour",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "favourite_colour",
+						"fieldName": null
+					}
 				}
 			],
 			"idField": "id",
@@ -164,6 +174,31 @@
 				"delete"
 			]
 		},
+		"pilot__has__favourite_colour": {
+			"resourceName": "pilot__has__favourite_colour",
+			"modelName": "pilot has favourite colour",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					}
+				},
+				false
+			],
+			"idField": "pilot",
+			"referenceScheme": "favourite_colour",
+			"actions": [
+				"view",
+				"add",
+				"delete"
+			]
+		},
 		"pilot__can_fly__plane": {
 			"resourceName": "pilot__can_fly__plane",
 			"modelName": "pilot can fly plane",
@@ -228,6 +263,10 @@
 			"age": [
 				"pilot",
 				"age"
+			],
+			"favourite colour": [
+				"pilot",
+				"favourite colour"
 			]
 		},
 		"pilot__is_experienced": {
@@ -258,6 +297,16 @@
 			"age": [
 				"pilot",
 				"age"
+			]
+		},
+		"pilot__has__favourite_colour": {
+			"pilot": [
+				"pilot",
+				"id"
+			],
+			"favourite_colour": [
+				"pilot",
+				"favourite_colour"
 			]
 		},
 		"pilot__can_fly__plane": {
