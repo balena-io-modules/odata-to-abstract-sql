@@ -3,7 +3,7 @@ require('./chai-sql')
 test = require('./test')
 
 test '/pilot?$orderby=name', (result) ->
-	it 'should order by name', ->
+	it 'should order by name desc', ->
 		expect(result).to.be.a.query.that.
 			selects(['pilot', '*']).
 			from('pilot').
@@ -17,5 +17,32 @@ test '/pilot?$orderby=name,age', (result) ->
 			from('pilot').
 			orderby(
 				['DESC', ['Field', 'name']]
+				['DESC', ['Field', 'age']]
+			)
+
+			
+test '/pilot?$orderby=name desc', (result) ->
+	it 'should order by name desc', ->
+		expect(result).to.be.a.query.that.
+			selects(['pilot', '*']).
+			from('pilot').
+			orderby(['DESC', ['Field', 'name']])
+
+			
+test '/pilot?$orderby=name asc', (result) ->
+	it 'should order by name asc', ->
+		expect(result).to.be.a.query.that.
+			selects(['pilot', '*']).
+			from('pilot').
+			orderby(['ASC', ['Field', 'name']])
+
+
+test '/pilot?$orderby=name asc,age desc', (result) ->
+	it 'should order by name desc, age desc', ->
+		expect(result).to.be.a.query.that.
+			selects(['pilot', '*']).
+			from('pilot').
+			orderby(
+				['ASC', ['Field', 'name']]
 				['DESC', ['Field', 'age']]
 			)
