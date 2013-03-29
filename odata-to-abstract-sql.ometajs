@@ -102,15 +102,19 @@ export ometa OData2AbstractSQL {
 			Boolean
 		|	Number
 		|	Text
-		|	Add
+		|	Math
 	,
 
-	Add =
-		[	'add'
+	Math =
+		[	(	'add'
+				-> 'Add'
+			|	'sub'
+				-> 'Sub'
+			):operation
 			Operand:op1
 			Operand:op2
 		]
-		-> ['Add', op1, op2]
+		-> [operation, op1, op2]
 	,
 
 	Property =
