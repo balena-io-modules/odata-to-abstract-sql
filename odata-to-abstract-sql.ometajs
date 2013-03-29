@@ -109,9 +109,11 @@ export ometa OData2AbstractSQL {
 		[	(	'add'
 				-> 'Add'
 			|	'sub'
-				-> 'Sub'
+				-> 'Subtract'
 			|	'mul'
 				-> 'Multiply'
+			|	'div'
+				-> 'Divide'
 			):operation
 			Operand:op1
 			Operand:op2

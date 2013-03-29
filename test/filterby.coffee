@@ -13,8 +13,9 @@ sqlOps =
 	and: 'And'
 	or: 'Or'
 	add: 'Add'
-	sub: 'Sub'
+	sub: 'Subtract'
 	mul: 'Multiply'
+	div: 'Divide'
 
 operandToAbstractSQL = (operand) ->
 	if _.isNumber(operand)
@@ -82,6 +83,7 @@ do ->
 		'add'
 		'sub'
 		'mul'
+		'div'
 	]
 	for mathOp in mathOps
 		mathOp = createExpression('age', mathOp, 2)
