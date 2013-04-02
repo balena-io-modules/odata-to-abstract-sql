@@ -23,6 +23,9 @@ operandToAbstractSQL = (operand) ->
 	if _.isString(operand)
 		if operand.charAt(0) is "'"
 			return ['Text', operand[1...(operand.length - 1)]]
+		fieldParts = operand.split('/')
+		if fieldParts.length > 1
+			return ['ReferencedField'].concat(fieldParts)
 		return ['Field', operand]
 	throw 'Unknown operand type: ' + operand
 
@@ -65,6 +68,7 @@ do ->
 			2.5
 			"'bar'"
 			"name"
+			"pilot/name"
 		]
 	for lhs in operands
 		for rhs in operands

@@ -149,7 +149,14 @@ export ometa OData2AbstractSQL {
 	Property =
 		:prop
 		?prop.name
-		-> ['Field', prop.name]
+		(	?prop.property
+			(	?prop.property.name
+				-> ['ReferencedField', prop.name, prop.property.name]
+			|	{console.error(prop)}
+				__SUBPROPERTY_WITHOUT_NAME__
+			)
+		|	-> ['Field', prop.name]
+		)
 	,
 
 	Number =
