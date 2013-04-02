@@ -27,10 +27,10 @@ test '/pilot(1)/plane', (result) ->
 		expect(result).to.be.a.query.that.
 			selects(['plane', '*']).
 			from('pilot', 'plane').
-			where(
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+			where(['And',
 				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'pilot', 'plane']]
-			)
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+			])
 
 
 do ->
@@ -45,9 +45,7 @@ do ->
 					['favourite colour',  ['Bind', 'pilot', 'favourite colour']]
 				).
 				from('pilot').
-				where(
-					['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
-				)
+				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 	test '/pilot(1)', 'PUT', testPilot1
 	test '/pilot(1)', 'POST', testPilot1
 

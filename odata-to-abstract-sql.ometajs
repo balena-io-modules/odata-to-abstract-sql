@@ -25,16 +25,17 @@ export ometa OData2AbstractSQL {
 		?path.resource
 		Resource(path.resource):resource
 		{[['From', resource.tableName]]}:query
+		{[]}:where
 		(	?path.property
 			Resource(path.property.resource):propertyResource
 			PathSegment(method, path.property):childQuery
 			{query.concat(childQuery)}:query
-			-> query.push(['Where', ['Equals', ['ReferencedField', propertyResource.tableName, propertyResource.idField], ['ReferencedField', resource.tableName, propertyResource.tableName]]])
+			-> where.push(['Equals', ['ReferencedField', propertyResource.tableName, propertyResource.idField], ['ReferencedField', resource.tableName, propertyResource.tableName]])
 		|	?path.link
 			Resource(path.link.resource):linkResource
 			{['ReferencedField', resource.tableName, linkResource.tableName]}:referencedField
 			(	?path.link.key
-				-> query.push(['Where', ['Equals', referencedField, ['Number', path.key]]])
+				-> where.push(['Equals', referencedField, ['Number', path.key]])
 			)?
 			-> query.push(['Select', [referencedField]])
 		|	?(method == 'PUT' || method == 'POST')
@@ -46,7 +47,7 @@ export ometa OData2AbstractSQL {
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
 			|	Boolean(path.options.$filter):filter
-				-> query.push(['Where', filter])
+				-> where.push(filter)
 			)
 			(	?(!path.options.$orderby)
 			|	OrderBy(path.options.$orderby.properties):orderby
@@ -55,7 +56,14 @@ export ometa OData2AbstractSQL {
 		)
 
 		(	?path.key
-			-> query.push(['Where', ['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]]])
+			-> where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
+		)?
+
+		(	?where.length
+			(	?(where.length > 1)
+				-> query.push(['Where', ['And'].concat(where)])
+			|	-> query.push(['Where'].concat(where))
+			)
 		)?
 		-> query
 	,
