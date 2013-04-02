@@ -7,6 +7,11 @@ test '/', (result) ->
 		expect(result).to.be.empty
 
 
+test '/$metadata', (result) ->
+	it '$metadata should return the $metadata', ->
+		expect(result).to.deep.equal(['$metadata'])
+
+
 test '/pilot', (result) ->
 	it 'should select from pilot', ->
 		expect(result).to.be.a.query.that.selects(['pilot', '*']).from('pilot')

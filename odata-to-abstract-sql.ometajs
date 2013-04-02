@@ -7,6 +7,8 @@ export ometa OData2AbstractSQL {
 		end
 		(	?_.isEmpty(path)
 			-> []
+		|	?(path.resource == '$metadata')
+			-> ['$metadata']
 		|	PathSegment(method, path):query
 			(	?(method == 'GET')
 				-> ['SelectQuery'].concat(query)
