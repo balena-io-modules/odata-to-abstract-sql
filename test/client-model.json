@@ -242,12 +242,14 @@
 	},
 	"resourceToSQLMappings": {
 		"plane": {
+			"_name": "plane",
 			"id": [
 				"plane",
 				"id"
 			]
 		},
 		"pilot": {
+			"_name": "pilot",
 			"id": [
 				"pilot",
 				"id"
@@ -270,6 +272,7 @@
 			]
 		},
 		"pilot__is_experienced": {
+			"_name": "pilot",
 			"pilot": [
 				"pilot",
 				"id"
@@ -280,6 +283,7 @@
 			]
 		},
 		"pilot__has__name": {
+			"_name": "pilot",
 			"pilot": [
 				"pilot",
 				"id"
@@ -290,6 +294,7 @@
 			]
 		},
 		"pilot__has__age": {
+			"_name": "pilot",
 			"pilot": [
 				"pilot",
 				"id"
@@ -300,6 +305,7 @@
 			]
 		},
 		"pilot__has__favourite_colour": {
+			"_name": "pilot",
 			"pilot": [
 				"pilot",
 				"id"
@@ -310,6 +316,7 @@
 			]
 		},
 		"pilot__can_fly__plane": {
+			"_name": "pilot-can_fly-plane",
 			"pilot": [
 				"pilot-can_fly-plane",
 				"pilot"

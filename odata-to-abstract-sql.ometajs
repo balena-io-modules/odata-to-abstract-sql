@@ -22,24 +22,25 @@ export ometa OData2AbstractSQL {
 	PathSegment :method :path =
 		?path.resource
 		Resource(path.resource):resource
-		{[['From', resource.resourceName]]}:query
+		{[['From', resource.tableName]]}:query
 		(	?path.property
 			Resource(path.property.resource):propertyResource
 			PathSegment(method, path.property):childQuery
 			{query.concat(childQuery)}:query
-			-> query.push(['Where', ['Equals', ['ReferencedField', propertyResource.resourceName, propertyResource.idField], ['ReferencedField', resource.resourceName, propertyResource.resourceName]]])
+			-> query.push(['Where', ['Equals', ['ReferencedField', propertyResource.tableName, propertyResource.idField], ['ReferencedField', resource.tableName, propertyResource.tableName]]])
 		|	?path.link
 			Resource(path.link.resource):linkResource
-			{['ReferencedField', resource.resourceName, linkResource.resourceName]}:referencedField
+			{['ReferencedField', resource.tableName, linkResource.tableName]}:referencedField
 			(	?path.link.key
 				-> query.push(['Where', ['Equals', referencedField, ['Number', path.key]]])
 			)?
 			-> query.push(['Select', referencedField])
 		|	?(method == 'PUT' || method == 'POST')
-			Fields(resource.resourceName, resource.fields):fields
+			Fields(resource.tableName, resource.fields):fields
 			-> query.push(['Fields', fields])
-		|	-> query.push(['Select', [resource.resourceName, '*']])
+		|	-> query.push(['Select', [resource.tableName, '*']])
 		)
+
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
 			|	Boolean(path.options.$filter):filter
@@ -50,8 +51,9 @@ export ometa OData2AbstractSQL {
 				-> query.push(['OrderBy'].concat(orderby))
 			)
 		)
+
 		(	?path.key
-			-> query.push(['Where', ['Equals', ['ReferencedField', resource.resourceName, resource.idField], ['Number', path.key]]])
+			-> query.push(['Where', ['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]]])
 		)?
 		-> query
 	,
@@ -73,8 +75,19 @@ export ometa OData2AbstractSQL {
 	,
 
 	Resource :resourceName =
-			?this.clientModel.resources[resourceName]
-			-> this.clientModel.resources[resourceName]
+			{this.clientModel.resources[resourceName]}:resource
+			?resource
+			(	?resource.tableName
+			|	ResourceMapping(resourceName):resourceMapping
+				{resource.tableName = resourceMapping._name}
+			)
+			-> resource
+		|	{throw 'Unknown resource: ' + resourceName}
+	,
+
+	ResourceMapping :resourceName =
+			?this.clientModel.resourceToSQLMappings[resourceName]
+			-> this.clientModel.resourceToSQLMappings[resourceName]
 		|	{throw 'Unknown resource: ' + resourceName}
 	,
 
