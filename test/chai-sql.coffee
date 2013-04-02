@@ -14,10 +14,15 @@ chai.use((chai, utils) ->
 			for bodyClause, i in bodyClauses
 				expect(obj).to.contain.something.that.deep.equals([bodyType, bodyClause], bodyType + ' - ' + i)
 			return @
-	select = bodyClause('Select')
+	multiBodyClause = (bodyType) ->
+		(bodyClauses...) ->
+			obj = utils.flag(@, 'object')
+			expect(obj).to.contain.something.that.deep.equals([bodyType, bodyClauses], bodyType)
+			return @
+	select = multiBodyClause('Select')
 	utils.addMethod(assertionPrototype, 'select', select)
 	utils.addChainableMethod(assertionPrototype, 'selects', select)
-	utils.addMethod(assertionPrototype, 'fields', bodyClause('Fields'))
+	utils.addMethod(assertionPrototype, 'fields', multiBodyClause('Fields'))
 	utils.addMethod(assertionPrototype, 'from', bodyClause('From'))
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))
 	utils.addMethod(assertionPrototype, 'orderby', (bodyClauses...) ->

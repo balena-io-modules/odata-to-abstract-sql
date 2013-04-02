@@ -32,13 +32,13 @@ do ->
 	testPilot1 = (result) ->
 		it 'should insert/update the pilot with id 1', ->
 			expect(result).to.be.a.query.that.have.
-				fields([
+				fields(
 					['id', ['Bind', 'pilot', 'id']]
 					['is experienced', ['Bind', 'pilot', 'is experienced']]
 					['name',  ['Bind', 'pilot', 'name']]
 					['age',  ['Bind', 'pilot', 'age']]
 					['favourite colour',  ['Bind', 'pilot', 'favourite colour']]
-				]).
+				).
 				from('pilot').
 				where(
 					['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]

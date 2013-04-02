@@ -34,11 +34,11 @@ export ometa OData2AbstractSQL {
 			(	?path.link.key
 				-> query.push(['Where', ['Equals', referencedField, ['Number', path.key]]])
 			)?
-			-> query.push(['Select', referencedField])
+			-> query.push(['Select', [referencedField]])
 		|	?(method == 'PUT' || method == 'POST')
 			Fields(resource.tableName, resource.fields):fields
 			-> query.push(['Fields', fields])
-		|	-> query.push(['Select', [resource.tableName, '*']])
+		|	-> query.push(['Select', [[resource.tableName, '*']]])
 		)
 
 		(	?(!path.options)
