@@ -106,3 +106,26 @@ do ->
 					['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
 					abstractsql
 				])
+
+do ->
+	{odata, abstractsql} = createExpression('plane/id', 'eq', 10)
+	test '/pilot(1)/pilot__can_fly__plane?$filter=' + odata, (result) ->
+		it 'should select from pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.
+				selects(['pilot-can_fly-plane', '*']).
+				from('pilot', 'pilot-can_fly-plane').
+				where(['And'
+					['Equals'
+						['ReferencedField', 'plane', 'id']
+						['ReferencedField', 'pilot-can_fly-plane', 'plane']
+					]
+					abstractsql
+					['Equals'
+						['ReferencedField', 'pilot', 'id']
+						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+					]
+					['Equals'
+						['ReferencedField', 'pilot', 'id']
+						['Number', 1]
+					]
+				])
