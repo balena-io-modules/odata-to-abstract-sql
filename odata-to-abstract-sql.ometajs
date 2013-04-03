@@ -198,7 +198,8 @@ export ometa OData2AbstractSQL {
 		?prop.name
 		(	?prop.property
 			(	?prop.property.name
-				-> ['ReferencedField', prop.name, prop.property.name]
+				Resource(prop.name):resource
+				-> ['ReferencedField', resource.tableName, prop.property.name]
 			|	{console.error(prop)}
 				{throw 'Subproperty without a name'}
 			)

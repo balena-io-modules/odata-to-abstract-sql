@@ -2,6 +2,7 @@ expect = require('chai').expect
 require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
+clientModel = require('./client-model.json')
 
 sqlOps =
 	eq: 'Equals'
@@ -25,7 +26,8 @@ operandToAbstractSQL = (operand) ->
 			return ['Text', operand[1...(operand.length - 1)]]
 		fieldParts = operand.split('/')
 		if fieldParts.length > 1
-			return ['ReferencedField'].concat(fieldParts)
+			tableName = clientModel.resourceToSQLMappings[fieldParts[0]]._name
+			return ['ReferencedField', tableName, fieldParts[1]]
 		return ['Field', operand]
 	throw 'Unknown operand type: ' + operand
 
