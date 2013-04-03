@@ -9,7 +9,15 @@ export ometa OData2AbstractSQL {
 			-> []
 		|	?(path.resource == '$metadata')
 			-> ['$metadata']
-		|	PathSegment(method, path):query
+		|	PathSegment(method, path):queryParts
+			{queryParts.query}:query
+			{queryParts.where}:where
+			(	?where.length
+				(	?(where.length > 1)
+					-> query.push(['Where', ['And'].concat(where)])
+				|	-> query.push(['Where'].concat(where))
+				)
+			)?
 			(	?(method == 'GET')
 				-> ['SelectQuery'].concat(query)
 			|	?(method == 'PUT')
@@ -29,11 +37,28 @@ export ometa OData2AbstractSQL {
 		(	?path.property
 			Resource(path.property.resource):propertyResource
 			PathSegment(method, path.property):childQuery
-			{query.concat(childQuery)}:query
-			-> where.push(['Equals', ['ReferencedField', propertyResource.tableName, propertyResource.idField], ['ReferencedField', resource.tableName, propertyResource.tableName]])
+			{query.concat(childQuery.query)}:query
+			{where.concat(childQuery.where)}:where
+			(	FieldContainedIn(propertyResource.tableName, resource.fields)
+				-> where.push(['Equals',
+					['ReferencedField', propertyResource.tableName, propertyResource.idField],
+					['ReferencedField', resource.tableName, propertyResource.tableName]
+				])
+			|	FieldContainedIn(resource.tableName, propertyResource.fields)
+				-> where.push(['Equals',
+					['ReferencedField', resource.tableName, resource.idField],
+					['ReferencedField', propertyResource.tableName, resource.tableName]
+				])
+			|	{throw 'Cannot navigate properties'}
+			):referencedField
 		|	?path.link
 			Resource(path.link.resource):linkResource
-			{['ReferencedField', resource.tableName, linkResource.tableName]}:referencedField
+			(	FieldContainedIn(linkResource.tableName, resource.fields)
+				-> ['ReferencedField', resource.tableName, linkResource.tableName]
+			|	FieldContainedIn(resource.tableName, linkResource.fields)
+				-> ['ReferencedField', linkResource.tableName, resource.tableName]
+			|	{throw 'Cannot navigate links'}
+			):referencedField
 			(	?path.link.key
 				-> where.push(['Equals', referencedField, ['Number', path.key]])
 			)?
@@ -59,13 +84,7 @@ export ometa OData2AbstractSQL {
 			-> where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
 		)?
 
-		(	?where.length
-			(	?(where.length > 1)
-				-> query.push(['Where', ['And'].concat(where)])
-			|	-> query.push(['Where'].concat(where))
-			)
-		)?
-		-> query
+		-> { query: query, where: where }
 	,
 
 	OrderBy =
@@ -93,6 +112,17 @@ export ometa OData2AbstractSQL {
 			)
 			-> resource
 		|	{throw 'Unknown resource: ' + resourceName}
+	,
+
+	FieldContainedIn :fieldName =
+		{false}:contained
+		[	(	:field
+				(	?(field.fieldName == fieldName)
+					{true}:contained
+				)?
+			)*
+		]
+		?contained
 	,
 
 	ResourceMapping :resourceName =
@@ -163,7 +193,7 @@ export ometa OData2AbstractSQL {
 			(	?prop.property.name
 				-> ['ReferencedField', prop.name, prop.property.name]
 			|	{console.error(prop)}
-				__SUBPROPERTY_WITHOUT_NAME__
+				{throw 'Subproperty without a name'}
 			)
 		|	-> ['Field', prop.name]
 		)

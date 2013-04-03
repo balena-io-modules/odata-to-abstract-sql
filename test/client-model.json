@@ -1,5 +1,26 @@
 {
 	"resources": {
+		"licence": {
+			"resourceName": "licence",
+			"modelName": "licence",
+			"topLevel": true,
+			"fields": [
+				{
+					"dataType": "Serial",
+					"fieldName": "id",
+					"required": true,
+					"index": "PRIMARY KEY"
+				}
+			],
+			"idField": "id",
+			"referenceScheme": "id",
+			"actions": [
+				"view",
+				"add",
+				"edit",
+				"delete"
+			]
+		},
 		"plane": {
 			"resourceName": "plane",
 			"modelName": "plane",
@@ -65,6 +86,16 @@
 					"references": {
 						"tableName": "favourite_colour",
 						"fieldName": null
+					}
+				},
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "licence",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "licence",
+						"fieldName": "id"
 					}
 				}
 			],
@@ -238,9 +269,50 @@
 				"edit",
 				"delete"
 			]
+		},
+		"pilot__has__licence": {
+			"resourceName": "pilot__has__licence",
+			"modelName": "pilot has licence",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "licence",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "licence",
+						"fieldName": "id"
+					}
+				}
+			],
+			"idField": "pilot",
+			"referenceScheme": "licence",
+			"actions": [
+				"view",
+				"add",
+				"delete"
+			]
 		}
 	},
 	"resourceToSQLMappings": {
+		"licence": {
+			"_name": "licence",
+			"id": [
+				"licence",
+				"id"
+			]
+		},
 		"plane": {
 			"_name": "plane",
 			"id": [
@@ -269,6 +341,10 @@
 			"favourite colour": [
 				"pilot",
 				"favourite colour"
+			],
+			"licence": [
+				"pilot",
+				"licence"
 			]
 		},
 		"pilot__is_experienced": {
@@ -328,6 +404,17 @@
 			"id": [
 				"pilot-can_fly-plane",
 				"id"
+			]
+		},
+		"pilot__has__licence": {
+			"_name": "pilot",
+			"pilot": [
+				"pilot",
+				"id"
+			],
+			"licence": [
+				"pilot",
+				"licence"
 			]
 		}
 	}

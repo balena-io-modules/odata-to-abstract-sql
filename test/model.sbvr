@@ -7,6 +7,8 @@ Term:       age
 Term:       favourite colour
 	Concept Type: Color (Type)
 
+Term:       licence
+
 Term:       plane
 
 Term:       pilot
@@ -23,3 +25,6 @@ Fact type:  pilot has favourite colour
 	Necessity: each pilot has exactly one favourite colour
 
 Fact type:  pilot can fly plane
+
+Fact type:  pilot has licence
+	Necessity: each pilot has exactly one licence
