@@ -92,3 +92,15 @@ do ->
 	for mathOp in mathOps
 		mathOp = createExpression('age', mathOp, 2)
 		operandTest(mathOp, 'gt', 10)
+
+do ->
+	{odata, abstractsql} = createExpression('pilot__can_fly__plane/id', 'eq', 10)
+	test '/pilot?$filter=' + odata, (result) ->
+		it 'should select from pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.
+				selects(['pilot', '*']).
+				from('pilot', 'pilot-can_fly-plane').
+				where(['And'
+					['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
+					abstractsql
+				])

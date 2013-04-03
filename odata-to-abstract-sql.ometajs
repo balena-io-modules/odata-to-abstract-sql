@@ -12,6 +12,10 @@ export ometa OData2AbstractSQL {
 		|	PathSegment(method, path):queryParts
 			{queryParts.query}:query
 			{queryParts.where}:where
+			{	_.each(queryParts.froms, function(tableName) {
+					query.push(['From', tableName]);
+				})
+			}
 			(	?where.length
 				(	?(where.length > 1)
 					-> query.push(['Where', ['And'].concat(where)])
@@ -32,25 +36,18 @@ export ometa OData2AbstractSQL {
 	PathSegment :method :path =
 		?path.resource
 		Resource(path.resource):resource
-		{[['From', resource.tableName]]}:query
+		{[]}:query
+		{[resource.tableName]}:froms
 		{[]}:where
 		(	?path.property
-			Resource(path.property.resource):propertyResource
 			PathSegment(method, path.property):childQuery
 			{query.concat(childQuery.query)}:query
+			{froms.concat(childQuery.froms)}:froms
 			{where.concat(childQuery.where)}:where
-			(	FieldContainedIn(propertyResource.tableName, resource.fields)
-				-> where.push(['Equals',
-					['ReferencedField', propertyResource.tableName, propertyResource.idField],
-					['ReferencedField', resource.tableName, propertyResource.tableName]
-				])
-			|	FieldContainedIn(resource.tableName, propertyResource.fields)
-				-> where.push(['Equals',
-					['ReferencedField', resource.tableName, resource.idField],
-					['ReferencedField', propertyResource.tableName, resource.tableName]
-				])
-			|	{throw 'Cannot navigate properties'}
-			):referencedField
+
+			Resource(path.property.resource):propertyResource
+			NavigateResources(resource, propertyResource):navigationWhere
+			-> where.push(navigationWhere)
 		|	?path.link
 			Resource(path.link.resource):linkResource
 			(	FieldContainedIn(linkResource.tableName, resource.fields)
@@ -71,7 +68,17 @@ export ometa OData2AbstractSQL {
 
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
-			|	Boolean(path.options.$filter):filter
+			|	ExtraFroms(path.options.$filter):extraFroms
+				{	_.each(extraFroms, function(resourceName) {
+						var extraResource = this.Resource(resourceName);
+						if(!_.contains(froms, extraResource.tableName)) {
+							var nagivationWhere = this.NavigateResources(resource, extraResource);
+							where.push(nagivationWhere);
+							froms.push(extraResource.tableName);
+						}
+					}, this);
+				}
+				Boolean(path.options.$filter):filter
 				-> where.push(filter)
 			)
 			(	?(!path.options.$orderby)
@@ -84,7 +91,7 @@ export ometa OData2AbstractSQL {
 			-> where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
 		)?
 
-		-> { query: query, where: where }
+		-> { query: query, froms: froms, where: where }
 	,
 
 	OrderBy =
@@ -207,4 +214,35 @@ export ometa OData2AbstractSQL {
 	Text =
 		string:text
 		-> ['Text', text]
+	,
+
+	NavigateResources :resource1 :resource2 =
+			FieldContainedIn(resource1.tableName, resource2.fields)
+			-> ['Equals',
+				['ReferencedField', resource1.tableName, resource1.idField],
+				['ReferencedField', resource2.tableName, resource1.tableName]
+			]
+		|	FieldContainedIn(resource2.tableName, resource1.fields)
+			-> ['Equals',
+				['ReferencedField', resource2.tableName, resource2.idField],
+				['ReferencedField', resource1.tableName, resource2.tableName]
+			]
+		|	{throw 'Cannot navigate resources'}
+	,
+
+	// Returns the resource names.
+	ExtraFroms =
+		{[]}:froms
+		?(_.isArray(this.input.hd))
+		[	(	:prop
+				?prop.name
+				?prop.property
+				?prop.property.name
+				-> froms.push(prop.name)
+			|	ExtraFroms:extraFroms
+				{_.unique(froms.concat(extraFroms))}:froms
+			|	anything
+			)*
+		]
+		-> froms
 }
