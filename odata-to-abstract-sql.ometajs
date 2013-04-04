@@ -45,10 +45,16 @@ export ometa OData2AbstractSQL {
 			{froms.concat(childQuery.froms)}:froms
 			{where.concat(childQuery.where)}:where
 
+			(	?path.property.resource
+			|	{throw 'PathSegment has a property without a resource?'}
+			)
 			Resource(path.property.resource):propertyResource
 			NavigateResources(resource, propertyResource):navigationWhere
 			-> where.push(navigationWhere)
 		|	?path.link
+			(	?path.link.resource
+			|	{throw 'PathSegment has a link without a resource?'}
+			)
 			Resource(path.link.resource):linkResource
 			(	FieldContainedIn(linkResource.tableName, resource.fields)
 				-> ['ReferencedField', resource.tableName, linkResource.tableName]
