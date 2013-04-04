@@ -167,6 +167,28 @@ export ometa OData2AbstractSQL {
 			]
 			-> ['Not', bool]
 		|	Property
+		|	BooleanFunction
+	,
+
+	BooleanFunction =
+			Function('substringof')
+		|	Function('startswith')
+		|	Function('endswith')
+	,
+
+	Function :name =
+		[	'call'
+			:properties
+			?(properties.method == name)
+			Arguments(properties.args):args
+		]
+		-> [name].concat(args)
+	,
+
+	Arguments =
+		[	Operand*:args
+		]
+		-> args
 	,
 
 	Operand =

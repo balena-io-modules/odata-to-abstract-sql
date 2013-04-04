@@ -56,6 +56,16 @@ notTest = (expression) ->
 				from('pilot').
 				where(abstractsql)
 
+methodTest = (method, expressions...) ->
+	odata = method + '(' + (expression.odata ? expression for expression in expressions).join(',') + ')'
+	abstractsql = [method].concat(expression.abstractsql ? operandToAbstractSQL(expression) for expression in expressions)
+	test '/pilot?$filter=' + odata, (result) ->
+		it 'should select from pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.
+				selects(['pilot', '*']).
+				from('pilot').
+				where(abstractsql)
+
 operandTest(2, 'eq')
 operandTest(2, 'ne')
 operandTest(2, 'gt')
@@ -151,3 +161,7 @@ do ->
 						['Number', 10]
 					]
 				])
+
+methodTest('substringof', "'Pete'", 'name')
+methodTest('startswith', 'name', "'P'")
+methodTest('endswith', 'name', "'ete'")
