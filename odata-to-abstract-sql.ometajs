@@ -74,27 +74,13 @@ export ometa OData2AbstractSQL {
 
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
-			|	ExtraFroms(path.options.$filter):extraFroms
-				{	_.each(extraFroms, function(resourceName) {
-						var currentResource = resource;
-						if(_.isArray(resourceName)) {
-							_.each(resourceName, function(resourceName) {
-								var extraResource = this.Resource(resourceName);
-								this.AddNavigation(froms, where, currentResource, extraResource);
-								currentResource = extraResource;
-							}, this);
-						}
-						else {
-							var extraResource = this.Resource(resourceName);
-							this.AddNavigation(froms, where, currentResource, extraResource);
-						}
-					}, this);
-				}
+			|	AddExtraFroms(path.options.$filter, froms, where, resource)
 				Boolean(path.options.$filter):filter
 				-> where.push(filter)
 			)
 			(	?(!path.options.$orderby)
-			|	OrderBy(path.options.$orderby.properties):orderby
+			|	AddExtraFroms(path.options.$orderby.properties, froms, where, resource)
+				OrderBy(path.options.$orderby.properties):orderby
 				-> query.push(['OrderBy'].concat(orderby))
 			)
 		)
@@ -108,7 +94,8 @@ export ometa OData2AbstractSQL {
 
 	OrderBy =
 		[	(	:ordering
-				-> [ordering.order.toUpperCase(), ['Field', ordering.name]]
+				Property(ordering):field
+				-> [ordering.order.toUpperCase(), field]
 			)+:orderby
 		]
 		-> orderby
@@ -244,6 +231,25 @@ export ometa OData2AbstractSQL {
 				['ReferencedField', resource1.tableName, resource2.tableName]
 			]
 		|	{throw 'Cannot navigate resources'}
+	,
+
+	AddExtraFroms :searchPoint :froms :where :resource =
+		ExtraFroms(searchPoint):extraFroms
+		{	_.each(extraFroms, function(resourceName) {
+				var currentResource = resource;
+				if(_.isArray(resourceName)) {
+					_.each(resourceName, function(resourceName) {
+						var extraResource = this.Resource(resourceName);
+						this.AddNavigation(froms, where, currentResource, extraResource);
+						currentResource = extraResource;
+					}, this);
+				}
+				else {
+					var extraResource = this.Resource(resourceName);
+					this.AddNavigation(froms, where, currentResource, extraResource);
+				}
+			}, this);
+		}
 	,
 
 	// Returns the resource names.

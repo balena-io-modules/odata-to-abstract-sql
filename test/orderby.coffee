@@ -48,5 +48,41 @@ test '/pilot?$orderby=name asc,age desc', (result) ->
 			)
 
 
+test '/pilot?$orderby=licence/id asc', (result) ->
+	it 'should order by licence/id asc', ->
+		expect(result).to.be.a.query.that.
+			selects(['pilot', '*']).
+			from('pilot', 'licence').
+			where(
+				['Equals'
+					['ReferencedField', 'licence', 'id']
+					['ReferencedField', 'pilot', 'licence']
+				]
+			).
+			orderby(
+				['ASC', ['ReferencedField', 'licence', 'id']]
+			)
+
+
+test '/pilot?$orderby=pilot__can_fly__plane/plane/id asc', (result) ->
+	it 'should order by pilot__can_fly__plane/plane/id asc', ->
+		expect(result).to.be.a.query.that.
+			selects(['pilot', '*']).
+			from('pilot', 'pilot-can_fly-plane', 'pilot').
+			where(['And'
+				['Equals'
+					['ReferencedField', 'pilot', 'id']
+					['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+				]
+				['Equals'
+					['ReferencedField', 'plane', 'id']
+					['ReferencedField', 'pilot-can_fly-plane', 'plane']
+				]
+			]).
+			orderby(
+				['ASC', ['ReferencedField', 'plane', 'id']]
+			)
+
+
 test.skip '/pilot?$orderby=favourite_colour/red', (result) ->
 	it "should order by how red the pilot's favourite colour is"
