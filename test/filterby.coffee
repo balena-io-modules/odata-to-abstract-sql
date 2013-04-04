@@ -129,3 +129,25 @@ do ->
 						['Number', 1]
 					]
 				])
+
+do ->
+	odata = 'pilot__can_fly__plane/plane/id eq 10'
+	test '/pilot?$filter=' + odata, (result) ->
+		it 'should select from pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.
+				selects(['pilot', '*']).
+				from('pilot', 'pilot-can_fly-plane', 'pilot').
+				where(['And'
+					['Equals'
+						['ReferencedField', 'pilot', 'id']
+						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+					]
+					['Equals'
+						['ReferencedField', 'plane', 'id']
+						['ReferencedField', 'pilot-can_fly-plane', 'plane']
+					]
+					['Equals'
+						['ReferencedField', 'plane', 'id']
+						['Number', 10]
+					]
+				])

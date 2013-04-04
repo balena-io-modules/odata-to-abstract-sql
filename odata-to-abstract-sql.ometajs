@@ -76,11 +76,17 @@ export ometa OData2AbstractSQL {
 		|	(	?(!path.options.$filter)
 			|	ExtraFroms(path.options.$filter):extraFroms
 				{	_.each(extraFroms, function(resourceName) {
-						var extraResource = this.Resource(resourceName);
-						if(!_.contains(froms, extraResource.tableName)) {
-							var nagivationWhere = this.NavigateResources(resource, extraResource);
-							where.push(nagivationWhere);
-							froms.push(extraResource.tableName);
+						var currentResource = resource;
+						if(_.isArray(resourceName)) {
+							_.each(resourceName, function(resourceName) {
+								var extraResource = this.Resource(resourceName);
+								this.AddNavigation(froms, where, currentResource, extraResource);
+								currentResource = extraResource;
+							}, this);
+						}
+						else {
+							var extraResource = this.Resource(resourceName);
+							this.AddNavigation(froms, where, currentResource, extraResource);
 						}
 					}, this);
 				}
@@ -204,8 +210,11 @@ export ometa OData2AbstractSQL {
 		?prop.name
 		(	?prop.property
 			(	?prop.property.name
-				Resource(prop.name):resource
-				-> ['ReferencedField', resource.tableName, prop.property.name]
+				(	?prop.property.property
+					Property(prop.property)
+				|	Resource(prop.name):resource
+					-> ['ReferencedField', resource.tableName, prop.property.name]
+				)
 			|	{console.error(prop)}
 				{throw 'Subproperty without a name'}
 			)
@@ -241,15 +250,30 @@ export ometa OData2AbstractSQL {
 	ExtraFroms =
 		{[]}:froms
 		?(_.isArray(this.input.hd))
-		[	(	:prop
-				?prop.name
-				?prop.property
-				?prop.property.name
-				-> froms.push(prop.name)
+		[	(	:nextProp
+				(	{nextProp}:prop
+					?prop.name
+					?prop.property
+					?prop.property.name
+					{prop.property}:nextProp
+					-> prop.name
+				)+:extraFroms
+				(	?(extraFroms.length == 1)
+					-> froms.push(extraFroms[0])
+				|	-> froms.push(extraFroms)
+				)
 			|	ExtraFroms:extraFroms
-				{_.unique(froms.concat(extraFroms))}:froms
+				{froms.concat(extraFroms)}:froms
 			|	anything
 			)*
 		]
 		-> froms
+	,
+
+	AddNavigation :froms :where :resource :extraResource =
+		(	?(!_.contains(froms, extraResource.tableName))
+			NavigateResources(resource, extraResource):nagivationWhere
+			{froms.push(extraResource.tableName)}
+			{where.push(nagivationWhere)}
+		)?
 }
