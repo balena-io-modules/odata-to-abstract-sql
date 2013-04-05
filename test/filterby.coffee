@@ -181,3 +181,7 @@ do ->
 	concat = createMethodCall('concat', 'name', "'%20'")
 	operandTest(concat, 'eq', "'Pete%20'")
 	operandTest(createMethodCall('trim', concat), 'eq', "'Pete'")
+
+operandTest(createMethodCall('round', 'age'), 'eq', 25)
+operandTest(createMethodCall('floor', 'age'), 'eq', 25)
+operandTest(createMethodCall('ceiling', 'age'), 'eq', 25)

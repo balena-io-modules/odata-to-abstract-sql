@@ -179,6 +179,9 @@ export ometa OData2AbstractSQL {
 	NumberFunction =
 			Function('length')
 		|	Function('indexof')
+		|	Function('round')
+		|	Function('floor')
+		|	Function('ceiling')
 	,
 
 	TextFunction =
