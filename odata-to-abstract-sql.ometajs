@@ -186,6 +186,8 @@ export ometa OData2AbstractSQL {
 		|	Function('substring')
 		|	Function('tolower')
 		|	Function('toupper')
+		|	Function('trim')
+		|	Function('concat')
 	,
 
 	Function :name =

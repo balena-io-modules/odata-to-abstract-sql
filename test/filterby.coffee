@@ -23,7 +23,7 @@ operandToAbstractSQL = (operand) ->
 		return ['Number', operand]
 	if _.isString(operand)
 		if operand.charAt(0) is "'"
-			return ['Text', operand[1...(operand.length - 1)]]
+			return ['Text', decodeURIComponent(operand[1...(operand.length - 1)])]
 		fieldParts = operand.split('/')
 		if fieldParts.length > 1
 			tableName = clientModel.resourceToSQLMappings[fieldParts[0]]._name
@@ -176,3 +176,8 @@ operandTest(createMethodCall('substring', 'name', 1), 'eq', "'ete'")
 operandTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'")
 operandTest(createMethodCall('tolower', 'name'), 'eq', "'pete'")
 operandTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'")
+
+do ->
+	concat = createMethodCall('concat', 'name', "'%20'")
+	operandTest(concat, 'eq', "'Pete%20'")
+	operandTest(createMethodCall('trim', concat), 'eq', "'Pete'")
