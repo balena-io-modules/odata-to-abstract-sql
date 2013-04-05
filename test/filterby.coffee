@@ -169,4 +169,5 @@ do ->
 methodTest('substringof', "'Pete'", 'name')
 methodTest('startswith', 'name', "'P'")
 methodTest('endswith', 'name', "'ete'")
-operandTest(createMethodCall('length', 'name'), 'eq', 2)
+operandTest(createMethodCall('length', 'name'), 'eq', 4)
+operandTest(createMethodCall('indexof', 'name', "'Pe'"), 'eq', 0)

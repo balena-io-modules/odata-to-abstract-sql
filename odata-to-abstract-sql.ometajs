@@ -177,7 +177,8 @@ export ometa OData2AbstractSQL {
 	,
 
 	NumberFunction =
-		Function('length')
+			Function('length')
+		|	Function('indexof')
 	,
 
 	Function :name =
