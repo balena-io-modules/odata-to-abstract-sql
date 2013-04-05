@@ -182,7 +182,10 @@ export ometa OData2AbstractSQL {
 	,
 
 	TextFunction =
-		Function('replace')
+			Function('replace')
+		|	Function('substring')
+		|	Function('tolower')
+		|	Function('toupper')
 	,
 
 	Function :name =
