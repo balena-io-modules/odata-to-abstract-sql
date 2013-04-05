@@ -36,6 +36,11 @@ createExpression = (lhs, op, rhs) ->
 		odata: (lhs.odata ? lhs) + ' ' + op + ' ' + (rhs.odata ? rhs)
 		abstractsql: [sqlOps[op], lhs.abstractsql ? operandToAbstractSQL(lhs), rhs.abstractsql ? operandToAbstractSQL(rhs)]
 	}
+createMethodCall = (method, args...) ->
+	return {
+		odata: method + '(' + (arg.odata ? arg for arg in args).join(',') + ')'
+		abstractsql: [method].concat(arg.abstractsql ? operandToAbstractSQL(arg) for arg in args)
+	}
 
 operandTest = (lhs, op, rhs = 'name') ->
 	{odata, abstractsql} = createExpression(lhs, op, rhs)
@@ -56,9 +61,8 @@ notTest = (expression) ->
 				from('pilot').
 				where(abstractsql)
 
-methodTest = (method, expressions...) ->
-	odata = method + '(' + (expression.odata ? expression for expression in expressions).join(',') + ')'
-	abstractsql = [method].concat(expression.abstractsql ? operandToAbstractSQL(expression) for expression in expressions)
+methodTest = (args...) ->
+	{odata, abstractsql} = createMethodCall.apply(null, args)
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
@@ -165,3 +169,4 @@ do ->
 methodTest('substringof', "'Pete'", 'name')
 methodTest('startswith', 'name', "'P'")
 methodTest('endswith', 'name', "'ete'")
+operandTest(createMethodCall('length', 'name'), 'eq', 2)

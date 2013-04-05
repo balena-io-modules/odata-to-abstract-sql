@@ -176,6 +176,10 @@ export ometa OData2AbstractSQL {
 		|	Function('endswith')
 	,
 
+	NumberFunction =
+		Function('length')
+	,
+
 	Function :name =
 		[	'call'
 			:properties
@@ -232,8 +236,9 @@ export ometa OData2AbstractSQL {
 	,
 
 	Number =
-		number:num
-		-> ['Number', num]
+			number:num
+			-> ['Number', num]
+		|	NumberFunction
 	,
 
 	Text =
