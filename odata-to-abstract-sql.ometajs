@@ -181,6 +181,10 @@ export ometa OData2AbstractSQL {
 		|	Function('indexof')
 	,
 
+	TextFunction =
+		Function('replace')
+	,
+
 	Function :name =
 		[	'call'
 			:properties
@@ -243,8 +247,9 @@ export ometa OData2AbstractSQL {
 	,
 
 	Text =
-		string:text
-		-> ['Text', text]
+			string:text
+			-> ['Text', text]
+		|	TextFunction
 	,
 
 	NavigateResources :resource1 :resource2 =
