@@ -83,6 +83,12 @@ export ometa OData2AbstractSQL {
 				OrderBy(path.options.$orderby.properties):orderby
 				-> query.push(['OrderBy'].concat(orderby))
 			)
+			(	?(!path.options.$top)
+			|	-> query.push(['Limit', path.options.$top])
+			)
+			(	?(!path.options.$skip)
+			|	-> query.push(['Offset', path.options.$skip])
+			)
 		)
 
 		(	?path.key
