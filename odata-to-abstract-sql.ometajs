@@ -69,6 +69,10 @@ export ometa OData2AbstractSQL {
 		|	?(method == 'PUT' || method == 'POST')
 			Fields(resource.tableName, resource.fields):fields
 			-> query.push(['Fields', fields])
+		|	?(path.options)
+			?(path.options.$select)
+			Properties(path.options.$select.properties):fields
+			-> query.push(['Select', fields])
 		|	-> query.push(['Select', [[resource.tableName, '*']]])
 		)
 
@@ -237,6 +241,12 @@ export ometa OData2AbstractSQL {
 			Operand:op2
 		]
 		-> [operation, op1, op2]
+	,
+
+	Properties =
+		[	Property*:props
+		]
+		-> props
 	,
 
 	Property =
