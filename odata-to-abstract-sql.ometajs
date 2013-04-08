@@ -71,6 +71,7 @@ export ometa OData2AbstractSQL {
 			-> query.push(['Fields', fields])
 		|	?(path.options)
 			?(path.options.$select)
+			AddExtraFroms(path.options.$select.properties, froms, where, resource)
 			Properties(path.options.$select.properties):fields
 			-> query.push(['Select', fields])
 		|	-> query.push(['Select', [[resource.tableName, '*']]])
