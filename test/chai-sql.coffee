@@ -35,3 +35,17 @@ chai.use((chai, utils) ->
 	utils.addMethod(assertionPrototype, 'limit', bodyClause('Limit'))
 	utils.addMethod(assertionPrototype, 'offset', bodyClause('Offset'))
 )
+
+clientModel = require('./client-model.json')
+exports.operandToAbstractSQL = (operand) ->
+	if _.isNumber(operand)
+		return ['Number', operand]
+	if _.isString(operand)
+		if operand.charAt(0) is "'"
+			return ['Text', decodeURIComponent(operand[1...(operand.length - 1)])]
+		fieldParts = operand.split('/')
+		if fieldParts.length > 1
+			tableName = clientModel.resourceToSQLMappings[fieldParts[0]]._name
+			return ['ReferencedField', tableName, fieldParts[1]]
+		return ['Field', operand]
+	throw 'Unknown operand type: ' + operand

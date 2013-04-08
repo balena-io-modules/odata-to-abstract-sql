@@ -1,8 +1,7 @@
 expect = require('chai').expect
-require('./chai-sql')
+{operandToAbstractSQL} = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
-clientModel = require('./client-model.json')
 
 sqlOps =
 	eq: 'Equals'
@@ -17,19 +16,6 @@ sqlOps =
 	sub: 'Subtract'
 	mul: 'Multiply'
 	div: 'Divide'
-
-operandToAbstractSQL = (operand) ->
-	if _.isNumber(operand)
-		return ['Number', operand]
-	if _.isString(operand)
-		if operand.charAt(0) is "'"
-			return ['Text', decodeURIComponent(operand[1...(operand.length - 1)])]
-		fieldParts = operand.split('/')
-		if fieldParts.length > 1
-			tableName = clientModel.resourceToSQLMappings[fieldParts[0]]._name
-			return ['ReferencedField', tableName, fieldParts[1]]
-		return ['Field', operand]
-	throw 'Unknown operand type: ' + operand
 
 createExpression = (lhs, op, rhs) ->
 	return {
