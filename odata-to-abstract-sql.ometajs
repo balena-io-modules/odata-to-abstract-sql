@@ -288,9 +288,16 @@ export ometa OData2AbstractSQL {
 
 	Expands :method :resource :select :froms :where =
 		[	(	:expand
-				Resource(expand.name):extraResource
-				AddNavigation(froms, where, resource, extraResource)
-				{select.push([expand.name, '*'])}
+				(	?(!expand.property)
+					Resource(expand.name):extraResource
+					AddNavigation(froms, where, resource, extraResource)
+					{select.push([expand.name, '*'])}
+				|	Resource(expand.name):extraResource
+					AddNavigation(froms, where, resource, extraResource)
+					Resource(expand.property.name):extraResource2
+					AddNavigation(froms, where, extraResource, extraResource2)
+					{select.push([expand.property.name, '*'])}
+				)
 			)*
 		]
 	,
