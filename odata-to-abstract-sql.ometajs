@@ -11,6 +11,7 @@ export ometa OData2AbstractSQL {
 			-> ['$metadata']
 		|	PathSegment(method, path):queryParts
 			{queryParts.query}:query
+			{query.push(['Select', queryParts.select])}
 			{queryParts.where}:where
 			{	_.each(queryParts.froms, function(tableName) {
 					query.push(['From', tableName]);
@@ -37,11 +38,13 @@ export ometa OData2AbstractSQL {
 		?path.resource
 		Resource(path.resource):resource
 		{[]}:query
+		{[]}:select
 		{[resource.tableName]}:froms
 		{[]}:where
 		(	?path.property
 			PathSegment(method, path.property):childQuery
 			{query.concat(childQuery.query)}:query
+			{select.concat(childQuery.select)}:select
 			{froms.concat(childQuery.froms)}:froms
 			{where.concat(childQuery.where)}:where
 
@@ -65,16 +68,20 @@ export ometa OData2AbstractSQL {
 			(	?path.link.key
 				-> where.push(['Equals', referencedField, ['Number', path.key]])
 			)?
-			-> query.push(['Select', [referencedField]])
+			-> select.push(referencedField)
 		|	?(method == 'PUT' || method == 'POST')
 			Fields(resource.tableName, resource.fields):fields
 			-> query.push(['Fields', fields])
-		|	?(path.options)
-			?(path.options.$select)
+		|	?path.options
+			?path.options.$select
 			AddExtraFroms(path.options.$select.properties, froms, where, resource)
 			Properties(path.options.$select.properties):fields
-			-> query.push(['Select', fields])
-		|	-> query.push(['Select', [[resource.tableName, '*']]])
+			{select.concat(fields)}:select
+		|	(	?path.options
+				?path.options.$expand
+				Expands(method, resource, select, froms, where, path.options.$expand.properties)
+			)?
+			-> select.push([resource.tableName, '*'])
 		)
 
 		(	?(!path.options)
@@ -102,7 +109,7 @@ export ometa OData2AbstractSQL {
 			-> where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
 		)?
 
-		-> { query: query, froms: froms, where: where }
+		-> { query: query, select: select, froms: froms, where: where }
 	,
 
 	OrderBy =
@@ -277,6 +284,15 @@ export ometa OData2AbstractSQL {
 			string:text
 			-> ['Text', text]
 		|	TextFunction
+	,
+
+	Expands :method :resource :select :froms :where =
+		[	(	:expand
+				Resource(expand.name):extraResource
+				AddNavigation(froms, where, resource, extraResource)
+				{select.push([expand.name, '*'])}
+			)*
+		]
 	,
 
 	NavigateResources :resource1 :resource2 =
