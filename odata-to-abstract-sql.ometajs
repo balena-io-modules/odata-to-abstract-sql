@@ -11,7 +11,9 @@ export ometa OData2AbstractSQL {
 			-> ['$metadata']
 		|	PathSegment(method, path):queryParts
 			{queryParts.query}:query
-			{query.push(['Select', queryParts.select])}
+			(	?queryParts.select.length
+				{query.push(['Select', queryParts.select])}
+			)?
 			{queryParts.where}:where
 			{	_.each(queryParts.froms, function(tableName) {
 					query.push(['From', tableName]);
