@@ -39,6 +39,7 @@ export ometa OData2AbstractSQL {
 	PathSegment :method :path =
 		?path.resource
 		Resource(path.resource):resource
+		{this.defaultResource = path.resource}
 		{[]}:query
 		{[]}:select
 		{[resource.tableName]}:froms
@@ -62,9 +63,9 @@ export ometa OData2AbstractSQL {
 			)
 			Resource(path.link.resource):linkResource
 			(	FieldContainedIn(linkResource.tableName, resource.fields)
-				-> ['ReferencedField', resource.tableName, linkResource.tableName]
+				ReferencedField(resource.resourceName, linkResource.resourceName)
 			|	FieldContainedIn(resource.tableName, linkResource.fields)
-				-> ['ReferencedField', linkResource.tableName, resource.tableName]
+				ReferencedField(linkResource.resourceName, resource.resourceName)
 			|	{throw 'Cannot navigate links'}
 			):referencedField
 			(	?path.link.key
@@ -157,6 +158,14 @@ export ometa OData2AbstractSQL {
 			?this.clientModel.resourceToSQLMappings[resourceName]
 			-> this.clientModel.resourceToSQLMappings[resourceName]
 		|	{throw 'Unknown resource: ' + resourceName}
+	,
+
+	ReferencedField :resourceTable :resourceField =
+		ResourceMapping(resourceTable):mapping
+		(	?mapping[resourceField]
+			-> ['ReferencedField'].concat(mapping[resourceField])
+		|	{console.log(mapping)}{throw 'Unknown mapping: ' + resourceTable + ' : ' + resourceField}
+		)
 	,
 
 	Boolean =
@@ -266,13 +275,12 @@ export ometa OData2AbstractSQL {
 			(	?prop.property.name
 				(	?prop.property.property
 					Property(prop.property)
-				|	Resource(prop.name):resource
-					-> ['ReferencedField', resource.tableName, prop.property.name]
+				|	ReferencedField(prop.name, prop.property.name)
 				)
 			|	{console.error(prop)}
 				{throw 'Subproperty without a name'}
 			)
-		|	-> ['Field', prop.name]
+		|	ReferencedField(this.defaultResource, prop.name)
 		)
 	,
 
@@ -305,17 +313,20 @@ export ometa OData2AbstractSQL {
 	,
 
 	NavigateResources :resource1 :resource2 =
-			FieldContainedIn(resource1.tableName, resource2.fields)
+		(	FieldContainedIn(resource1.tableName, resource2.fields)
+			ReferencedField(resource2.resourceName, resource1.resourceName):fkField
 			-> ['Equals',
 				['ReferencedField', resource1.tableName, resource1.idField],
-				['ReferencedField', resource2.tableName, resource1.tableName]
+				fkField
 			]
 		|	FieldContainedIn(resource2.tableName, resource1.fields)
+			ReferencedField(resource1.resourceName, resource2.resourceName):fkField
 			-> ['Equals',
 				['ReferencedField', resource2.tableName, resource2.idField],
-				['ReferencedField', resource1.tableName, resource2.tableName]
+				fkField
 			]
 		|	{throw 'Cannot navigate resources'}
+		)
 	,
 
 	AddExtraFroms :searchPoint :froms :where :resource =

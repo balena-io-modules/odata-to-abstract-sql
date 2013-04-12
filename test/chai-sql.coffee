@@ -45,7 +45,8 @@ exports.operandToAbstractSQL = (operand) ->
 			return ['Text', decodeURIComponent(operand[1...(operand.length - 1)])]
 		fieldParts = operand.split('/')
 		if fieldParts.length > 1
-			tableName = clientModel.resourceToSQLMappings[fieldParts[0]]._name
-			return ['ReferencedField', tableName, fieldParts[1]]
-		return ['Field', operand]
+			mapping = clientModel.resourceToSQLMappings[fieldParts[0]][fieldParts[1]]
+		else
+			mapping = clientModel.resourceToSQLMappings['pilot'][operand]
+		return ['ReferencedField'].concat(mapping)
 	throw 'Unknown operand type: ' + operand

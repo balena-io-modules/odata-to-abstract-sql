@@ -326,7 +326,7 @@
 				"pilot",
 				"id"
 			],
-			"is experienced": [
+			"is_experienced": [
 				"pilot",
 				"is experienced"
 			],
@@ -353,7 +353,7 @@
 				"pilot",
 				"id"
 			],
-			"is experienced": [
+			"is_experienced": [
 				"pilot",
 				"is experienced"
 			]
