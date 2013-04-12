@@ -7,7 +7,7 @@
 		"test": "mocha",
 		"postinstall": "npm install ometa-js@1.x && node node_modules/ometa-js/bin/ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
 	},
-	"repository": "",
+	"repository": "git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
 	"author": "",
 	"license": "BSD",
 	"dependencies": {
