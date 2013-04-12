@@ -1,5 +1,5 @@
 expect = require('chai').expect
-require('./chai-sql')
+{operandToAbstractSQL} = require('./chai-sql')
 test = require('./test')
 
 test '/pilot?$orderby=name', (result) ->
@@ -7,7 +7,7 @@ test '/pilot?$orderby=name', (result) ->
 		expect(result).to.be.a.query.that.
 			selects(['pilot', '*']).
 			from('pilot').
-			orderby(['DESC', ['Field', 'name']])
+			orderby(['DESC', operandToAbstractSQL('name')])
 
 
 test '/pilot?$orderby=name,age', (result) ->
@@ -16,8 +16,8 @@ test '/pilot?$orderby=name,age', (result) ->
 			selects(['pilot', '*']).
 			from('pilot').
 			orderby(
-				['DESC', ['Field', 'name']]
-				['DESC', ['Field', 'age']]
+				['DESC', operandToAbstractSQL('name')]
+				['DESC', operandToAbstractSQL('age')]
 			)
 
 			
@@ -26,7 +26,7 @@ test '/pilot?$orderby=name desc', (result) ->
 		expect(result).to.be.a.query.that.
 			selects(['pilot', '*']).
 			from('pilot').
-			orderby(['DESC', ['Field', 'name']])
+			orderby(['DESC', operandToAbstractSQL('name')])
 
 			
 test '/pilot?$orderby=name asc', (result) ->
@@ -34,7 +34,7 @@ test '/pilot?$orderby=name asc', (result) ->
 		expect(result).to.be.a.query.that.
 			selects(['pilot', '*']).
 			from('pilot').
-			orderby(['ASC', ['Field', 'name']])
+			orderby(['ASC', operandToAbstractSQL('name')])
 
 
 test '/pilot?$orderby=name asc,age desc', (result) ->
@@ -43,8 +43,8 @@ test '/pilot?$orderby=name asc,age desc', (result) ->
 			selects(['pilot', '*']).
 			from('pilot').
 			orderby(
-				['ASC', ['Field', 'name']]
-				['DESC', ['Field', 'age']]
+				['ASC', operandToAbstractSQL('name')]
+				['DESC', operandToAbstractSQL('age')]
 			)
 
 
@@ -60,7 +60,7 @@ test '/pilot?$orderby=licence/id asc', (result) ->
 				]
 			).
 			orderby(
-				['ASC', ['ReferencedField', 'licence', 'id']]
+				['ASC', operandToAbstractSQL('licence/id')]
 			)
 
 
