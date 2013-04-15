@@ -49,7 +49,7 @@ test '/pilot?$select=pilot__can_fly__plane/plane/id', (result) ->
 	it 'should select pilot__can_fly__plane/plane/id for pilots', ->
 		expect(result).to.be.a.query.that.
 			selects(
-				operandToAbstractSQL('plane/id')
+				operandToAbstractSQL('pilot__can_fly__plane/plane/id')
 			).
 			from('pilot', 'pilot-can_fly-plane', 'plane').
 			where(['And'

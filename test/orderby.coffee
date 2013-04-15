@@ -80,7 +80,7 @@ test '/pilot?$orderby=pilot__can_fly__plane/plane/id asc', (result) ->
 				]
 			]).
 			orderby(
-				['ASC', ['ReferencedField', 'plane', 'id']]
+				['ASC', operandToAbstractSQL('pilot__can_fly__plane/plane/id')]
 			)
 
 

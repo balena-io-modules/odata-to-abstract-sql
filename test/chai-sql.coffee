@@ -45,7 +45,7 @@ exports.operandToAbstractSQL = (operand) ->
 			return ['Text', decodeURIComponent(operand[1...(operand.length - 1)])]
 		fieldParts = operand.split('/')
 		if fieldParts.length > 1
-			mapping = clientModel.resourceToSQLMappings[fieldParts[0]][fieldParts[1]]
+			mapping = clientModel.resourceToSQLMappings[fieldParts[fieldParts.length - 2]][fieldParts[fieldParts.length - 1]]
 		else
 			mapping = clientModel.resourceToSQLMappings['pilot'][operand]
 		return ['ReferencedField'].concat(mapping)
