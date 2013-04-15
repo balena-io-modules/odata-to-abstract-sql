@@ -43,3 +43,16 @@ test '/pilot?$select=licence/id', (result) ->
 			where(
 				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 			)
+
+
+test '/pilot?$select=pilot__can_fly__plane/plane/id', (result) ->
+	it 'should select pilot__can_fly__plane/plane/id for pilots', ->
+		expect(result).to.be.a.query.that.
+			selects(
+				operandToAbstractSQL('plane/id')
+			).
+			from('pilot', 'pilot-can_fly-plane', 'plane').
+			where(['And'
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
+				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'plane']]
+			])
