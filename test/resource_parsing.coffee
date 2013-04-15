@@ -48,7 +48,7 @@ test '/pilot(1)/pilot__can_fly__plane/plane', (result) ->
 	it 'should select from the plane of pilot with id', ->
 		expect(result).to.be.a.query.that.
 			selects(['plane', '*']).
-			from('pilot', 'plane').
+			from('pilot', 'pilot-can_fly-plane', 'plane').
 			where(['And',
 				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'plane']]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
