@@ -30,7 +30,7 @@ createExpression = (lhs, op, rhs) ->
 createMethodCall = (method, args...) ->
 	return {
 		odata: method + '(' + (arg.odata ? arg for arg in args).join(',') + ')'
-		abstractsql: [method].concat(arg.abstractsql ? operandToAbstractSQL(arg) for arg in args)
+		abstractsql: [_.capitalize(method)].concat(arg.abstractsql ? operandToAbstractSQL(arg) for arg in args)
 	}
 
 operandTest = (lhs, op, rhs = 'name') ->

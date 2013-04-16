@@ -1,4 +1,9 @@
 _ = require('lodash')
+_.mixin({
+	capitalize: function(string) {
+		return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+	}
+});
 
 export ometa OData2AbstractSQL {
 
@@ -230,7 +235,7 @@ export ometa OData2AbstractSQL {
 			?(properties.method == name)
 			Arguments(properties.args):args
 		]
-		-> [name].concat(args)
+		-> [_.capitalize(name)].concat(args)
 	,
 
 	Arguments =
