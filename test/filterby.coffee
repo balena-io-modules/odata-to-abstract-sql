@@ -18,6 +18,11 @@ sqlOps =
 	div: 'Divide'
 
 createExpression = (lhs, op, rhs) ->
+	if lhs is 'not'
+		return {
+			odata: 'not ' + if op.odata? then '(' + op.odata + ')' else op
+			abstractsql: ['Not', op.abstractsql ? operandToAbstractSQL(op)]
+		}
 	return {
 		odata: (lhs.odata ? lhs) + ' ' + op + ' ' + (rhs.odata ? rhs)
 		abstractsql: [sqlOps[op], lhs.abstractsql ? operandToAbstractSQL(lhs), rhs.abstractsql ? operandToAbstractSQL(rhs)]
@@ -30,16 +35,6 @@ createMethodCall = (method, args...) ->
 
 operandTest = (lhs, op, rhs = 'name') ->
 	{odata, abstractsql} = createExpression(lhs, op, rhs)
-	test '/pilot?$filter=' + odata, (result) ->
-		it 'should select from pilot where "' + odata + '"', ->
-			expect(result).to.be.a.query.that.
-				selects(['pilot', '*']).
-				from('pilot').
-				where(abstractsql)
-
-notTest = (expression) ->
-	odata = 'not ' + if expression.odata? then '(' + expression.odata + ')' else expression
-	abstractsql = ['Not', expression.abstractsql ? operandToAbstractSQL(expression)]
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
@@ -81,8 +76,8 @@ do ->
 	right = createExpression('age', 'lt', 10)
 	operandTest(left, 'and', right)
 	operandTest(left, 'or', right)
-	notTest('is_experienced')
-	notTest(left)
+	operandTest('not', 'is_experienced')
+	operandTest('not', left)
 
 do ->
 	mathOps = [
