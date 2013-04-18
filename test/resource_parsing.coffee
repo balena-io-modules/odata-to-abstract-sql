@@ -68,22 +68,33 @@ test '/plane(1)/pilot__can_fly__plane/pilot', (result) ->
 			])
 
 
-do ->
-	testPilot1 = (result) ->
-		it 'should insert/update the pilot with id 1', ->
-			expect(result).to.be.a.query.that.have.
-				fields(
-					['id', ['Bind', 'pilot', 'id']]
-					['is experienced', ['Bind', 'pilot', 'is experienced']]
-					['name', ['Bind', 'pilot', 'name']]
-					['age', ['Bind', 'pilot', 'age']]
-					['favourite colour', ['Bind', 'pilot', 'favourite colour']]
-					['licence', ['Bind', 'pilot', 'licence']]
-				).
-				from('pilot').
-				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
-	test '/pilot(1)', 'PUT', testPilot1
-	test '/pilot(1)', 'POST', testPilot1
+test '/pilot(1)', 'PUT', (result) ->
+	it 'should insert/update the pilot with id 1', ->
+		expect(result).to.be.a.query.that.have.
+			fields(
+				['id', ['Bind', 'pilot', 'id']]
+				['is experienced', ['Bind', 'pilot', 'is experienced']]
+				['name', ['Bind', 'pilot', 'name']]
+				['age', ['Bind', 'pilot', 'age']]
+				['favourite colour', ['Bind', 'pilot', 'favourite colour']]
+				['licence', ['Bind', 'pilot', 'licence']]
+			).
+			from('pilot').
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+
+
+test '/pilot', 'POST', (result) ->
+	it 'should insert a pilot', ->
+		expect(result).to.be.a.query.that.have.
+			fields(
+				['id', ['Bind', 'pilot', 'id']]
+				['is experienced', ['Bind', 'pilot', 'is experienced']]
+				['name', ['Bind', 'pilot', 'name']]
+				['age', ['Bind', 'pilot', 'age']]
+				['favourite colour', ['Bind', 'pilot', 'favourite colour']]
+				['licence', ['Bind', 'pilot', 'licence']]
+			).
+			from('pilot')
 
 
 test '/pilot(1)/$links/licence', (result) ->
