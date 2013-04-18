@@ -1,22 +1,22 @@
 {
-	"name": "odata-to-abstract-sql",
-	"version": "0.0.0",
-	"description": "A consumer of the OData parser, written in OMeta",
-	"main": "odata-to-abstract-sql.js",
-	"scripts": {
-		"test": "mocha",
-		"postinstall": "npm install ometa-js@1.x && node node_modules/ometa-js/bin/ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
-	},
-	"repository": "git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
-	"author": "",
-	"license": "BSD",
-	"dependencies": {
-		"ometa-js": "1.x"
-	},
-	"devDependencies": {
-		"odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.1",
-		"coffee-script": "latest",
-		"chai": "latest",
-		"chai-things": "latest"
-	}
+  "name": "odata-to-abstract-sql",
+  "version": "0.0.1",
+  "description": "A consumer of the OData parser, written in OMeta",
+  "main": "odata-to-abstract-sql.js",
+  "scripts": {
+    "test": "mocha",
+    "postinstall": "npm install ometa-js@1.x && node node_modules/ometa-js/bin/ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
+  },
+  "repository": "git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
+  "author": "",
+  "license": "BSD",
+  "dependencies": {
+    "ometa-js": "1.x"
+  },
+  "devDependencies": {
+    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.1",
+    "coffee-script": "latest",
+    "chai": "latest",
+    "chai-things": "latest"
+  }
 }
