@@ -74,7 +74,7 @@ export ometa OData2AbstractSQL {
 			|	{throw 'Cannot navigate links'}
 			):referencedField
 			(	?path.link.key
-				-> where.push(['Equals', referencedField, ['Number', path.key]])
+				-> where.push(['Equals', referencedField, ['Number', path.link.key]])
 			)?
 			-> select.push(referencedField)
 		|	?(method == 'PUT' || method == 'POST')

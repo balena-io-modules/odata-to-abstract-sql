@@ -94,6 +94,17 @@ test '/pilot(1)/$links/licence', (result) ->
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
 
+test '/pilot(1)/$links/licence(2)', (result) ->
+	it 'should select the licence id 2, for generating the link', ->
+		expect(result).to.be.a.query.that.
+			selects(['ReferencedField', 'pilot', 'licence']).
+			from('pilot').
+			where(['And'
+				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Number', 2]]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+			])
+
+
 test '/pilot(1)/pilot__can_fly__plane/$links/plane', (result) ->
 	it 'should select the list of plane ids, for generating the links', ->
 		expect(result).to.be.a.query.that.
