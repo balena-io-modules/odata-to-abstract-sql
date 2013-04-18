@@ -11,7 +11,7 @@
 	"author": "",
 	"license": "BSD",
 	"dependencies": {
-		"odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git",
+		"odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.1",
 		"ometa-js": "1.x",
 		"coffee-script": "latest",
 		"chai": "latest",
