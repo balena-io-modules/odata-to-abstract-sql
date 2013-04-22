@@ -3,12 +3,12 @@ require('./chai-sql')
 test = require('./test')
 
 test '/', (result) ->
-	it 'Service root should have no model', ->
-		expect(result).to.be.empty
+	it 'Service root should return $serviceroot', ->
+		expect(result).to.deep.equal(['$serviceroot'])
 
 
 test '/$metadata', (result) ->
-	it '$metadata should return the $metadata', ->
+	it '$metadata should return $metadata', ->
 		expect(result).to.deep.equal(['$metadata'])
 
 

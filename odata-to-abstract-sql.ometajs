@@ -11,7 +11,7 @@ export ometa OData2AbstractSQL {
 		:path
 		end
 		(	?_.isEmpty(path)
-			-> []
+			-> ['$serviceroot']
 		|	?(path.resource == '$metadata')
 			-> ['$metadata']
 		|	PathSegment(method, path):queryParts
