@@ -7,14 +7,14 @@ _.mixin({
 
 export ometa OData2AbstractSQL {
 
-	Process :method =
+	Process :method :body =
 		:path
 		end
 		(	?_.isEmpty(path)
 			-> ['$serviceroot']
 		|	?(path.resource == '$metadata')
 			-> ['$metadata']
-		|	PathSegment(method, path):queryParts
+		|	PathSegment(method, body, path):queryParts
 			{queryParts.query}:query
 			(	?queryParts.select.length
 				{query.push(['Select', queryParts.select])}
@@ -32,7 +32,7 @@ export ometa OData2AbstractSQL {
 			)?
 			(	?(method == 'GET')
 				-> ['SelectQuery'].concat(query)
-			|	?(method == 'PUT')
+			|	?(method == 'PUT' || method == 'PATCH')
 				-> ['UpsertQuery'].concat(query)
 			|	?(method == 'POST')
 				-> ['InsertQuery'].concat(query)
@@ -41,7 +41,7 @@ export ometa OData2AbstractSQL {
 			)
 		)
 	,
-	PathSegment :method :path =
+	PathSegment :method :body :path =
 		?path.resource
 		Resource(path.resource):resource
 		{this.defaultResource = path.resource}
@@ -50,7 +50,7 @@ export ometa OData2AbstractSQL {
 		{[resource.tableName]}:froms
 		{[]}:where
 		(	?path.property
-			PathSegment(method, path.property):childQuery
+			PathSegment(method, body, path.property):childQuery
 			{query.concat(childQuery.query)}:query
 			{select.concat(childQuery.select)}:select
 			{froms.concat(childQuery.froms)}:froms
@@ -77,8 +77,9 @@ export ometa OData2AbstractSQL {
 				-> where.push(['Equals', referencedField, ['Number', path.link.key]])
 			)?
 			-> select.push(referencedField)
-		|	?(method == 'PUT' || method == 'POST')
-			Fields(resource.tableName, resource.fields):fields
+		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH')
+			ResourceMapping(resource.modelName):resourceMapping
+			Fields(method, body, resource.modelName, _.pairs(resourceMapping)):fields
 			-> query.push(['Fields', fields])
 		|	?path.options
 			?path.options.$select
@@ -129,12 +130,23 @@ export ometa OData2AbstractSQL {
 		-> orderby
 	,
 
-	Fields :tableName =
-		[	(	:field
-				-> [field.fieldName,['Bind', tableName, field.fieldName]]
+	Fields :method :body :resourceName =
+		[	(	[	'_name'
+					anything
+				]
+				-> null
+			|	[	:fieldName
+					[	:mappedTableName
+						:mappedFieldName
+					]
+				]
+				(	?(method == 'PATCH' && (!body || (!body[fieldName] && !body[resourceName + "." + fieldName])))
+					-> null
+				|	-> [mappedFieldName, ['Bind', resourceName, fieldName]]
+				)
 			)*:fields
 		]
-		-> fields
+		-> _.compact(fields)
 	,
 
 	Resource :resourceName =

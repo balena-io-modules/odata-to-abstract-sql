@@ -3,15 +3,19 @@ ODataParser = require('odata-parser').ODataParser.createInstance()
 OData2AbstractSQL = require('../odata-to-abstract-sql').OData2AbstractSQL.createInstance()
 OData2AbstractSQL.clientModel = require('./client-model.json')
 
-runExpectation = (describe, input, method, expectation) ->
+runExpectation = (describe, input, method, body, expectation) ->
 	if !expectation?
-		expectation = method
-		method = 'GET'
+		if !body?
+			expectation = method
+			method = 'GET'
+		else
+			expectation = body
+		body = {}
 
-	describe 'Parsing ' + input, ->
+	describe 'Parsing ' + input + ' ' + JSON.stringify(body), ->
 		try
 			input = ODataParser.matchAll(input, 'OData')
-			result = OData2AbstractSQL.match(input, 'Process', [method])
+			result = OData2AbstractSQL.match(input, 'Process', [method, body])
 			expectation(result)
 		catch e
 			expectation(e)

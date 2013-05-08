@@ -73,11 +73,29 @@ test '/pilot(1)', 'PUT', (result) ->
 		expect(result).to.be.a.query.that.have.
 			fields(
 				['id', ['Bind', 'pilot', 'id']]
-				['is experienced', ['Bind', 'pilot', 'is experienced']]
+				['is experienced', ['Bind', 'pilot', 'is_experienced']]
 				['name', ['Bind', 'pilot', 'name']]
 				['age', ['Bind', 'pilot', 'age']]
 				['favourite colour', ['Bind', 'pilot', 'favourite colour']]
 				['licence', ['Bind', 'pilot', 'licence']]
+			).
+			from('pilot').
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+
+
+test '/pilot(1)', 'PATCH', (result) ->
+	it 'should update the pilot with id 1', ->
+		expect(result).to.be.a.query.that.have.
+			fields().
+			from('pilot').
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+
+
+test '/pilot(1)', 'PATCH', {is_experienced: true}, (result) ->
+	it 'should update the pilot with id 1', ->
+		expect(result).to.be.a.query.that.have.
+			fields(
+				['is experienced', ['Bind', 'pilot', 'is_experienced']]
 			).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
@@ -88,7 +106,7 @@ test '/pilot', 'POST', (result) ->
 		expect(result).to.be.a.query.that.have.
 			fields(
 				['id', ['Bind', 'pilot', 'id']]
-				['is experienced', ['Bind', 'pilot', 'is experienced']]
+				['is experienced', ['Bind', 'pilot', 'is_experienced']]
 				['name', ['Bind', 'pilot', 'name']]
 				['age', ['Bind', 'pilot', 'age']]
 				['favourite colour', ['Bind', 'pilot', 'favourite colour']]
