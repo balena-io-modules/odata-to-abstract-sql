@@ -87,7 +87,7 @@ export ometa OData2AbstractSQL {
 			{select.concat(fields)}:select
 		|	(	?path.options
 				?path.options.$expand
-				Expands(method, resource, select, froms, where, path.options.$expand.properties)
+				Expands(resource, select, froms, where, path.options.$expand.properties)
 			)?
 			-> select.push([resource.tableName, '*'])
 		)
@@ -301,7 +301,7 @@ export ometa OData2AbstractSQL {
 		|	TextFunction
 	,
 
-	Expands :method :resource :select :froms :where =
+	Expands :resource :select :froms :where =
 		[	(	:expand
 				(	?(!expand.property)
 					Resource(expand.name):extraResource
