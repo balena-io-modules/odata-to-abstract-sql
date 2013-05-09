@@ -83,26 +83,30 @@ test '/pilot(1)', 'PUT', (result) ->
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
 
-test '/pilot(1)', 'PATCH', (result) ->
-	it 'should update the pilot with id 1', ->
-		expect(result).to.be.a.query.that.have.
-			fields(
-				['id', ['Bind', 'pilot', 'id']]
-			).
-			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+do ->
+	testFunc = (result) ->
+		it 'should update the pilot with id 1', ->
+			expect(result).to.be.a.query.that.have.
+				fields(
+					['id', ['Bind', 'pilot', 'id']]
+				).
+				from('pilot').
+				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+	test '/pilot(1)', 'PATCH', testFunc
+	test '/pilot(1)', 'MERGE', testFunc
 
-
-test '/pilot(1)', 'PATCH', {is_experienced: true}, (result) ->
-	it 'should update the pilot with id 1', ->
-		expect(result).to.be.a.query.that.have.
-			fields(
-				['id', ['Bind', 'pilot', 'id']]
-				['is experienced', ['Bind', 'pilot', 'is_experienced']]
-			).
-			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
-
+do ->
+	testFunc = (result) ->
+		it 'should update the pilot with id 1', ->
+			expect(result).to.be.a.query.that.have.
+				fields(
+					['id', ['Bind', 'pilot', 'id']]
+					['is experienced', ['Bind', 'pilot', 'is_experienced']]
+				).
+				from('pilot').
+				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+	test '/pilot(1)', 'PATCH', {is_experienced: true}, testFunc
+	test '/pilot(1)', 'MERGE', {is_experienced: true}, testFunc
 
 test '/pilot', 'POST', (result) ->
 	it 'should insert a pilot', ->

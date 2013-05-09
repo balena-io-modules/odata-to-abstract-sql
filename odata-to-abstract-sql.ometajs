@@ -32,7 +32,7 @@ export ometa OData2AbstractSQL {
 			)?
 			(	?(method == 'GET')
 				-> ['SelectQuery'].concat(query)
-			|	?(method == 'PUT' || method == 'PATCH')
+			|	?(method == 'PUT' || method == 'PATCH' || method == 'MERGE')
 				-> ['UpsertQuery'].concat(query)
 			|	?(method == 'POST')
 				-> ['InsertQuery'].concat(query)
@@ -86,7 +86,7 @@ export ometa OData2AbstractSQL {
 				-> where.push(['Equals', referencedField, ['Number', path.link.key]])
 			)?
 			-> select.push(referencedField)
-		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH')
+		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource.modelName):resourceMapping
 			Fields(method, body, resource.modelName, _.pairs(resourceMapping)):fields
 			-> query.push(['Fields', fields])
@@ -145,7 +145,7 @@ export ometa OData2AbstractSQL {
 						:mappedFieldName
 					]
 				]
-				(	?(method == 'PATCH' && (!body || (!body[fieldName] && !body[resourceName + "." + fieldName])))
+				(	?((method == 'PATCH' || method == 'MERGE') && (!body || (!body[fieldName] && !body[resourceName + "." + fieldName])))
 					-> null
 				|	-> [mappedFieldName, ['Bind', resourceName, fieldName]]
 				)
