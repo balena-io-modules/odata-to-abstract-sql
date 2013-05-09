@@ -28,8 +28,8 @@ test '/pilot(1)/licence', (result) ->
 			selects(['licence', '*']).
 			from('pilot', 'licence').
 			where(['And',
-				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 			])
 
 
@@ -39,8 +39,8 @@ test '/licence(1)/pilot', (result) ->
 			selects(['pilot', '*']).
 			from('pilot', 'licence').
 			where(['And',
-				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 				['Equals', ['ReferencedField', 'licence', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 			])
 
 
@@ -50,9 +50,9 @@ test '/pilot(1)/pilot__can_fly__plane/plane', (result) ->
 			selects(['plane', '*']).
 			from('pilot', 'pilot-can_fly-plane', 'plane').
 			where(['And',
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
 				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'plane']]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
 			])
 
 
@@ -62,9 +62,9 @@ test '/plane(1)/pilot__can_fly__plane/pilot', (result) ->
 			selects(['pilot', '*']).
 			from('pilot', 'plane').
 			where(['And',
+				['Equals', ['ReferencedField', 'plane', 'id'], ['Number', 1]]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
 				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'plane']]
-				['Equals', ['ReferencedField', 'plane', 'id'], ['Number', 1]]
 			])
 
 
@@ -129,8 +129,8 @@ test '/pilot(1)/$links/licence(2)', (result) ->
 			selects(['ReferencedField', 'pilot', 'licence']).
 			from('pilot').
 			where(['And'
-				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Number', 2]]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Number', 2]]
 			])
 
 
@@ -140,8 +140,8 @@ test '/pilot(1)/pilot__can_fly__plane/$links/plane', (result) ->
 			selects(['ReferencedField', 'pilot-can_fly-plane', 'plane']).
 			from('pilot').
 			where(['And',
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
 			])
 
 

@@ -111,6 +111,10 @@ do ->
 				from('pilot', 'pilot-can_fly-plane').
 				where(['And'
 					['Equals'
+						['ReferencedField', 'pilot', 'id']
+						['Number', 1]
+					]
+					['Equals'
 						['ReferencedField', 'plane', 'id']
 						['ReferencedField', 'pilot-can_fly-plane', 'plane']
 					]
@@ -118,10 +122,6 @@ do ->
 					['Equals'
 						['ReferencedField', 'pilot', 'id']
 						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
-					]
-					['Equals'
-						['ReferencedField', 'pilot', 'id']
-						['Number', 1]
 					]
 				])
 

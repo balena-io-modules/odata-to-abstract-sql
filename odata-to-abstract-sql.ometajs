@@ -49,6 +49,11 @@ export ometa OData2AbstractSQL {
 		{[]}:select
 		{[resource.tableName]}:froms
 		{[]}:where
+
+		(	?path.key
+			-> where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
+		)?
+
 		(	?path.property
 			PathSegment(method, body, path.property):childQuery
 			{query.concat(childQuery.query)}:query
@@ -113,10 +118,6 @@ export ometa OData2AbstractSQL {
 				-> query.push(['Offset', offset])
 			)
 		)
-
-		(	?path.key
-			-> where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
-		)?
 
 		-> { query: query, select: select, froms: froms, where: where }
 	,
