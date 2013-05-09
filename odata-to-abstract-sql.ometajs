@@ -51,6 +51,10 @@ export ometa OData2AbstractSQL {
 		{[]}:where
 
 		(	?path.key
+			{resource.modelName + '.' + resource.idField}:qualifiedIDField
+			(	?(!body[qualifiedIDField] && !body[resource.idField])
+				{body[qualifiedIDField] = path.key}
+			)?
 			-> where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
 		)?
 

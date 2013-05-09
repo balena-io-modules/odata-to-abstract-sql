@@ -86,7 +86,9 @@ test '/pilot(1)', 'PUT', (result) ->
 test '/pilot(1)', 'PATCH', (result) ->
 	it 'should update the pilot with id 1', ->
 		expect(result).to.be.a.query.that.have.
-			fields().
+			fields(
+				['id', ['Bind', 'pilot', 'id']]
+			).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
@@ -95,6 +97,7 @@ test '/pilot(1)', 'PATCH', {is_experienced: true}, (result) ->
 	it 'should update the pilot with id 1', ->
 		expect(result).to.be.a.query.that.have.
 			fields(
+				['id', ['Bind', 'pilot', 'id']]
 				['is experienced', ['Bind', 'pilot', 'is_experienced']]
 			).
 			from('pilot').
