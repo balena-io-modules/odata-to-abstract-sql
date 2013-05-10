@@ -373,24 +373,26 @@ export ometa OData2AbstractSQL {
 	// Returns the resource names.
 	ExtraFroms =
 		{[]}:froms
-		?(_.isArray(this.input.hd))
-		[	(	:nextProp
-				(	{nextProp}:prop
-					?prop.name
-					?prop.property
-					?prop.property.name
-					{prop.property}:nextProp
-					-> prop.name
-				)+:extraFroms
-				(	?(extraFroms.length == 1)
-					-> froms.push(extraFroms[0])
-				|	-> froms.push(extraFroms)
-				)
-			|	ExtraFroms:extraFroms
-				{froms.concat(extraFroms)}:froms
-			|	anything
-			)*
-		]
+		(	?(_.isArray(this.input.hd))
+			[	(	ExtraFroms:extraFroms
+					{froms.concat(extraFroms)}:froms
+				)*
+			]
+		|	:nextProp
+			(	{nextProp}:prop
+				?prop
+				?prop.name
+				?prop.property
+				?prop.property.name
+				{prop.property}:nextProp
+				-> prop.name
+			)+:extraFroms
+			(	?(extraFroms.length == 1)
+				-> froms.push(extraFroms[0])
+			|	-> froms.push(extraFroms)
+			)
+		| anything
+		)
 		-> froms
 	,
 

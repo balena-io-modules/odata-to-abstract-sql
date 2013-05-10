@@ -23,6 +23,11 @@ createExpression = (lhs, op, rhs) ->
 			odata: 'not ' + if op.odata? then '(' + op.odata + ')' else op
 			abstractsql: ['Not', op.abstractsql ? operandToAbstractSQL(op)]
 		}
+	if !rhs?
+		return {
+			odata: if lhs.odata? then '(' + lhs.odata + ')' else lhs
+			abstractsql: lhs.abstractsql ? operandToAbstractSQL(lhs)
+		}
 	return {
 		odata: (lhs.odata ? lhs) + ' ' + op + ' ' + (rhs.odata ? rhs)
 		abstractsql: [sqlOps[op], lhs.abstractsql ? operandToAbstractSQL(lhs), rhs.abstractsql ? operandToAbstractSQL(rhs)]
@@ -33,7 +38,7 @@ createMethodCall = (method, args...) ->
 		abstractsql: [_.capitalize(method)].concat(arg.abstractsql ? operandToAbstractSQL(arg) for arg in args)
 	}
 
-operandTest = (lhs, op, rhs = 'name') ->
+operandTest = (lhs, op, rhs) ->
 	{odata, abstractsql} = createExpression(lhs, op, rhs)
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
@@ -51,12 +56,12 @@ methodTest = (args...) ->
 				from('pilot').
 				where(abstractsql)
 
-operandTest(2, 'eq')
-operandTest(2, 'ne')
-operandTest(2, 'gt')
-operandTest(2, 'ge')
-operandTest(2, 'lt')
-operandTest(2, 'le')
+operandTest(2, 'eq', 'name')
+operandTest(2, 'ne', 'name')
+operandTest(2, 'gt', 'name')
+operandTest(2, 'ge', 'name')
+operandTest(2, 'lt', 'name')
+operandTest(2, 'le', 'name')
 
 # Test each combination of operands
 do ->
@@ -76,6 +81,7 @@ do ->
 	right = createExpression('age', 'lt', 10)
 	operandTest(left, 'and', right)
 	operandTest(left, 'or', right)
+	operandTest('is_experienced')
 	operandTest('not', 'is_experienced')
 	operandTest('not', left)
 
