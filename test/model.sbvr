@@ -11,6 +11,9 @@ Term:       licence
 
 Term:       plane
 
+Fact type:  plane has name
+	Necessity: each plane has exactly one name
+
 Term:       pilot
 
 Fact type:  pilot is experienced

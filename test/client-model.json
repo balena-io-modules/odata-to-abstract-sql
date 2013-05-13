@@ -31,6 +31,16 @@
 					"fieldName": "id",
 					"required": true,
 					"index": "PRIMARY KEY"
+				},
+				{
+					"dataType": "Short Text",
+					"fieldName": "name",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "name",
+						"fieldName": null
+					}
 				}
 			],
 			"idField": "id",
@@ -39,6 +49,40 @@
 				"view",
 				"add",
 				"edit",
+				"delete"
+			]
+		},
+		"plane__has__name": {
+			"resourceName": "plane__has__name",
+			"modelName": "plane has name",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "plane",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "plane",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "Short Text",
+					"fieldName": "name",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "name",
+						"fieldName": null
+					}
+				}
+			],
+			"idField": "plane",
+			"referenceScheme": "name",
+			"actions": [
+				"view",
+				"add",
 				"delete"
 			]
 		},
@@ -318,6 +362,21 @@
 			"id": [
 				"plane",
 				"id"
+			],
+			"name": [
+				"plane",
+				"name"
+			]
+		},
+		"plane__has__name": {
+			"_name": "plane",
+			"plane": [
+				"plane",
+				"id"
+			],
+			"name": [
+				"plane",
+				"name"
 			]
 		},
 		"pilot": {
@@ -338,7 +397,7 @@
 				"pilot",
 				"age"
 			],
-			"favourite colour": [
+			"favourite_colour": [
 				"pilot",
 				"favourite colour"
 			],
@@ -353,7 +412,7 @@
 				"pilot",
 				"id"
 			],
-			"is_experienced": [
+			"is experienced": [
 				"pilot",
 				"is experienced"
 			]

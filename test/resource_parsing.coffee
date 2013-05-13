@@ -76,7 +76,7 @@ test '/pilot(1)', 'PUT', (result) ->
 				['is experienced', ['Bind', 'pilot', 'is_experienced']]
 				['name', ['Bind', 'pilot', 'name']]
 				['age', ['Bind', 'pilot', 'age']]
-				['favourite colour', ['Bind', 'pilot', 'favourite colour']]
+				['favourite colour', ['Bind', 'pilot', 'favourite_colour']]
 				['licence', ['Bind', 'pilot', 'licence']]
 			).
 			from('pilot').
@@ -116,7 +116,7 @@ test '/pilot', 'POST', (result) ->
 				['is experienced', ['Bind', 'pilot', 'is_experienced']]
 				['name', ['Bind', 'pilot', 'name']]
 				['age', ['Bind', 'pilot', 'age']]
-				['favourite colour', ['Bind', 'pilot', 'favourite colour']]
+				['favourite colour', ['Bind', 'pilot', 'favourite_colour']]
 				['licence', ['Bind', 'pilot', 'licence']]
 			).
 			from('pilot')
