@@ -172,3 +172,37 @@ do ->
 operandTest(createMethodCall('round', 'age'), 'eq', 25)
 operandTest(createMethodCall('floor', 'age'), 'eq', 25)
 operandTest(createMethodCall('ceiling', 'age'), 'eq', 25)
+
+
+lambdaTest = (methodName) ->
+	test '/pilot?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
+		it 'should select from pilot where ...', ->
+			expect(result).to.be.a.query.that.
+				selects(['pilot', '*']).
+				from('pilot').
+				where(['Exists'
+					['SelectQuery'
+						['Select', []]
+						['From', 'pilot-can_fly-plane']
+						['From', 'plane']
+						['Where',
+							['And'
+								['Equals'
+									['ReferencedField', 'pilot', 'id']
+									['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+								]
+								['Equals'
+									['ReferencedField', 'plane', 'id']
+									['ReferencedField', 'pilot-can_fly-plane', 'plane']
+								]
+								['Equals'
+									['ReferencedField', 'plane', 'name']
+									['Text', 'Concorde']
+								]
+							]
+						]
+					]
+				])
+
+lambdaTest('any')
+# lambdaTest('all')

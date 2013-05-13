@@ -154,7 +154,12 @@ export ometa OData2AbstractSQL {
 		-> _.compact(fields)
 	,
 
+	ResolveResourceAlias :aliasName =
+		-> (this.resourceAliases[aliasName] || aliasName)
+	,
+
 	Resource :resourceName =
+			ResolveResourceAlias(resourceName):resourceName
 			{this.clientModel.resources[resourceName]}:resource
 			?resource
 			(	?resource.tableName
@@ -177,6 +182,7 @@ export ometa OData2AbstractSQL {
 	,
 
 	ResourceMapping :resourceName =
+			ResolveResourceAlias(resourceName):resourceName
 			?this.clientModel.resourceToSQLMappings[resourceName]
 			-> this.clientModel.resourceToSQLMappings[resourceName]
 		|	{throw 'Unknown resource: ' + resourceName}
@@ -284,6 +290,42 @@ export ometa OData2AbstractSQL {
 		-> [operation, op1, op2]
 	,
 
+	Lambda :resource :lambda =
+		{this.resourceAliases}:resourceAliases
+		{	this.resourceAliases = _.clone(this.resourceAliases);
+			this.resourceAliases[lambda.identifier] = resource.resourceName;
+		}
+		(	{[]}:froms
+			{[]}:where
+			Resource(this.defaultResource):defaultResource
+			AddNavigation(froms, where, defaultResource, resource)
+			AddExtraFroms(lambda.expression, froms, where, resource)
+			Boolean(lambda.expression):filter
+			{where.push(filter)}
+			{['SelectQuery', ['Select', []]]}:query
+			{	_.each(froms, function(tableName) {
+					query.push(['From', tableName]);
+				})
+			}
+			(	?where.length
+				(	?(where.length > 1)
+					-> query.push(['Where', ['And'].concat(where)])
+				|	-> query.push(['Where'].concat(where))
+				)
+			)?
+			(	?(lambda.method == 'any')
+				-> ['Exists', query]
+			// |	'all'
+				// -> ['Not', ['Exists', WHERENOT..]
+			):result
+			// Make sure resourceAliases are always reset at the end.
+			{this.resourceAliases = resourceAliases}
+		|	{this.resourceAliases = resourceAliases}
+			?false
+		)
+		-> result
+	,
+
 	Properties =
 		[	Property*:props
 		]
@@ -302,6 +344,9 @@ export ometa OData2AbstractSQL {
 			|	{console.error(prop)}
 				{throw 'Subproperty without a name'}
 			)
+		|	?prop.lambda
+			Resource(prop.name):resource
+			Lambda(resource, prop.lambda)
 		|	ReferencedField(this.defaultResource, prop.name)
 		)
 	,
@@ -347,7 +392,7 @@ export ometa OData2AbstractSQL {
 				['ReferencedField', resource2.tableName, resource2.idField],
 				fkField
 			]
-		|	{throw 'Cannot navigate resources'}
+		|	{throw 'Cannot navigate resources ' + resource1.tableName + ' and ' + resource2.tableName}
 		)
 	,
 
@@ -385,7 +430,7 @@ export ometa OData2AbstractSQL {
 				?prop.property
 				?prop.property.name
 				{prop.property}:nextProp
-				-> prop.name
+				ResolveResourceAlias(prop.name)
 			)+:extraFroms
 			(	?(extraFroms.length == 1)
 				-> froms.push(extraFroms[0])
@@ -403,3 +448,7 @@ export ometa OData2AbstractSQL {
 			{where.push(nagivationWhere)}
 		)?
 }
+
+OData2AbstractSQL.initialize = function() {
+	this.resourceAliases = {};
+};
