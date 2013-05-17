@@ -121,6 +121,29 @@ test '/pilot', 'POST', (result) ->
 			).
 			from('pilot')
 
+do ->
+	testFunc = (result) ->
+		it 'should update the pilot with id 1', ->
+			console.log result[3][1]
+			expect(result).to.be.a.query.that.have.
+				fields(
+					['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]	
+				).
+				from('pilot-can_fly-plane').
+				where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
+	test '/pilot__can_fly__plane(1)', 'PATCH', {pilot: 2}, testFunc
+	test '/pilot__can_fly__plane(1)', 'MERGE', {pilot: 2}, testFunc
+
+test '/pilot__can_fly__plane', 'POST', (result) ->
+	it 'should update a pilot name', ->
+		expect(result).to.be.a.query.that.have.
+			fields(
+				['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
+				['plane', ['Bind', 'pilot__can_fly__plane', 'plane']]
+				['id', ['Bind', 'pilot__can_fly__plane', 'id']]
+			).
+			from('pilot-can_fly-plane')
+
 
 test '/pilot(1)/$links/licence', (result) ->
 	it 'should select the list of licence ids, for generating the links', ->

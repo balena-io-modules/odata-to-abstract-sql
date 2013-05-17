@@ -87,8 +87,8 @@ export ometa OData2AbstractSQL {
 			)?
 			-> select.push(referencedField)
 		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
-			ResourceMapping(resource.modelName):resourceMapping
-			Fields(method, body, resource.modelName, _.pairs(resourceMapping)):fields
+			ResourceMapping(resource.resourceName):resourceMapping
+			Fields(method, body, resource.resourceName, _.pairs(resourceMapping)):fields
 			-> query.push(['Fields', fields])
 		|	?path.options
 			?path.options.$select
