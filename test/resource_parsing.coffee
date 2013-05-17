@@ -108,16 +108,11 @@ do ->
 	test '/pilot(1)', 'PATCH', {is_experienced: true}, testFunc
 	test '/pilot(1)', 'MERGE', {is_experienced: true}, testFunc
 
-test '/pilot', 'POST', (result) ->
+test '/pilot', 'POST', {name: 'Peter'}, (result) ->
 	it 'should insert a pilot', ->
 		expect(result).to.be.a.query.that.have.
 			fields(
-				['id', ['Bind', 'pilot', 'id']]
-				['is experienced', ['Bind', 'pilot', 'is_experienced']]
 				['name', ['Bind', 'pilot', 'name']]
-				['age', ['Bind', 'pilot', 'age']]
-				['favourite colour', ['Bind', 'pilot', 'favourite_colour']]
-				['licence', ['Bind', 'pilot', 'licence']]
 			).
 			from('pilot')
 
@@ -138,20 +133,19 @@ do ->
 			console.log result[3][1]
 			expect(result).to.be.a.query.that.have.
 				fields(
-					['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]	
+					['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
 				).
 				from('pilot-can_fly-plane').
 				where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
 	test '/pilot__can_fly__plane(1)', 'PATCH', {pilot: 2}, testFunc
 	test '/pilot__can_fly__plane(1)', 'MERGE', {pilot: 2}, testFunc
 
-test '/pilot__can_fly__plane', 'POST', (result) ->
+test '/pilot__can_fly__plane', 'POST', {pilot:2, plane:3}, (result) ->
 	it 'should add a pilot__can_fly__plane', ->
 		expect(result).to.be.a.query.that.have.
 			fields(
 				['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
 				['plane', ['Bind', 'pilot__can_fly__plane', 'plane']]
-				['id', ['Bind', 'pilot__can_fly__plane', 'id']]
 			).
 			from('pilot-can_fly-plane')
 

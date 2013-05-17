@@ -145,7 +145,7 @@ export ometa OData2AbstractSQL {
 						:mappedFieldName
 					]
 				]
-				(	?((method == 'PATCH' || method == 'MERGE') && (!body || (!body[fieldName] && !body[resourceName + "." + fieldName])))
+				(	?((method === 'PATCH' || method === 'MERGE' || method === 'POST') && (!body || (!body[fieldName] && !body[resourceName + "." + fieldName])))
 					-> null
 				|	-> [mappedFieldName, ['Bind', resourceName, fieldName]]
 				)
