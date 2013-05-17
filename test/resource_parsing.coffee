@@ -121,9 +121,20 @@ test '/pilot', 'POST', (result) ->
 			).
 			from('pilot')
 
+test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
+	it 'should insert/update the pilot__can_fly__plane with id 1', ->
+		expect(result).to.be.a.query.that.have.
+			fields(
+				['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
+				['plane', ['Bind', 'pilot__can_fly__plane', 'plane']]
+				['id', ['Bind', 'pilot__can_fly__plane', 'id']]
+			).
+			from('pilot-can_fly-plane').
+			where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
+
 do ->
 	testFunc = (result) ->
-		it 'should update the pilot with id 1', ->
+		it 'should update the pilot__can_fly__plane with id 1', ->
 			console.log result[3][1]
 			expect(result).to.be.a.query.that.have.
 				fields(
@@ -135,7 +146,7 @@ do ->
 	test '/pilot__can_fly__plane(1)', 'MERGE', {pilot: 2}, testFunc
 
 test '/pilot__can_fly__plane', 'POST', (result) ->
-	it 'should update a pilot name', ->
+	it 'should add a pilot__can_fly__plane', ->
 		expect(result).to.be.a.query.that.have.
 			fields(
 				['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
