@@ -22,6 +22,9 @@ chai.use((chai, utils) ->
 	select = bodyClause('Select')
 	utils.addMethod(assertionPrototype, 'select', select)
 	utils.addChainableMethod(assertionPrototype, 'selects', select)
+	utils.addChainableMethod(assertionPrototype, 'deletes', ->
+		expect(obj).to.contain.something.that.equals 'DeleteQuery'
+	)
 	utils.addMethod(assertionPrototype, 'fields', multiBodyClause('Fields'))
 	utils.addMethod(assertionPrototype, 'from', bodyClause('From'))
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))

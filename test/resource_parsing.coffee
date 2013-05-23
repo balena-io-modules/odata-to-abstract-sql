@@ -69,6 +69,12 @@ test '/plane(1)/pilot__can_fly__plane/pilot', (result) ->
 			])
 
 
+test '/pilot(1)', 'DELETE', (result) ->
+	it 'should delete the pilot with id 1', ->
+		expect(result).to.be.a.query.that.deletes.
+			from('pilot').
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+
 test '/pilot(1)', 'PUT', (result) ->
 	it 'should insert/update the pilot with id 1', ->
 		expect(result).to.be.a.query.that.have.
@@ -82,7 +88,6 @@ test '/pilot(1)', 'PUT', (result) ->
 			).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
-
 
 do ->
 	testFunc = (result) ->
@@ -116,6 +121,13 @@ test '/pilot', 'POST', {name: 'Peter'}, (result) ->
 				['name', ['Bind', 'pilot', 'name']]
 			).
 			from('pilot')
+
+
+test '/pilot__can_fly__plane(1)', 'DELETE', (result) ->
+	it 'should delete the pilot__can_fly__plane with id 1', ->
+		expect(result).to.be.a.query.that.deletes.
+			from('pilot-can_fly-plane').
+			where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
 
 test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 	it 'should insert/update the pilot__can_fly__plane with id 1', ->

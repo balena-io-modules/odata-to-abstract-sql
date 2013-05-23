@@ -16,7 +16,8 @@ export ometa OData2AbstractSQL {
 			-> ['$metadata']
 		|	PathSegment(method, body, path):queryParts
 			{queryParts.query}:query
-			(	?queryParts.select.length
+			(	?(method != 'DELETE')
+				?queryParts.select.length
 				{query.push(['Select', queryParts.select])}
 			)?
 			{queryParts.where}:where
