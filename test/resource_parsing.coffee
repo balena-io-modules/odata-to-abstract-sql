@@ -108,11 +108,12 @@ do ->
 				fields(
 					['id', ['Bind', 'pilot', 'id']]
 					['is experienced', ['Bind', 'pilot', 'is_experienced']]
+					['favourite colour', ['Bind', 'pilot', 'favourite_colour']]
 				).
 				from('pilot').
 				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
-	test '/pilot(1)', 'PATCH', {is_experienced: true}, testFunc
-	test '/pilot(1)', 'MERGE', {is_experienced: true}, testFunc
+	test '/pilot(1)', 'PATCH', {is_experienced: true, favourite_colour: null}, testFunc
+	test '/pilot(1)', 'MERGE', {is_experienced: true, favourite_colour: null}, testFunc
 
 test '/pilot', 'POST', {name: 'Peter'}, (result) ->
 	it 'should insert a pilot', ->
