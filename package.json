@@ -11,7 +11,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "ometa-js": "1.x"
+    "ometa-js": "~1.0.3"
   },
   "devDependencies": {
     "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.2",
