@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{operandToAbstractSQL} = require('./chai-sql')
+{operandToAbstractSQL, pilotFields, licenceFields, planeFields, pilotCanFlyPlaneFields} = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
 
@@ -43,7 +43,7 @@ operandTest = (lhs, op, rhs) ->
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-				selects(['pilot', '*']).
+				selects(pilotFields).
 				from('pilot').
 				where(abstractsql)
 
@@ -52,7 +52,7 @@ methodTest = (args...) ->
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-				selects(['pilot', '*']).
+				selects(pilotFields).
 				from('pilot').
 				where(abstractsql)
 
@@ -101,7 +101,7 @@ do ->
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-				selects(['pilot', '*']).
+				selects(pilotFields).
 				from('pilot', 'pilot-can_fly-plane').
 				where(['And'
 					['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
@@ -113,7 +113,7 @@ do ->
 	test '/pilot(1)/pilot__can_fly__plane?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-				selects(['pilot-can_fly-plane', '*']).
+				selects(pilotCanFlyPlaneFields).
 				from('pilot', 'pilot-can_fly-plane').
 				where(['And'
 					['Equals'
@@ -136,7 +136,7 @@ do ->
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-				selects(['pilot', '*']).
+				selects(pilotFields).
 				from('pilot', 'pilot-can_fly-plane', 'pilot').
 				where(['And'
 					['Equals'
@@ -178,7 +178,7 @@ lambdaTest = (methodName) ->
 	test '/pilot?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
 		it 'should select from pilot where ...', ->
 			expect(result).to.be.a.query.that.
-				selects(['pilot', '*']).
+				selects(pilotFields).
 				from('pilot').
 				where(['Exists'
 					['SelectQuery'

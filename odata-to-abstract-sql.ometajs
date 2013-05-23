@@ -99,7 +99,18 @@ export ometa OData2AbstractSQL {
 				?path.options.$expand
 				Expands(resource, select, froms, where, path.options.$expand.properties)
 			)?
-			-> select.push([resource.tableName, '*'])
+			{	select.concat(
+					_(this.ResourceMapping(resource.resourceName)).keys().reject(function(fieldName) {
+						return fieldName === '_name'
+					}).map(function(fieldName) {
+						var referencedField = this.ReferencedField(resource.resourceName, fieldName)
+						if(referencedField[2] === fieldName) {
+							return referencedField;
+						}
+						return [referencedField, fieldName];
+					}, this).value()
+				)
+			}:select
 		)
 
 		(	?(!path.options)
@@ -192,7 +203,7 @@ export ometa OData2AbstractSQL {
 		ResourceMapping(resourceTable):mapping
 		(	?mapping[resourceField]
 			-> ['ReferencedField'].concat(mapping[resourceField])
-		|	{console.log(mapping)}{throw 'Unknown mapping: ' + resourceTable + ' : ' + resourceField}
+		|	{console.error('Unknown mapping: ', mapping)}{throw 'Unknown mapping: ' + resourceTable + ' : ' + resourceField}
 		)
 	,
 

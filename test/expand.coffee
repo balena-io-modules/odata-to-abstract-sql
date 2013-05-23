@@ -1,14 +1,13 @@
 expect = require('chai').expect
-{operandToAbstractSQL} = require('./chai-sql')
+{operandToAbstractSQL, pilotFields, licenceFields, planeFields} = require('./chai-sql')
 test = require('./test')
 
 test '/pilot?$expand=licence', (result) ->
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
-			selects(
+			selects([
 				['licence', '*']
-				['pilot', '*']
-			).
+			].concat(pilotFields)).
 			from('pilot', 'licence').
 			where(
 				['Equals'
@@ -21,10 +20,9 @@ test '/pilot?$expand=licence', (result) ->
 test '/pilot?$expand=pilot__can_fly__plane/plane', (result) ->
 	it 'should select from pilot.*, plane.*', ->
 		expect(result).to.be.a.query.that.
-			selects(
+			selects([
 				['plane', '*']
-				['pilot', '*']
-			).
+			].concat(pilotFields)).
 			from('pilot', 'pilot-can_fly-plane', 'pilot').
 			where(['And'
 				['Equals'
@@ -41,11 +39,10 @@ test '/pilot?$expand=pilot__can_fly__plane/plane', (result) ->
 test '/pilot?$expand=pilot__can_fly__plane/plane,licence', (result) ->
 	it 'should select from pilot.*, plane.*, licence.*', ->
 		expect(result).to.be.a.query.that.
-			selects(
+			selects([
 				['plane', '*']
 				['licence', '*']
-				['pilot', '*']
-			).
+			].concat(pilotFields)).
 			from('pilot', 'pilot-can_fly-plane', 'pilot', 'licence').
 			where(['And'
 				['Equals'

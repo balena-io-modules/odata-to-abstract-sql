@@ -19,7 +19,7 @@ chai.use((chai, utils) ->
 			obj = utils.flag(@, 'object')
 			expect(obj).to.contain.something.that.deep.equals([bodyType, bodyClauses], bodyType)
 			return @
-	select = multiBodyClause('Select')
+	select = bodyClause('Select')
 	utils.addMethod(assertionPrototype, 'select', select)
 	utils.addChainableMethod(assertionPrototype, 'selects', select)
 	utils.addMethod(assertionPrototype, 'fields', multiBodyClause('Fields'))
@@ -50,3 +50,25 @@ exports.operandToAbstractSQL = (operand) ->
 			mapping = clientModel.resourceToSQLMappings['pilot'][operand]
 		return ['ReferencedField'].concat(mapping)
 	throw 'Unknown operand type: ' + operand
+
+exports.pilotFields = [
+	["ReferencedField", "pilot", "id"]
+	[["ReferencedField", "pilot", "is experienced"], 'is_experienced']
+	["ReferencedField", "pilot", "name"]
+	["ReferencedField", "pilot", "age"]
+	[["ReferencedField", "pilot", "favourite colour"], 'favourite_colour']
+	["ReferencedField", "pilot", "licence"]
+]
+
+exports.licenceFields = [["ReferencedField", "licence", "id"]]
+
+exports.planeFields = [
+	["ReferencedField", "plane", "id"]
+	["ReferencedField", "plane", "name"]
+]
+
+exports.pilotCanFlyPlaneFields = [
+	["ReferencedField", "pilot-can_fly-plane", "pilot"]
+	["ReferencedField", "pilot-can_fly-plane", "plane"]
+	["ReferencedField", "pilot-can_fly-plane", "id"]
+]

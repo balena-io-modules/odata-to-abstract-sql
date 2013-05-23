@@ -1,5 +1,5 @@
 expect = require('chai').expect
-require('./chai-sql')
+{pilotFields, licenceFields, planeFields} = require('./chai-sql')
 test = require('./test')
 
 test '/', (result) ->
@@ -12,20 +12,21 @@ test '/$metadata', (result) ->
 		expect(result).to.deep.equal(['$metadata'])
 
 
+
 test '/pilot', (result) ->
 	it 'should select from pilot', ->
-		expect(result).to.be.a.query.that.selects(['pilot', '*']).from('pilot')
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot')
 
 
 test '/pilot(1)', (result) ->
 	it 'should select from pilot with id', ->
-		expect(result).to.be.a.query.that.selects(['pilot', '*']).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
 
 test '/pilot(1)/licence', (result) ->
 	it 'should select from the licence of pilot with id', ->
 		expect(result).to.be.a.query.that.
-			selects(['licence', '*']).
+			selects(licenceFields).
 			from('pilot', 'licence').
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
@@ -36,7 +37,7 @@ test '/pilot(1)/licence', (result) ->
 test '/licence(1)/pilot', (result) ->
 	it 'should select from the pilots of licence with id', ->
 		expect(result).to.be.a.query.that.
-			selects(['pilot', '*']).
+			selects(pilotFields).
 			from('pilot', 'licence').
 			where(['And',
 				['Equals', ['ReferencedField', 'licence', 'id'], ['Number', 1]]
@@ -47,7 +48,7 @@ test '/licence(1)/pilot', (result) ->
 test '/pilot(1)/pilot__can_fly__plane/plane', (result) ->
 	it 'should select from the plane of pilot with id', ->
 		expect(result).to.be.a.query.that.
-			selects(['plane', '*']).
+			selects(planeFields).
 			from('pilot', 'pilot-can_fly-plane', 'plane').
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
@@ -59,7 +60,7 @@ test '/pilot(1)/pilot__can_fly__plane/plane', (result) ->
 test '/plane(1)/pilot__can_fly__plane/pilot', (result) ->
 	it 'should select from the pilots of plane with id', ->
 		expect(result).to.be.a.query.that.
-			selects(['pilot', '*']).
+			selects(pilotFields).
 			from('pilot', 'plane').
 			where(['And',
 				['Equals', ['ReferencedField', 'plane', 'id'], ['Number', 1]]
@@ -130,7 +131,6 @@ test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 do ->
 	testFunc = (result) ->
 		it 'should update the pilot__can_fly__plane with id 1', ->
-			console.log result[3][1]
 			expect(result).to.be.a.query.that.have.
 				fields(
 					['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
@@ -153,7 +153,7 @@ test '/pilot__can_fly__plane', 'POST', {pilot:2, plane:3}, (result) ->
 test '/pilot(1)/$links/licence', (result) ->
 	it 'should select the list of licence ids, for generating the links', ->
 		expect(result).to.be.a.query.that.
-			selects(['ReferencedField', 'pilot', 'licence']).
+			selects([['ReferencedField', 'pilot', 'licence']]).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
@@ -161,7 +161,7 @@ test '/pilot(1)/$links/licence', (result) ->
 test '/pilot(1)/$links/licence(2)', (result) ->
 	it 'should select the licence id 2, for generating the link', ->
 		expect(result).to.be.a.query.that.
-			selects(['ReferencedField', 'pilot', 'licence']).
+			selects([['ReferencedField', 'pilot', 'licence']]).
 			from('pilot').
 			where(['And'
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
@@ -172,7 +172,7 @@ test '/pilot(1)/$links/licence(2)', (result) ->
 test '/pilot(1)/pilot__can_fly__plane/$links/plane', (result) ->
 	it 'should select the list of plane ids, for generating the links', ->
 		expect(result).to.be.a.query.that.
-			selects(['ReferencedField', 'pilot-can_fly-plane', 'plane']).
+			selects([['ReferencedField', 'pilot-can_fly-plane', 'plane']]).
 			from('pilot').
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]

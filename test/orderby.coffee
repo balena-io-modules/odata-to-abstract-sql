@@ -1,11 +1,11 @@
 expect = require('chai').expect
-{operandToAbstractSQL} = require('./chai-sql')
+{operandToAbstractSQL, pilotFields} = require('./chai-sql')
 test = require('./test')
 
 test '/pilot?$orderby=name', (result) ->
 	it 'should order by name desc', ->
 		expect(result).to.be.a.query.that.
-			selects(['pilot', '*']).
+			selects(pilotFields).
 			from('pilot').
 			orderby(['DESC', operandToAbstractSQL('name')])
 
@@ -13,7 +13,7 @@ test '/pilot?$orderby=name', (result) ->
 test '/pilot?$orderby=name,age', (result) ->
 	it 'should order by name desc, age desc', ->
 		expect(result).to.be.a.query.that.
-			selects(['pilot', '*']).
+			selects(pilotFields).
 			from('pilot').
 			orderby(
 				['DESC', operandToAbstractSQL('name')]
@@ -24,7 +24,7 @@ test '/pilot?$orderby=name,age', (result) ->
 test '/pilot?$orderby=name desc', (result) ->
 	it 'should order by name desc', ->
 		expect(result).to.be.a.query.that.
-			selects(['pilot', '*']).
+			selects(pilotFields).
 			from('pilot').
 			orderby(['DESC', operandToAbstractSQL('name')])
 
@@ -32,7 +32,7 @@ test '/pilot?$orderby=name desc', (result) ->
 test '/pilot?$orderby=name asc', (result) ->
 	it 'should order by name asc', ->
 		expect(result).to.be.a.query.that.
-			selects(['pilot', '*']).
+			selects(pilotFields).
 			from('pilot').
 			orderby(['ASC', operandToAbstractSQL('name')])
 
@@ -40,7 +40,7 @@ test '/pilot?$orderby=name asc', (result) ->
 test '/pilot?$orderby=name asc,age desc', (result) ->
 	it 'should order by name desc, age desc', ->
 		expect(result).to.be.a.query.that.
-			selects(['pilot', '*']).
+			selects(pilotFields).
 			from('pilot').
 			orderby(
 				['ASC', operandToAbstractSQL('name')]
@@ -51,7 +51,7 @@ test '/pilot?$orderby=name asc,age desc', (result) ->
 test '/pilot?$orderby=licence/id asc', (result) ->
 	it 'should order by licence/id asc', ->
 		expect(result).to.be.a.query.that.
-			selects(['pilot', '*']).
+			selects(pilotFields).
 			from('pilot', 'licence').
 			where(
 				['Equals'
@@ -67,7 +67,7 @@ test '/pilot?$orderby=licence/id asc', (result) ->
 test '/pilot?$orderby=pilot__can_fly__plane/plane/id asc', (result) ->
 	it 'should order by pilot__can_fly__plane/plane/id asc', ->
 		expect(result).to.be.a.query.that.
-			selects(['pilot', '*']).
+			selects(pilotFields).
 			from('pilot', 'pilot-can_fly-plane', 'pilot').
 			where(['And'
 				['Equals'
