@@ -34,6 +34,7 @@ chai.use((chai, utils) ->
 		expect(obj).to.contain.something.that.deep.equals([bodyType].concat(bodyClauses), bodyType)
 		return @
 	)
+	utils.addMethod(assertionPrototype, 'groupby', multiBodyClause('GroupBy'))
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))
 	utils.addMethod(assertionPrototype, 'limit', bodyClause('Limit'))
 	utils.addMethod(assertionPrototype, 'offset', bodyClause('Offset'))

@@ -99,19 +99,9 @@ export ometa OData2AbstractSQL {
 		|	(	?path.options
 				?path.options.$expand
 				Expands(resource, select, froms, where, path.options.$expand.properties)
+				{query.push(['GroupBy', [['ReferencedField', resource.tableName, resource.idField]]])}
 			)?
-			{	select.concat(
-					_(this.ResourceMapping(resource.resourceName)).keys().reject(function(fieldName) {
-						return fieldName === '_name'
-					}).map(function(fieldName) {
-						var referencedField = this.ReferencedField(resource.resourceName, fieldName)
-						if(referencedField[2] === fieldName) {
-							return referencedField;
-						}
-						return [referencedField, fieldName];
-					}, this).value()
-				)
-			}:select
+			AddSelectFields(resource.resourceName, select):select
 		)
 
 		(	?(!path.options)
@@ -199,6 +189,21 @@ export ometa OData2AbstractSQL {
 			-> this.clientModel.resourceToSQLMappings[resourceName]
 		|	{throw 'Unknown resource: ' + resourceName}
 	,
+
+	AddSelectFields :resourceName :select =
+		-> select.concat(
+			_(this.ResourceMapping(resourceName)).keys().reject(function(fieldName) {
+				return fieldName === '_name' || _.any(select, function(existingField) {
+					return existingField[existingField.length - 1] == fieldName;
+				});
+			}).map(function(fieldName) {
+				var referencedField = this.ReferencedField(resourceName, fieldName)
+				if(referencedField[2] === fieldName) {
+					return referencedField;
+				}
+				return [referencedField, fieldName];
+			}, this).value()
+		),
 
 	ReferencedField :resourceTable :resourceField =
 		ResourceMapping(resourceTable):mapping
@@ -384,17 +389,34 @@ export ometa OData2AbstractSQL {
 
 	Expands :resource :select :froms :where =
 		[	(	:expand
-				(	?(!expand.property)
-					Resource(expand.name):extraResource
-					AddNavigation(froms, where, resource, extraResource)
-					{select.push([expand.name, '*'])}
-				|	Resource(expand.name):extraResource
-					AddNavigation(froms, where, resource, extraResource)
+				Resource(expand.name):extraResource
+				(	?expand.property
 					Resource(expand.property.name):extraResource2
-					AddNavigation(froms, where, extraResource, extraResource2)
-					{select.push([expand.property.name, '*'])}
+					NavigateResources(resource, extraResource):navigationWhere
+					{where.push(navigationWhere)}
+					{[extraResource.tableName]}:extraFroms
+					{[]}:extraWhere
+					AddNavigation(extraFroms, extraWhere, extraResource, extraResource2)
+					{froms.push([
+						[	'SelectQuery',
+							[	'Select',
+								this.AddSelectFields(extraResource.resourceName, [[['AggregateJSON', ['plane', '*']], 'plane']])
+							]
+						].concat(
+							_.map(extraFroms, function(table) { return ['From', table]; })
+						).concat([
+							['Where'].concat(extraWhere)
+						]).concat([
+							[	'GroupBy',
+								[['ReferencedField', extraResource.tableName, extraResource.idField]]
+							]
+						]),
+						extraResource.tableName
+					])}
+				|	AddNavigation(froms, where, resource, extraResource)
 				)
-			)*
+				{select.push([['AggregateJSON', [extraResource.tableName, '*']], extraResource.tableName])}
+			)+
 		]
 	,
 
