@@ -98,8 +98,7 @@ export ometa OData2AbstractSQL {
 			{select.concat(fields)}:select
 		|	(	?path.options
 				?path.options.$expand
-				Expands(resource, select, froms, where, path.options.$expand.properties)
-				{query.push(['GroupBy', [['ReferencedField', resource.tableName, resource.idField]]])}
+				Expands(resource, query, select, froms, where, path.options.$expand.properties)
 			)?
 			AddSelectFields(resource.resourceName, select):select
 		)
@@ -387,30 +386,27 @@ export ometa OData2AbstractSQL {
 		-> ['Date', date]
 	,
 
-	Expands :resource :select :froms :where =
+	Expands :resource :query :select :froms :where =
 		[	(	:expand
 				Resource(expand.name):extraResource
 				(	?expand.property
-					Resource(expand.property.name):extraResource2
 					NavigateResources(resource, extraResource):navigationWhere
 					{where.push(navigationWhere)}
+					{[]}:extraQuery
+					{[]}:extraSelect
 					{[extraResource.tableName]}:extraFroms
 					{[]}:extraWhere
-					AddNavigation(extraFroms, extraWhere, extraResource, extraResource2)
+					Expands(extraResource, extraQuery, extraSelect, extraFroms, extraWhere, [expand.property])
 					{froms.push([
 						[	'SelectQuery',
 							[	'Select',
-								this.AddSelectFields(extraResource.resourceName, [[['AggregateJSON', ['plane', '*']], 'plane']])
+								this.AddSelectFields(extraResource.resourceName, extraSelect)
 							]
 						].concat(
 							_.map(extraFroms, function(table) { return ['From', table]; })
 						).concat([
 							['Where'].concat(extraWhere)
-						]).concat([
-							[	'GroupBy',
-								[['ReferencedField', extraResource.tableName, extraResource.idField]]
-							]
-						]),
+						]).concat(extraQuery),
 						extraResource.tableName
 					])}
 				|	AddNavigation(froms, where, resource, extraResource)
@@ -418,6 +414,7 @@ export ometa OData2AbstractSQL {
 				{select.push([['AggregateJSON', [extraResource.tableName, '*']], extraResource.tableName])}
 			)+
 		]
+		{query.push(['GroupBy', [['ReferencedField', resource.tableName, resource.idField]]])}
 	,
 
 	NavigateResources :resource1 :resource2 =
