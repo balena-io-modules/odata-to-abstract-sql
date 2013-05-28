@@ -5,6 +5,38 @@ _.mixin({
 	}
 });
 
+var Query = function() {
+	_.extend(this, {
+		select: [],
+		from: [],
+		where: [],
+		extras: []
+	});
+};
+Query.prototype.merge = function(otherQuery) {
+	this.select = this.select.concat(otherQuery.select);
+	this.from = this.from.concat(otherQuery.from);
+	this.where = this.where.concat(otherQuery.where);
+	this.extras = this.extras.concat(otherQuery.extras);
+}
+Query.prototype.compile = function(queryType) {
+	var compiled = [queryType],
+		where = this.where;
+	if(queryType === 'SelectQuery') {
+		compiled.push(['Select', this.select]);
+	}
+	_.each(this.from, function(tableName) {
+		compiled.push(['From', tableName]);
+	});
+	if(where.length > 0) {
+		if(where.length > 1) {
+			where = [['And'].concat(where)];
+		}
+		compiled.push(['Where'].concat(where));
+	}
+	return compiled.concat(this.extras);
+}
+
 export ometa OData2AbstractSQL {
 
 	Process :method :body =
@@ -14,64 +46,43 @@ export ometa OData2AbstractSQL {
 			-> ['$serviceroot']
 		|	?(path.resource == '$metadata')
 			-> ['$metadata']
-		|	PathSegment(method, body, path):queryParts
-			{queryParts.query}:query
-			(	?(method != 'DELETE')
-				?queryParts.select.length
-				{query.push(['Select', queryParts.select])}
-			)?
-			{queryParts.where}:where
-			{	_.each(queryParts.froms, function(tableName) {
-					query.push(['From', tableName]);
-				})
-			}
-			(	?where.length
-				(	?(where.length > 1)
-					-> query.push(['Where', ['And'].concat(where)])
-				|	-> query.push(['Where'].concat(where))
-				)
-			)?
+		|	PathSegment(method, body, path):query
 			(	?(method == 'GET')
-				-> ['SelectQuery'].concat(query)
+				-> 'SelectQuery'
 			|	?(method == 'PUT' || method == 'PATCH' || method == 'MERGE')
-				-> ['UpsertQuery'].concat(query)
+				-> 'UpsertQuery'
 			|	?(method == 'POST')
-				-> ['InsertQuery'].concat(query)
+				-> 'InsertQuery'
 			|	?(method == 'DELETE')
-				-> ['DeleteQuery'].concat(query)
-			)
+				-> 'DeleteQuery'
+			):queryType
+			-> query.compile(queryType)
 		)
 	,
 	PathSegment :method :body :path =
 		?path.resource
 		Resource(path.resource):resource
 		{this.defaultResource = path.resource}
-		{[]}:query
-		{[]}:select
-		{[resource.tableName]}:froms
-		{[]}:where
+		{new Query()}:query
+		{query.from.push(resource.tableName)}
 
 		(	?path.key
 			{resource.modelName + '.' + resource.idField}:qualifiedIDField
 			(	?(!body[qualifiedIDField] && !body[resource.idField])
 				{body[qualifiedIDField] = path.key}
 			)?
-			-> where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
+			-> query.where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
 		)?
 
 		(	?path.property
 			PathSegment(method, body, path.property):childQuery
-			{query.concat(childQuery.query)}:query
-			{select.concat(childQuery.select)}:select
-			{froms.concat(childQuery.froms)}:froms
-			{where.concat(childQuery.where)}:where
-
+			{query.merge(childQuery)}
 			(	?path.property.resource
 			|	{throw 'PathSegment has a property without a resource?'}
 			)
 			Resource(path.property.resource):propertyResource
 			NavigateResources(resource, propertyResource):navigationWhere
-			-> where.push(navigationWhere)
+			-> query.where.push(navigationWhere)
 		|	?path.link
 			(	?path.link.resource
 			|	{throw 'PathSegment has a link without a resource?'}
@@ -84,47 +95,48 @@ export ometa OData2AbstractSQL {
 			|	{throw 'Cannot navigate links'}
 			):referencedField
 			(	?path.link.key
-				-> where.push(['Equals', referencedField, ['Number', path.link.key]])
+				-> query.where.push(['Equals', referencedField, ['Number', path.link.key]])
 			)?
-			-> select.push(referencedField)
+			-> query.select.push(referencedField)
 		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource.resourceName):resourceMapping
 			Fields(method, body, resource.resourceName, _.pairs(resourceMapping)):fields
-			-> query.push(['Fields', fields])
+			{query.extras.push(['Fields', fields])}
 		|	?path.options
 			?path.options.$select
-			AddExtraFroms(path.options.$select.properties, froms, where, resource)
+			AddExtraFroms(path.options.$select.properties, query, resource)
 			Properties(path.options.$select.properties):fields
-			{select.concat(fields)}:select
+			{query.select = query.select.concat(fields)}
 		|	(	?path.options
 				?path.options.$expand
-				Expands(resource, query, select, froms, where, path.options.$expand.properties)
+				Expands(resource, query, path.options.$expand.properties)
 			)?
-			AddSelectFields(resource.resourceName, select):select
+			AddSelectFields(resource.resourceName, query.select):select
+			{query.select = select}
 		)
 
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
-			|	AddExtraFroms(path.options.$filter, froms, where, resource)
+			|	AddExtraFroms(path.options.$filter, query, resource)
 				Boolean(path.options.$filter):filter
-				-> where.push(filter)
+				-> query.where.push(filter)
 			)
 			(	?(!path.options.$orderby)
-			|	AddExtraFroms(path.options.$orderby.properties, froms, where, resource)
+			|	AddExtraFroms(path.options.$orderby.properties, query, resource)
 				OrderBy(path.options.$orderby.properties):orderby
-				-> query.push(['OrderBy'].concat(orderby))
+				-> query.extras.push(['OrderBy'].concat(orderby))
 			)
 			(	?(!path.options.$top)
 			|	Number(path.options.$top):limit
-				-> query.push(['Limit', limit])
+				-> query.extras.push(['Limit', limit])
 			)
 			(	?(!path.options.$skip)
 			|	Number(path.options.$skip):offset
-				-> query.push(['Offset', offset])
+				-> query.extras.push(['Offset', offset])
 			)
 		)
 
-		-> { query: query, select: select, froms: froms, where: where }
+		-> query
 	,
 
 	OrderBy =
@@ -312,26 +324,14 @@ export ometa OData2AbstractSQL {
 		{	this.resourceAliases = _.clone(this.resourceAliases);
 			this.resourceAliases[lambda.identifier] = resource.resourceName;
 		}
-		(	{[]}:froms
-			{[]}:where
+		(	{new Query()}:query
 			Resource(this.defaultResource):defaultResource
-			AddNavigation(froms, where, defaultResource, resource)
-			AddExtraFroms(lambda.expression, froms, where, resource)
+			AddNavigation(query, defaultResource, resource)
+			AddExtraFroms(lambda.expression, query, resource)
 			Boolean(lambda.expression):filter
-			{where.push(filter)}
-			{['SelectQuery', ['Select', []]]}:query
-			{	_.each(froms, function(tableName) {
-					query.push(['From', tableName]);
-				})
-			}
-			(	?where.length
-				(	?(where.length > 1)
-					-> query.push(['Where', ['And'].concat(where)])
-				|	-> query.push(['Where'].concat(where))
-				)
-			)?
+			{query.where.push(filter)}
 			(	?(lambda.method == 'any')
-				-> ['Exists', query]
+				-> ['Exists', query.compile('SelectQuery')]
 			// |	'all'
 				// -> ['Not', ['Exists', WHERENOT..]
 			):result
@@ -386,35 +386,26 @@ export ometa OData2AbstractSQL {
 		-> ['Date', date]
 	,
 
-	Expands :resource :query :select :froms :where =
+	Expands :resource :query =
 		[	(	:expand
 				Resource(expand.name):extraResource
 				(	?expand.property
 					NavigateResources(resource, extraResource):navigationWhere
-					{where.push(navigationWhere)}
-					{[]}:extraQuery
-					{[]}:extraSelect
-					{[extraResource.tableName]}:extraFroms
-					{[]}:extraWhere
-					Expands(extraResource, extraQuery, extraSelect, extraFroms, extraWhere, [expand.property])
-					{froms.push([
-						[	'SelectQuery',
-							[	'Select',
-								this.AddSelectFields(extraResource.resourceName, extraSelect)
-							]
-						].concat(
-							_.map(extraFroms, function(table) { return ['From', table]; })
-						).concat([
-							['Where'].concat(extraWhere)
-						]).concat(extraQuery),
+					{query.where.push(navigationWhere)}
+					{new Query()}:extraQuery
+					{extraQuery.from.push(extraResource.tableName)}
+					Expands(extraResource, extraQuery, [expand.property])
+					{extraQuery.select = this.AddSelectFields(extraResource.resourceName, extraQuery.select)}
+					{query.from.push([
+						extraQuery.compile('SelectQuery'),
 						extraResource.tableName
 					])}
-				|	AddNavigation(froms, where, resource, extraResource)
+				|	AddNavigation(query, resource, extraResource)
 				)
-				{select.push([['AggregateJSON', [extraResource.tableName, '*']], extraResource.tableName])}
+				{query.select.push([['AggregateJSON', [extraResource.tableName, '*']], extraResource.tableName])}
 			)+
 		]
-		{query.push(['GroupBy', [['ReferencedField', resource.tableName, resource.idField]]])}
+		{query.extras.push(['GroupBy', [['ReferencedField', resource.tableName, resource.idField]]])}
 	,
 
 	NavigateResources :resource1 :resource2 =
@@ -434,20 +425,20 @@ export ometa OData2AbstractSQL {
 		)
 	,
 
-	AddExtraFroms :searchPoint :froms :where :resource =
+	AddExtraFroms :searchPoint :query :resource =
 		ExtraFroms(searchPoint):extraFroms
 		{	_.each(extraFroms, function(resourceName) {
 				var currentResource = resource;
 				if(_.isArray(resourceName)) {
 					_.each(resourceName, function(resourceName) {
 						var extraResource = this.Resource(resourceName);
-						this.AddNavigation(froms, where, currentResource, extraResource);
+						this.AddNavigation(query, currentResource, extraResource);
 						currentResource = extraResource;
 					}, this);
 				}
 				else {
 					var extraResource = this.Resource(resourceName);
-					this.AddNavigation(froms, where, currentResource, extraResource);
+					this.AddNavigation(query, currentResource, extraResource);
 				}
 			}, this);
 		}
@@ -479,11 +470,11 @@ export ometa OData2AbstractSQL {
 		-> froms
 	,
 
-	AddNavigation :froms :where :resource :extraResource =
-		(	?(!_.contains(froms, extraResource.tableName))
+	AddNavigation :query :resource :extraResource =
+		(	?(!_.contains(query.from, extraResource.tableName))
 			NavigateResources(resource, extraResource):nagivationWhere
-			{froms.push(extraResource.tableName)}
-			{where.push(nagivationWhere)}
+			{query.from.push(extraResource.tableName)}
+			{query.where.push(nagivationWhere)}
 		)?
 }
 
