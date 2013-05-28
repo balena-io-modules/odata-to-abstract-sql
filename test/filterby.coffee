@@ -21,21 +21,21 @@ createExpression = (lhs, op, rhs) ->
 	if lhs is 'not'
 		return {
 			odata: 'not ' + if op.odata? then '(' + op.odata + ')' else op
-			abstractsql: ['Not', op.abstractsql ? operandToAbstractSQL(op)]
+			abstractsql: ['Not', operandToAbstractSQL(op)]
 		}
 	if !rhs?
 		return {
 			odata: if lhs.odata? then '(' + lhs.odata + ')' else lhs
-			abstractsql: lhs.abstractsql ? operandToAbstractSQL(lhs)
+			abstractsql: operandToAbstractSQL(lhs)
 		}
 	return {
 		odata: (lhs.odata ? lhs) + ' ' + op + ' ' + (rhs.odata ? rhs)
-		abstractsql: [sqlOps[op], lhs.abstractsql ? operandToAbstractSQL(lhs), rhs.abstractsql ? operandToAbstractSQL(rhs)]
+		abstractsql: [sqlOps[op], operandToAbstractSQL(lhs), operandToAbstractSQL(rhs)]
 	}
 createMethodCall = (method, args...) ->
 	return {
 		odata: method + '(' + (arg.odata ? arg for arg in args).join(',') + ')'
-		abstractsql: [_.capitalize(method)].concat(arg.abstractsql ? operandToAbstractSQL(arg) for arg in args)
+		abstractsql: [_.capitalize(method)].concat(operandToAbstractSQL(arg) for arg in args)
 	}
 
 operandTest = (lhs, op, rhs) ->

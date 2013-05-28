@@ -41,8 +41,12 @@ chai.use((chai, utils) ->
 
 clientModel = require('./client-model.json')
 exports.operandToAbstractSQL = (operand) ->
+	if operand.abstractsql?
+		return operand.abstractsql
 	if _.isNumber(operand)
 		return ['Number', operand]
+	if _.isDate(operand)
+		return ['Date', operand]
 	if _.isString(operand)
 		if operand.charAt(0) is "'"
 			return ['Text', decodeURIComponent(operand[1...(operand.length - 1)])]
