@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{operandToAbstractSQL, pilotFields, licenceFields, planeFields, pilotCanFlyPlaneFields} = require('./chai-sql')
+{operandToAbstractSQL, operandToOData, pilotFields, licenceFields, planeFields, pilotCanFlyPlaneFields} = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
 
@@ -20,21 +20,21 @@ sqlOps =
 createExpression = (lhs, op, rhs) ->
 	if lhs is 'not'
 		return {
-			odata: 'not ' + if op.odata? then '(' + op.odata + ')' else op
+			odata: 'not ' + if op.odata? then '(' + op.odata + ')' else operandToOData(op)
 			abstractsql: ['Not', operandToAbstractSQL(op)]
 		}
 	if !rhs?
 		return {
-			odata: if lhs.odata? then '(' + lhs.odata + ')' else lhs
+			odata: if lhs.odata? then '(' + lhs.odata + ')' else operandToOData(lhs)
 			abstractsql: operandToAbstractSQL(lhs)
 		}
 	return {
-		odata: (lhs.odata ? lhs) + ' ' + op + ' ' + (rhs.odata ? rhs)
+		odata: operandToOData(lhs) + ' ' + op + ' ' + operandToOData(rhs)
 		abstractsql: [sqlOps[op], operandToAbstractSQL(lhs), operandToAbstractSQL(rhs)]
 	}
 createMethodCall = (method, args...) ->
 	return {
-		odata: method + '(' + (arg.odata ? arg for arg in args).join(',') + ')'
+		odata: method + '(' + (operandToOData(arg) for arg in args).join(',') + ')'
 		abstractsql: [_.capitalize(method)].concat(operandToAbstractSQL(arg) for arg in args)
 	}
 
@@ -71,6 +71,7 @@ do ->
 			"'bar'"
 			"name"
 			"pilot/name"
+			new Date()
 		]
 	for lhs in operands
 		for rhs in operands

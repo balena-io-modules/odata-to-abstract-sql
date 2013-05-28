@@ -15,7 +15,7 @@
     "lodash": "~1.2.1"
   },
   "devDependencies": {
-    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.2",
+    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.3",
     "coffee-script": "latest",
     "chai": "latest",
     "chai-things": "latest"

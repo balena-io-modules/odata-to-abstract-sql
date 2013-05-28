@@ -283,6 +283,7 @@ export ometa OData2AbstractSQL {
 			Boolean
 		|	Number
 		|	Text
+		|	Date
 		|	Math
 	,
 
@@ -373,6 +374,12 @@ export ometa OData2AbstractSQL {
 			string:text
 			-> ['Text', text]
 		|	TextFunction
+	,
+
+	Date =
+		anything:date
+		?_.isDate(date)
+		-> ['Date', date]
 	,
 
 	Expands :resource :select :froms :where =

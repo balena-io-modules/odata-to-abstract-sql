@@ -58,6 +58,13 @@ exports.operandToAbstractSQL = (operand) ->
 		return ['ReferencedField'].concat(mapping)
 	throw 'Unknown operand type: ' + operand
 
+exports.operandToOData = (operand) ->
+	if operand.odata?
+		return operand.odata
+	if _.isDate(operand)
+		return "datetime'" + encodeURIComponent(operand.toISOString()) + "'"
+	return operand
+
 exports.pilotFields = [
 	["ReferencedField", "pilot", "id"]
 	[["ReferencedField", "pilot", "is experienced"], 'is_experienced']
