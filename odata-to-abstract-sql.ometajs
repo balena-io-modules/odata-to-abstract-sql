@@ -220,7 +220,8 @@ export ometa OData2AbstractSQL {
 		ResourceMapping(resourceTable):mapping
 		(	?mapping[resourceField]
 			-> ['ReferencedField'].concat(mapping[resourceField])
-		|	{console.error('Unknown mapping: ', mapping)}{throw 'Unknown mapping: ' + resourceTable + ' : ' + resourceField}
+		|	{console.error('Unknown mapping: ', mapping, resourceTable, resourceField)}
+			{throw 'Unknown mapping: ' + resourceTable + ' : ' + resourceField}
 		)
 	,
 
@@ -330,10 +331,21 @@ export ometa OData2AbstractSQL {
 			AddExtraFroms(lambda.expression, query, resource)
 			Boolean(lambda.expression):filter
 			{query.where.push(filter)}
+			{query.compile('SelectQuery')}:query
 			(	?(lambda.method == 'any')
-				-> ['Exists', query.compile('SelectQuery')]
-			// |	'all'
-				// -> ['Not', ['Exists', WHERENOT..]
+				-> ['Exists', query]
+			|	?(lambda.method == 'all')
+				-> ['Not',
+					['Exists',
+						// Where not..
+						_.map(query, function(queryPart) {
+							if(queryPart[0] == 'Where') {
+								return [queryPart[0], ['Not', queryPart[1]]];
+							}
+							return queryPart;
+						})
+					]
+				]
 			):result
 			// Make sure resourceAliases are always reset at the end.
 			{this.resourceAliases = resourceAliases}
