@@ -18,7 +18,7 @@ Query.prototype.merge = function(otherQuery) {
 	this.from = this.from.concat(otherQuery.from);
 	this.where = this.where.concat(otherQuery.where);
 	this.extras = this.extras.concat(otherQuery.extras);
-}
+};
 Query.prototype.compile = function(queryType) {
 	var compiled = [queryType],
 		where = this.where;
@@ -35,7 +35,7 @@ Query.prototype.compile = function(queryType) {
 		compiled.push(['Where'].concat(where));
 	}
 	return compiled.concat(this.extras);
-}
+};
 
 export ometa OData2AbstractSQL {
 
@@ -400,24 +400,22 @@ export ometa OData2AbstractSQL {
 
 	Expands :resource :query =
 		[	(	:expand
+				{new Query()}:expandQuery
 				Resource(expand.name):extraResource
+				NavigateResources(resource, extraResource):navigationWhere
+				{expandQuery.where.push(navigationWhere)}
 				(	?expand.property
-					NavigateResources(resource, extraResource):navigationWhere
-					{query.where.push(navigationWhere)}
-					{new Query()}:extraQuery
-					{extraQuery.from.push(extraResource.tableName)}
-					Expands(extraResource, extraQuery, [expand.property])
-					{extraQuery.select = this.AddSelectFields(extraResource.resourceName, extraQuery.select)}
-					{query.from.push([
-						extraQuery.compile('SelectQuery'),
-						extraResource.tableName
-					])}
-				|	AddNavigation(query, resource, extraResource)
-				)
-				{query.select.push([['AggregateJSON', [extraResource.tableName, '*']], extraResource.tableName])}
+					{new Query()}:nestedExpandQuery
+					{nestedExpandQuery.from.push(extraResource.tableName)}
+					Expands(extraResource, nestedExpandQuery, [expand.property])
+					{nestedExpandQuery.select = this.AddSelectFields(extraResource.resourceName, nestedExpandQuery.select)}
+					{expandQuery.from.push([nestedExpandQuery.compile('SelectQuery'), extraResource.tableName])}
+				|	{expandQuery.from.push(extraResource.tableName)}
+				)?
+				{expandQuery.select.push([['AggregateJSON', [extraResource.tableName, '*']], extraResource.tableName])}
+				{query.select.push([expandQuery.compile('SelectQuery'), extraResource.tableName])}
 			)+
 		]
-		{query.extras.push(['GroupBy', [['ReferencedField', resource.tableName, resource.idField]]])}
 	,
 
 	NavigateResources :resource1 :resource2 =

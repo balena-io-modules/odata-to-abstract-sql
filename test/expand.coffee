@@ -1,96 +1,102 @@
 expect = require('chai').expect
 {operandToAbstractSQL, pilotFields, licenceFields, planeFields} = require('./chai-sql')
 test = require('./test')
-
-pilotCanFlyPlane =
-	plane: [
+aggregateJSON =
+	licence: [
 		[	'SelectQuery'
 			[	'Select'
-				[	[['AggregateJSON', ['plane', '*']], 'plane']
-					['ReferencedField', 'pilot-can_fly-plane', 'pilot']
-					['ReferencedField', 'pilot-can_fly-plane', 'id']
+				[	[	['AggregateJSON', ['licence', '*']]
+						'licence'
+					]
 				]
 			]
 			[	'From'
-				'pilot-can_fly-plane'
-			]
-			[	'From'
-				'plane'
+				'licence'
 			]
 			[	'Where'
 				[	'Equals'
-					['ReferencedField', 'plane', 'id']
-					['ReferencedField', 'pilot-can_fly-plane', 'plane']
+					['ReferencedField', 'licence', 'id']
+					['ReferencedField', 'pilot', 'licence']
 				]
 			]
-			[	'GroupBy'
-				[['ReferencedField', 'pilot-can_fly-plane', 'id']]
-			]
 		]
-		'pilot-can_fly-plane'
+		'licence'
 	]
+	pilotCanFlyPlane:
+		plane: [
+			[	'SelectQuery'
+				[	'Select'
+					[	[	['AggregateJSON', ['pilot-can_fly-plane', '*']]
+							'pilot-can_fly-plane'
+						]
+					]
+				]
+				[	'From'
+					[	[	'SelectQuery'
+							[	'Select'
+								[	[	[	'SelectQuery'
+											[	'Select'
+												[	[	['AggregateJSON', ['plane', '*']]
+														'plane'
+													]
+												]
+											]
+											[	'From'
+												'plane'
+											]
+											[	'Where'
+												[	'Equals'
+													['ReferencedField', 'plane', 'id']
+													['ReferencedField', 'pilot-can_fly-plane', 'plane']
+												]
+											]
+										]
+										'plane'
+									]
+									['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+									['ReferencedField', 'pilot-can_fly-plane', 'id']
+								]
+							]
+							[	'From'
+								'pilot-can_fly-plane'
+							]
+						]
+						'pilot-can_fly-plane'
+					]
+				]
+				[	'Where'
+					[	'Equals'
+						['ReferencedField', 'pilot', 'id']
+						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+					]
+				]
+			]
+			'pilot-can_fly-plane'
+		]
 
 test '/pilot?$expand=licence', (result) ->
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				[['AggregateJSON', ['licence', '*']], 'licence']
+				aggregateJSON.licence
 			].concat(_.reject(pilotFields, 2: 'licence'))).
-			from('pilot', 'licence').
-			where(
-				['Equals'
-					['ReferencedField', 'licence', 'id']
-					['ReferencedField', 'pilot', 'licence']
-				]
-			).
-			groupby(
-				['ReferencedField', 'pilot', 'id']
-			)
+			from('pilot')
 
 
 test '/pilot?$expand=pilot__can_fly__plane/plane', (result) ->
-	it 'should select from pilot.*, plane.*', ->
+	it 'should select from pilot ..., (select ... FROM ...)', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				[['AggregateJSON', ['pilot-can_fly-plane', '*']], 'pilot-can_fly-plane']
+				aggregateJSON.pilotCanFlyPlane.plane
 			].concat(pilotFields)).
-			from(
-				'pilot'
-				pilotCanFlyPlane.plane
-			).
-			where(
-				['Equals'
-					['ReferencedField', 'pilot', 'id']
-					['ReferencedField', 'pilot-can_fly-plane', 'pilot']
-				]
-			).
-			groupby(
-				['ReferencedField', 'pilot', 'id']
-			)
+			from('pilot')
 
 
 test '/pilot?$expand=pilot__can_fly__plane/plane,licence', (result) ->
 	it 'should select from pilot.*, plane.*, licence.*', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				[['AggregateJSON', ['pilot-can_fly-plane', '*']], 'pilot-can_fly-plane']
-				[['AggregateJSON', ['licence', '*']], 'licence']
+				aggregateJSON.pilotCanFlyPlane.plane
+				aggregateJSON.licence
 			].concat(_.reject(pilotFields, 2: 'licence'))).
-			from(
-				'pilot'
-				pilotCanFlyPlane.plane
-				'licence'
-			).
-			where(['And'
-				['Equals'
-					['ReferencedField', 'pilot', 'id']
-					['ReferencedField', 'pilot-can_fly-plane', 'pilot']
-				]
-				['Equals'
-					['ReferencedField', 'licence', 'id']
-					['ReferencedField', 'pilot', 'licence']
-				]
-			]).
-			groupby(
-				['ReferencedField', 'pilot', 'id']
-			)
+			from('pilot')
