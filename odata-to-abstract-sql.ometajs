@@ -400,20 +400,21 @@ export ometa OData2AbstractSQL {
 
 	Expands :resource :query =
 		[	(	:expand
-				{new Query()}:expandQuery
-				Resource(expand.name):extraResource
-				NavigateResources(resource, extraResource):navigationWhere
-				{expandQuery.where.push(navigationWhere)}
+				Resource(expand.name):expandResource
+				// We need to nest the expand query in order to be able to alias column names to match the OData version.
+				{new Query()}:nestedExpandQuery
 				(	?expand.property
-					{new Query()}:nestedExpandQuery
-					{nestedExpandQuery.from.push(extraResource.tableName)}
-					Expands(extraResource, nestedExpandQuery, [expand.property])
-					{nestedExpandQuery.select = this.AddSelectFields(extraResource.resourceName, nestedExpandQuery.select)}
-					{expandQuery.from.push([nestedExpandQuery.compile('SelectQuery'), extraResource.tableName])}
-				|	{expandQuery.from.push(extraResource.tableName)}
+					Expands(expandResource, nestedExpandQuery, [expand.property])
 				)?
-				{expandQuery.select.push([['AggregateJSON', [extraResource.tableName, '*']], extraResource.tableName])}
-				{query.select.push([expandQuery.compile('SelectQuery'), extraResource.tableName])}
+				{nestedExpandQuery.select = this.AddSelectFields(expandResource.resourceName, nestedExpandQuery.select)}
+				{nestedExpandQuery.from.push(expandResource.tableName)}
+				NavigateResources(resource, expandResource):navigationWhere
+				{nestedExpandQuery.where.push(navigationWhere)}
+
+				{new Query()}:expandQuery
+				{expandQuery.select.push([['AggregateJSON', [expandResource.tableName, '*']], expandResource.resourceName])}
+				{expandQuery.from.push([nestedExpandQuery.compile('SelectQuery'), expandResource.tableName])}
+				{query.select.push([expandQuery.compile('SelectQuery'), expandResource.resourceName])}
 			)+
 		]
 	,

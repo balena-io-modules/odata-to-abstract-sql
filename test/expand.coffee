@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{operandToAbstractSQL, pilotFields, licenceFields, planeFields} = require('./chai-sql')
+{operandToAbstractSQL, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields} = require('./chai-sql')
 test = require('./test')
 aggregateJSON =
 	licence: [
@@ -11,12 +11,21 @@ aggregateJSON =
 				]
 			]
 			[	'From'
-				'licence'
-			]
-			[	'Where'
-				[	'Equals'
-					['ReferencedField', 'licence', 'id']
-					['ReferencedField', 'pilot', 'licence']
+				[	[	'SelectQuery'
+						[	'Select'
+							licenceFields
+						]
+						[	'From'
+							'licence'
+						]
+						[	'Where'
+							[	'Equals'
+								['ReferencedField', 'licence', 'id']
+								['ReferencedField', 'pilot', 'licence']
+							]
+						]
+					]
+					'licence'
 				]
 			]
 		]
@@ -27,7 +36,7 @@ aggregateJSON =
 			[	'SelectQuery'
 				[	'Select'
 					[	[	['AggregateJSON', ['pilot-can_fly-plane', '*']]
-							'pilot-can_fly-plane'
+							'pilot__can_fly__plane'
 						]
 					]
 				]
@@ -42,36 +51,43 @@ aggregateJSON =
 												]
 											]
 											[	'From'
-												'plane'
-											]
-											[	'Where'
-												[	'Equals'
-													['ReferencedField', 'plane', 'id']
-													['ReferencedField', 'pilot-can_fly-plane', 'plane']
+												[	[	'SelectQuery'
+														[	'Select'
+															planeFields
+														]
+														[	'From'
+															'plane'
+														]
+														[	'Where'
+															[	'Equals'
+																['ReferencedField', 'plane', 'id']
+																['ReferencedField', 'pilot-can_fly-plane', 'plane']
+															]
+														]
+													]
+													'plane'
 												]
 											]
 										]
 										'plane'
 									]
-									['ReferencedField', 'pilot-can_fly-plane', 'pilot']
-									['ReferencedField', 'pilot-can_fly-plane', 'id']
-								]
+								].concat(_.reject(pilotCanFlyPlaneFields, 2: 'plane'))
 							]
 							[	'From'
 								'pilot-can_fly-plane'
+							]
+							[	'Where'
+								[	'Equals'
+									['ReferencedField', 'pilot', 'id']
+									['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+								]
 							]
 						]
 						'pilot-can_fly-plane'
 					]
 				]
-				[	'Where'
-					[	'Equals'
-						['ReferencedField', 'pilot', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
-					]
-				]
 			]
-			'pilot-can_fly-plane'
+			'pilot__can_fly__plane'
 		]
 
 test '/pilot?$expand=licence', (result) ->
