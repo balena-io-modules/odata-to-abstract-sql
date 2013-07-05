@@ -183,15 +183,8 @@ export ometa OData2AbstractSQL {
 		|	{throw 'Unknown resource: ' + resourceName}
 	,
 
-	FieldContainedIn :fieldName =
-		{false}:contained
-		[	(	:field
-				(	?(field.fieldName == fieldName)
-					{true}:contained
-				)?
-			)*
-		]
-		?contained
+	FieldContainedIn :fieldName :fields =
+		?_.any(fields, {fieldName: fieldName})
 	,
 
 	ResourceMapping :resourceName =
