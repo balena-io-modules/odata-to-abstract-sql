@@ -1,6 +1,6 @@
 {
   "name": "odata-to-abstract-sql",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "A consumer of the OData parser, written in OMeta",
   "main": "odata-to-abstract-sql.js",
   "scripts": {
