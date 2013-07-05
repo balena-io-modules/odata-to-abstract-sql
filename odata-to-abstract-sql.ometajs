@@ -88,9 +88,9 @@ export ometa OData2AbstractSQL {
 			|	{throw 'PathSegment has a link without a resource?'}
 			)
 			Resource(path.link.resource):linkResource
-			(	FieldContainedIn(linkResource.tableName, resource.fields)
+			(	FieldContainedIn(linkResource.resourceName, resource)
 				ReferencedField(resource.resourceName, linkResource.resourceName)
-			|	FieldContainedIn(resource.tableName, linkResource.fields)
+			|	FieldContainedIn(resource.resourceName, linkResource)
 				ReferencedField(linkResource.resourceName, resource.resourceName)
 			|	{throw 'Cannot navigate links'}
 			):referencedField
@@ -183,8 +183,12 @@ export ometa OData2AbstractSQL {
 		|	{throw 'Unknown resource: ' + resourceName}
 	,
 
-	FieldContainedIn :fieldName :fields =
-		?_.any(fields, {fieldName: fieldName})
+	FieldContainedIn :resourceName :table =
+		ResourceMapping(table.resourceName):mapping
+		{mapping[resourceName]}:mappedField
+		?mappedField
+		?(mappedField[0] == table.tableName)
+		?_.any(table.fields, {fieldName: mappedField[1]})
 	,
 
 	ResourceMapping :resourceName =
@@ -413,13 +417,13 @@ export ometa OData2AbstractSQL {
 	,
 
 	NavigateResources :resource1 :resource2 =
-		(	FieldContainedIn(resource1.tableName, resource2.fields)
+		(	FieldContainedIn(resource1.resourceName, resource2)
 			ReferencedField(resource2.resourceName, resource1.resourceName):fkField
 			-> ['Equals',
 				['ReferencedField', resource1.tableName, resource1.idField],
 				fkField
 			]
-		|	FieldContainedIn(resource2.tableName, resource1.fields)
+		|	FieldContainedIn(resource2.resourceName, resource1)
 			ReferencedField(resource1.resourceName, resource2.resourceName):fkField
 			-> ['Equals',
 				['ReferencedField', resource2.tableName, resource2.idField],
