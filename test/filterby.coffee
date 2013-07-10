@@ -17,6 +17,9 @@ sqlOps =
 	mul: 'Multiply'
 	div: 'Divide'
 
+methodMaps =
+	length: 'CharacterLength'
+
 createExpression = (lhs, op, rhs) ->
 	if lhs is 'not'
 		return {
@@ -35,7 +38,12 @@ createExpression = (lhs, op, rhs) ->
 createMethodCall = (method, args...) ->
 	return {
 		odata: method + '(' + (operandToOData(arg) for arg in args).join(',') + ')'
-		abstractsql: [_.capitalize(method)].concat(operandToAbstractSQL(arg) for arg in args)
+		abstractsql: do ->
+			if methodMaps.hasOwnProperty(method)
+				method = methodMaps[method]
+			else
+				method = _.capitalize(method)
+			[method].concat(operandToAbstractSQL(arg) for arg in args)
 	}
 
 operandTest = (lhs, op, rhs) ->

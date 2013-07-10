@@ -262,7 +262,7 @@ export ometa OData2AbstractSQL {
 	,
 
 	NumberFunction =
-			Function('length')
+			AliasedFunction('length', 'CharacterLength')
 		|	Function('indexof')
 		|	Function('round')
 		|	Function('floor')
@@ -276,6 +276,11 @@ export ometa OData2AbstractSQL {
 		|	Function('toupper')
 		|	Function('trim')
 		|	Function('concat')
+	,
+
+	AliasedFunction :odataName :sqlName =
+		Function(odataName):fn
+		-> [sqlName].concat(fn.slice(1))
 	,
 
 	Function :name =
