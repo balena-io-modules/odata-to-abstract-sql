@@ -43,6 +43,9 @@ createMethodCall = (method, args...) ->
 				method = methodMaps[method]
 			else
 				method = _.capitalize(method)
+			switch method
+				when 'Substring'
+					args[1]++
 			[method].concat(operandToAbstractSQL(arg) for arg in args)
 	}
 

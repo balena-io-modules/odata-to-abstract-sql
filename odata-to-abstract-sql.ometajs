@@ -271,7 +271,10 @@ export ometa OData2AbstractSQL {
 
 	TextFunction =
 			Function('replace')
-		|	Function('substring')
+		|	Function('substring'):fn
+			// First parameter needs to be increased by 1.
+			{fn[2][1]++}
+			-> fn
 		|	Function('tolower')
 		|	Function('toupper')
 		|	Function('trim')
