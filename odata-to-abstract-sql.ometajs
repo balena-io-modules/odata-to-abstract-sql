@@ -89,15 +89,17 @@ export ometa OData2AbstractSQL {
 			)
 			Resource(path.link.resource):linkResource
 			(	FieldContainedIn(linkResource.resourceName, resource)
-				ReferencedField(resource.resourceName, linkResource.resourceName)
+				ReferencedField(resource.resourceName, linkResource.resourceName):referencedField
+				-> [referencedField, linkResource.resourceName]
 			|	FieldContainedIn(resource.resourceName, linkResource)
-				ReferencedField(linkResource.resourceName, resource.resourceName)
+				ReferencedField(linkResource.resourceName, resource.resourceName):referencedField
+				-> [referencedField, resource.resourceName]
 			|	{throw 'Cannot navigate links'}
-			):referencedField
+			):aliasedField
 			(	?path.link.key
 				-> query.where.push(['Equals', referencedField, ['Number', path.link.key]])
 			)?
-			-> query.select.push(referencedField)
+			-> query.select.push(aliasedField)
 		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource.resourceName):resourceMapping
 			Fields(method, body, resource.resourceName, _.pairs(resourceMapping)):fields

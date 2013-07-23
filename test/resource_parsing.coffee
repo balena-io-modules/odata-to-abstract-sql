@@ -166,7 +166,7 @@ test '/pilot__can_fly__plane', 'POST', {pilot:2, plane:3}, (result) ->
 test '/pilot(1)/$links/licence', (result) ->
 	it 'should select the list of licence ids, for generating the links', ->
 		expect(result).to.be.a.query.that.
-			selects([['ReferencedField', 'pilot', 'licence']]).
+			selects([[['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
@@ -174,7 +174,7 @@ test '/pilot(1)/$links/licence', (result) ->
 test '/pilot(1)/$links/licence(2)', (result) ->
 	it 'should select the licence id 2, for generating the link', ->
 		expect(result).to.be.a.query.that.
-			selects([['ReferencedField', 'pilot', 'licence']]).
+			selects([[['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['And'
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
@@ -185,7 +185,7 @@ test '/pilot(1)/$links/licence(2)', (result) ->
 test '/pilot(1)/pilot__can_fly__plane/$links/plane', (result) ->
 	it 'should select the list of plane ids, for generating the links', ->
 		expect(result).to.be.a.query.that.
-			selects([['ReferencedField', 'pilot-can_fly-plane', 'plane']]).
+			selects([[['ReferencedField', 'pilot-can_fly-plane', 'plane'], 'plane']]).
 			from('pilot').
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
