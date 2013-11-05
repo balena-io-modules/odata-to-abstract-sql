@@ -44,8 +44,8 @@ export ometa OData2AbstractSQL {
 		end
 		(	?_.isEmpty(path)
 			-> ['$serviceroot']
-		|	?(path.resource == '$metadata')
-			-> ['$metadata']
+		|	?_.contains(['$metadata', '$serviceroot'], path.resource)
+			-> [path.resource]
 		|	PathSegment(method, body, path):query
 			(	?(method == 'GET')
 				-> 'SelectQuery'

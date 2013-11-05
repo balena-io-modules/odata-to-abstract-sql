@@ -11,13 +11,13 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "ometa-js": "~1.0.3",
-    "lodash": "~2.0.0"
+    "ometa-js": "~1.0.4",
+    "lodash": "~2.2.1"
   },
   "devDependencies": {
-    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.5",
-    "coffee-script": "latest",
-    "chai": "latest",
-    "chai-things": "latest"
+    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.6",
+    "coffee-script": "~1.6.3",
+    "chai": "~1.8.1",
+    "chai-things": "~0.2.0"
   }
 }
