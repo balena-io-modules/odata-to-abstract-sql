@@ -4,8 +4,9 @@
   "description": "A consumer of the OData parser, written in OMeta",
   "main": "odata-to-abstract-sql.js",
   "scripts": {
+    "pretest": "npm run-script prepublish",
     "test": "mocha",
-    "postinstall": "npm install ometa-js@1.x && node node_modules/ometa-js/bin/ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
+    "prepublish": "node node_modules/ometa-js/bin/ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
   },
   "repository": "git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
   "author": "",
