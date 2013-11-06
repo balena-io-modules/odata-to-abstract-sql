@@ -205,8 +205,9 @@ export ometa OData2AbstractSQL {
 	,
 
 	AddSelectFields :resourceName :select =
+		ResourceMapping(resourceName):resourceMapping
 		-> select.concat(
-			_(this.ResourceMapping(resourceName)).keys().reject(function(fieldName) {
+			_(resourceMapping).keys().reject(function(fieldName) {
 				return fieldName === '_name' || _.any(select, function(existingField) {
 					return existingField[existingField.length - 1] == fieldName;
 				});
