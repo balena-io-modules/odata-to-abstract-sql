@@ -12,7 +12,7 @@ test '/pilot?$select=name', (result) ->
 			]).
 			from('pilot')
 
-test.skip '/pilot?$select=favourite_colour', (result) ->
+test '/pilot?$select=favourite_colour', (result) ->
 	it 'should select favourite_colour from pilot', ->
 		expect(result).to.be.a.query.that.
 			selects(

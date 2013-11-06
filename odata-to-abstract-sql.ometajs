@@ -108,6 +108,10 @@ export ometa OData2AbstractSQL {
 			?path.options.$select
 			AddExtraFroms(path.options.$select.properties, query, resource)
 			Properties(path.options.$select.properties):fields
+			{	_.map(fields, function(field) {
+					return this.AliasSelectField(field.resource, field.name);
+				}, this);
+			}:fields
 			{query.select = query.select.concat(fields)}
 		|	(	?path.options
 				?path.options.$expand
@@ -143,7 +147,7 @@ export ometa OData2AbstractSQL {
 
 	OrderBy =
 		[	(	:ordering
-				Property(ordering):field
+				ReferencedProperty(ordering):field
 				-> [ordering.order.toUpperCase(), field]
 			)+:orderby
 		]
@@ -206,14 +210,16 @@ export ometa OData2AbstractSQL {
 				return fieldName === '_name' || _.any(select, function(existingField) {
 					return existingField[existingField.length - 1] == fieldName;
 				});
-			}).map(function(fieldName) {
-				var referencedField = this.ReferencedField(resourceName, fieldName)
-				if(referencedField[2] === fieldName) {
-					return referencedField;
-				}
-				return [referencedField, fieldName];
-			}, this).value()
+			}).map(_.bind(this.AliasSelectField, this, resourceName)).value()
 		),
+
+	AliasSelectField :resourceName :fieldName =
+		ReferencedField(resourceName, fieldName):referencedField
+		(	?(referencedField[2] === fieldName)
+			-> referencedField
+		|	-> [referencedField, fieldName]
+		)
+	,
 
 	ReferencedField :resourceTable :resourceField =
 		ResourceMapping(resourceTable):mapping
@@ -253,7 +259,7 @@ export ometa OData2AbstractSQL {
 				Boolean:bool
 			]
 			-> ['Not', bool]
-		|	Property
+		|	ReferencedProperty
 		|	BooleanFunction
 	,
 
@@ -368,6 +374,15 @@ export ometa OData2AbstractSQL {
 		-> props
 	,
 
+	ReferencedProperty =
+		Property:prop
+		(	?_.isArray(prop)
+			// It's the result of a lambda
+			-> prop
+		|	ReferencedField(prop.resource, prop.name)
+		)
+	,
+
 	Property =
 		:prop
 		?prop.name
@@ -375,7 +390,7 @@ export ometa OData2AbstractSQL {
 			(	?prop.property.name
 				(	?prop.property.property
 					Property(prop.property)
-				|	ReferencedField(prop.name, prop.property.name)
+				|	-> {resource: prop.name, name: prop.property.name}
 				)
 			|	{console.error(prop)}
 				{throw 'Subproperty without a name'}
@@ -383,7 +398,7 @@ export ometa OData2AbstractSQL {
 		|	?prop.lambda
 			Resource(prop.name):resource
 			Lambda(resource, prop.lambda)
-		|	ReferencedField(this.defaultResource, prop.name)
+		|	-> {resource: this.defaultResource, name: prop.name}
 		)
 	,
 
