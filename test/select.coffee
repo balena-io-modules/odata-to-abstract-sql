@@ -2,12 +2,22 @@ expect = require('chai').expect
 {operandToAbstractSQL, pilotFields} = require('./chai-sql')
 test = require('./test')
 
+pilotName = _.filter(pilotFields, 2: 'name')[0]
+pilotAge = _.filter(pilotFields, 2: 'age')[0]
 test '/pilot?$select=name', (result) ->
 	it 'should select name from pilot', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				operandToAbstractSQL('name')
+				pilotName
 			]).
+			from('pilot')
+
+test.skip '/pilot?$select=favourite_colour', (result) ->
+	it 'should select favourite_colour from pilot', ->
+		expect(result).to.be.a.query.that.
+			selects(
+				_.filter(pilotFields, 1: 'favourite_colour')
+			).
 			from('pilot')
 
 
@@ -15,7 +25,7 @@ test '/pilot?$select=pilot/name', (result) ->
 	it 'should select name from pilot', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				operandToAbstractSQL('pilot/name')
+				pilotName
 			]).
 			from('pilot')
 
@@ -24,8 +34,8 @@ test '/pilot?$select=pilot/name,age', (result) ->
 	it 'should select name, age from pilot', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				operandToAbstractSQL('pilot/name')
-				operandToAbstractSQL('age')
+				pilotName
+				pilotAge
 			]).
 			from('pilot')
 
