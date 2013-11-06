@@ -132,6 +132,9 @@
                 this._pred(path.options.$select);
                 this._applyWithArgs("AddExtraFroms", path.options.$select.properties, query, resource);
                 fields = this._applyWithArgs("Properties", path.options.$select.properties);
+                fields = _.map(fields, function(field) {
+                    return this.AliasSelectField(field.resource, field.name);
+                }, this);
                 return query.select = query.select.concat(fields);
             }, function() {
                 this._opt(function() {
@@ -179,7 +182,7 @@
             this._form(function() {
                 return orderby = this._many1(function() {
                     ordering = this._apply("anything");
-                    field = this._applyWithArgs("Property", ordering);
+                    field = this._applyWithArgs("ReferencedProperty", ordering);
                     return [ ordering.order.toUpperCase(), field ];
                 });
             });
@@ -260,15 +263,23 @@
             });
         },
         AddSelectFields: function(resourceName, select) {
-            var $elf = this, _fromIdx = this.input.idx;
-            return select.concat(_(this.ResourceMapping(resourceName)).keys().reject(function(fieldName) {
+            var $elf = this, _fromIdx = this.input.idx, resourceMapping;
+            resourceMapping = this._applyWithArgs("ResourceMapping", resourceName);
+            return select.concat(_(resourceMapping).keys().reject(function(fieldName) {
                 return "_name" === fieldName || _.any(select, function(existingField) {
                     return existingField[existingField.length - 1] == fieldName;
                 });
-            }).map(function(fieldName) {
-                var referencedField = this.ReferencedField(resourceName, fieldName);
-                return referencedField[2] === fieldName ? referencedField : [ referencedField, fieldName ];
-            }, this).value());
+            }).map(_.bind(this.AliasSelectField, this, resourceName)).value());
+        },
+        AliasSelectField: function(resourceName, fieldName) {
+            var $elf = this, _fromIdx = this.input.idx, referencedField;
+            referencedField = this._applyWithArgs("ReferencedField", resourceName, fieldName);
+            return this._or(function() {
+                this._pred(referencedField[2] === fieldName);
+                return referencedField;
+            }, function() {
+                return [ referencedField, fieldName ];
+            });
         },
         ReferencedField: function(resourceTable, resourceField) {
             var $elf = this, _fromIdx = this.input.idx, mapping;
@@ -339,7 +350,7 @@
                 });
                 return [ "Not", bool ];
             }, function() {
-                return this._apply("Property");
+                return this._apply("ReferencedProperty");
             }, function() {
                 return this._apply("BooleanFunction");
             });
@@ -490,6 +501,16 @@
             });
             return props;
         },
+        ReferencedProperty: function() {
+            var $elf = this, _fromIdx = this.input.idx, prop;
+            prop = this._apply("Property");
+            return this._or(function() {
+                this._pred(_.isArray(prop));
+                return prop;
+            }, function() {
+                return this._applyWithArgs("ReferencedField", prop.resource, prop.name);
+            });
+        },
         Property: function() {
             var $elf = this, _fromIdx = this.input.idx, prop, resource;
             prop = this._apply("anything");
@@ -502,7 +523,10 @@
                         this._pred(prop.property.property);
                         return this._applyWithArgs("Property", prop.property);
                     }, function() {
-                        return this._applyWithArgs("ReferencedField", prop.name, prop.property.name);
+                        return {
+                            resource: prop.name,
+                            name: prop.property.name
+                        };
                     });
                 }, function() {
                     console.error(prop);
@@ -515,7 +539,10 @@
                 resource = this._applyWithArgs("Resource", prop.name);
                 return this._applyWithArgs("Lambda", resource, prop.lambda);
             }, function() {
-                return this._applyWithArgs("ReferencedField", this.defaultResource, prop.name);
+                return {
+                    resource: this.defaultResource,
+                    name: prop.name
+                };
             });
         },
         Number: function() {
