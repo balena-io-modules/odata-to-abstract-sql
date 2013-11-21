@@ -1,8 +1,8 @@
-(function(root, factory) {
+!function(root, factory) {
     "function" == typeof define && define.amd ? define([ "require", "exports", "ometa-core", "lodash" ], factory) : "object" == typeof exports ? factory(require, exports, require("ometa-js").core) : factory(function(moduleName) {
         return root[moduleName];
     }, root, root.OMeta);
-})(this, function(require, exports, OMeta) {
+}(this, function(require, exports, OMeta) {
     _ = require("lodash");
     _.mixin({
         capitalize: function(string) {
@@ -38,7 +38,7 @@
     var OData2AbstractSQL = exports.OData2AbstractSQL = OMeta._extend({
         Process: function(method, body) {
             var $elf = this, _fromIdx = this.input.idx, path, query, queryType;
-            path = this._apply("anything");
+            path = this.anything();
             this._apply("end");
             return this._or(function() {
                 this._pred(_.isEmpty(path));
@@ -181,7 +181,7 @@
             var $elf = this, _fromIdx = this.input.idx, field, orderby, ordering;
             this._form(function() {
                 return orderby = this._many1(function() {
-                    ordering = this._apply("anything");
+                    ordering = this.anything();
                     field = this._applyWithArgs("ReferencedProperty", ordering);
                     return [ ordering.order.toUpperCase(), field ];
                 });
@@ -195,15 +195,15 @@
                     return this._or(function() {
                         this._form(function() {
                             this._applyWithArgs("exactly", "_name");
-                            return this._apply("anything");
+                            return this.anything();
                         });
                         return null;
                     }, function() {
                         this._form(function() {
-                            fieldName = this._apply("anything");
+                            fieldName = this.anything();
                             return this._form(function() {
-                                mappedTableName = this._apply("anything");
-                                return mappedFieldName = this._apply("anything");
+                                mappedTableName = this.anything();
+                                return mappedFieldName = this.anything();
                             });
                         });
                         return this._or(function() {
@@ -300,7 +300,7 @@
                 this._form(function() {
                     return this._or(function() {
                         operation = function() {
-                            switch (this._apply("anything")) {
+                            switch (this.anything()) {
                               case "eq":
                                 return "Equals";
 
@@ -327,7 +327,7 @@
                         return op2 = this._apply("Operand");
                     }, function() {
                         operation = function() {
-                            switch (this._apply("anything")) {
+                            switch (this.anything()) {
                               case "and":
                                 return "And";
 
@@ -406,7 +406,7 @@
             var $elf = this, _fromIdx = this.input.idx, args, properties;
             this._form(function() {
                 this._applyWithArgs("exactly", "call");
-                properties = this._apply("anything");
+                properties = this.anything();
                 this._pred(properties.method == name);
                 return args = this._applyWithArgs("Arguments", properties.args);
             });
@@ -439,7 +439,7 @@
             var $elf = this, _fromIdx = this.input.idx, op1, op2, operation;
             this._form(function() {
                 operation = function() {
-                    switch (this._apply("anything")) {
+                    switch (this.anything()) {
                       case "add":
                         return "Add";
 
@@ -513,7 +513,7 @@
         },
         Property: function() {
             var $elf = this, _fromIdx = this.input.idx, prop, resource;
-            prop = this._apply("anything");
+            prop = this.anything();
             this._pred(prop.name);
             return this._or(function() {
                 this._pred(prop.property);
@@ -565,7 +565,7 @@
         },
         Date: function() {
             var $elf = this, _fromIdx = this.input.idx, date;
-            date = this._apply("anything");
+            date = this.anything();
             this._pred(_.isDate(date));
             return [ "Date", date ];
         },
@@ -573,7 +573,7 @@
             var $elf = this, _fromIdx = this.input.idx, expand, expandQuery, expandResource, navigationWhere, nestedExpandQuery;
             return this._form(function() {
                 return this._many1(function() {
-                    expand = this._apply("anything");
+                    expand = this.anything();
                     expandResource = this._applyWithArgs("Resource", expand.name);
                     nestedExpandQuery = new Query();
                     this._opt(function() {
@@ -634,7 +634,7 @@
                     });
                 });
             }, function() {
-                nextProp = this._apply("anything");
+                nextProp = this.anything();
                 extraFroms = this._many1(function() {
                     prop = nextProp;
                     this._pred(prop);
@@ -651,7 +651,7 @@
                     return froms.push(extraFroms);
                 });
             }, function() {
-                return this._apply("anything");
+                return this.anything();
             });
             return froms;
         },
