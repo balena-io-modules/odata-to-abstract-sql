@@ -52,7 +52,10 @@
                     this._pred("GET" == method);
                     return "SelectQuery";
                 }, function() {
-                    this._pred("PUT" == method || "PATCH" == method || "MERGE" == method);
+                    this._pred("PUT" == method);
+                    return "UpsertQuery";
+                }, function() {
+                    this._pred("PATCH" == method || "MERGE" == method);
                     return "UpsertQuery";
                 }, function() {
                     this._pred("POST" == method);
