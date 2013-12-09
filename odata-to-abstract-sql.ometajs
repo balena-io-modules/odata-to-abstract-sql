@@ -49,7 +49,9 @@ export ometa OData2AbstractSQL {
 		|	PathSegment(method, body, path):query
 			(	?(method == 'GET')
 				-> 'SelectQuery'
-			|	?(method == 'PUT' || method == 'PATCH' || method == 'MERGE')
+			|	?(method == 'PUT')
+				-> 'UpsertQuery'
+			|	?(method == 'PATCH' || method == 'MERGE')
 				-> 'UpsertQuery'
 			|	?(method == 'POST')
 				-> 'InsertQuery'
