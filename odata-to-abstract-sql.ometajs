@@ -76,6 +76,10 @@ export ometa OData2AbstractSQL {
 			-> query.where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], ['Number', path.key]])
 		)?
 
+		(	?path.options
+			?path.options.$expand
+			Expands(resource, query, path.options.$expand.properties)
+		)?
 		(	?path.property
 			PathSegment(method, body, path.property):childQuery
 			{query.merge(childQuery)}
@@ -110,16 +114,19 @@ export ometa OData2AbstractSQL {
 			?path.options.$select
 			AddExtraFroms(path.options.$select.properties, query, resource)
 			Properties(path.options.$select.properties):fields
-			{	_.map(fields, function(field) {
+			{	_(fields)
+				.reject(function(field) {
+					return _.any(query.select, function(existingField) {
+						return existingField[existingField.length - 1] == field.name;
+					});
+				}, this)
+				.map(function(field) {
 					return this.AliasSelectField(field.resource, field.name);
-				}, this);
+				}, this)
+				.value();
 			}:fields
 			{query.select = query.select.concat(fields)}
-		|	(	?path.options
-				?path.options.$expand
-				Expands(resource, query, path.options.$expand.properties)
-			)?
-			AddSelectFields(resource.resourceName, query.select):select
+		|	AddSelectFields(resource.resourceName, query.select):select
 			{query.select = select}
 		)
 
