@@ -83,6 +83,11 @@
                 });
                 return query.where.push([ "Equals", [ "ReferencedField", resource.tableName, resource.idField ], [ "Number", path.key ] ]);
             });
+            this._opt(function() {
+                this._pred(path.options);
+                this._pred(path.options.$expand);
+                return this._applyWithArgs("Expands", resource, query, path.options.$expand.properties);
+            });
             this._or(function() {
                 this._pred(path.property);
                 childQuery = this._applyWithArgs("PathSegment", method, body, path.property);
@@ -135,16 +140,15 @@
                 this._pred(path.options.$select);
                 this._applyWithArgs("AddExtraFroms", path.options.$select.properties, query, resource);
                 fields = this._applyWithArgs("Properties", path.options.$select.properties);
-                fields = _.map(fields, function(field) {
+                fields = _(fields).reject(function(field) {
+                    return _.any(query.select, function(existingField) {
+                        return existingField[existingField.length - 1] == field.name;
+                    });
+                }, this).map(function(field) {
                     return this.AliasSelectField(field.resource, field.name);
-                }, this);
+                }, this).value();
                 return query.select = query.select.concat(fields);
             }, function() {
-                this._opt(function() {
-                    this._pred(path.options);
-                    this._pred(path.options.$expand);
-                    return this._applyWithArgs("Expands", resource, query, path.options.$expand.properties);
-                });
                 select = this._applyWithArgs("AddSelectFields", resource.resourceName, query.select);
                 return query.select = select;
             });
