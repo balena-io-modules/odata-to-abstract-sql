@@ -23,6 +23,11 @@ test '/pilot(1)', (result) ->
 		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
 
+test "/pilot('TextKey')", (result) ->
+	it 'should select from pilot with id', ->
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Text', 'TextKey']])
+
+
 test '/pilot(1)/licence', (result) ->
 	it 'should select from the licence of pilot with id', ->
 		expect(result).to.be.a.query.that.
