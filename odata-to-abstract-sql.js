@@ -68,7 +68,7 @@
             });
         },
         PathSegment: function(method, body, path) {
-            var $elf = this, _fromIdx = this.input.idx, aliasedField, childQuery, fields, filter, limit, linkResource, navigationWhere, offset, orderby, propertyResource, qualifiedIDField, query, referencedField, resource, resourceMapping, select;
+            var $elf = this, _fromIdx = this.input.idx, aliasedField, childQuery, fields, filter, key, limit, linkResource, navigationWhere, offset, orderby, propertyResource, qualifiedIDField, query, referencedField, resource, resourceMapping, select;
             this._pred(path.resource);
             resource = this._applyWithArgs("Resource", path.resource);
             this.defaultResource = path.resource;
@@ -81,7 +81,12 @@
                     this._pred(!body[qualifiedIDField] && !body[resource.idField]);
                     return body[qualifiedIDField] = path.key;
                 });
-                return query.where.push([ "Equals", [ "ReferencedField", resource.tableName, resource.idField ], [ "Number", path.key ] ]);
+                key = this._or(function() {
+                    return this._applyWithArgs("Number", path.key);
+                }, function() {
+                    return this._applyWithArgs("Text", path.key);
+                });
+                return query.where.push([ "Equals", [ "ReferencedField", resource.tableName, resource.idField ], key ]);
             });
             this._opt(function() {
                 this._pred(path.options);
