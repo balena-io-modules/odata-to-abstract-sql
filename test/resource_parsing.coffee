@@ -82,7 +82,7 @@ test '/pilot(1)', 'DELETE', (result) ->
 
 test '/pilot(1)', 'PUT', (result) ->
 	it 'should insert/update the pilot with id 1', ->
-		expect(result).to.be.a.query.that.have.
+		expect(result).to.be.a.query.that.upserts.
 			fields(
 				['id', ['Bind', 'pilot', 'id']]
 				['is experienced', ['Bind', 'pilot', 'is_experienced']]
@@ -97,7 +97,7 @@ test '/pilot(1)', 'PUT', (result) ->
 do ->
 	testFunc = (result) ->
 		it 'should update the pilot with id 1', ->
-			expect(result).to.be.a.query.that.have.
+			expect(result).to.be.a.query.that.updates.
 				fields(
 					['id', ['Bind', 'pilot', 'id']]
 				).
@@ -109,7 +109,7 @@ do ->
 do ->
 	testFunc = (result) ->
 		it 'should update the pilot with id 1', ->
-			expect(result).to.be.a.query.that.have.
+			expect(result).to.be.a.query.that.updates.
 				fields(
 					['id', ['Bind', 'pilot', 'id']]
 					['is experienced', ['Bind', 'pilot', 'is_experienced']]
@@ -137,7 +137,7 @@ test '/pilot__can_fly__plane(1)', 'DELETE', (result) ->
 
 test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 	it 'should insert/update the pilot__can_fly__plane with id 1', ->
-		expect(result).to.be.a.query.that.have.
+		expect(result).to.be.a.query.that.upserts.
 			fields(
 				['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
 				['plane', ['Bind', 'pilot__can_fly__plane', 'plane']]
@@ -149,7 +149,7 @@ test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 do ->
 	testFunc = (result) ->
 		it 'should update the pilot__can_fly__plane with id 1', ->
-			expect(result).to.be.a.query.that.have.
+			expect(result).to.be.a.query.that.updates.
 				fields(
 					['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
 				).

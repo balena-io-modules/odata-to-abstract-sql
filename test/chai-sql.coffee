@@ -8,6 +8,10 @@ chai.use((chai, utils) ->
 		obj = utils.flag(this, 'object')
 		expect(obj).to.be.an.instanceof Array
 	)
+	queryType = (type) ->
+		->
+			obj = utils.flag(@, 'object')
+			expect(obj).to.contain.something.that.equals type
 	bodyClause = (bodyType) ->
 		(bodyClauses...) ->
 			obj = utils.flag(@, 'object')
@@ -19,12 +23,20 @@ chai.use((chai, utils) ->
 			obj = utils.flag(@, 'object')
 			expect(obj).to.contain.something.that.deep.equals([bodyType, bodyClauses], bodyType)
 			return @
-	select = bodyClause('Select')
+
+	select = do ->
+		bodySelect = bodyClause('Select')
+		typeSelect = queryType('SelectQuery')
+		->
+			typeSelect.call(this)
+			bodySelect.apply(this, arguments)
 	utils.addMethod(assertionPrototype, 'select', select)
 	utils.addChainableMethod(assertionPrototype, 'selects', select)
-	utils.addChainableMethod(assertionPrototype, 'deletes', ->
-		expect(obj).to.contain.something.that.equals 'DeleteQuery'
-	)
+
+	utils.addProperty(assertionPrototype, 'updates', queryType('UpdateQuery'))
+	utils.addProperty(assertionPrototype, 'upserts', queryType('UpsertQuery'))
+	utils.addProperty(assertionPrototype, 'deletes', queryType('DeleteQuery'))
+
 	utils.addMethod(assertionPrototype, 'fields', multiBodyClause('Fields'))
 	utils.addMethod(assertionPrototype, 'from', bodyClause('From'))
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))

@@ -52,7 +52,7 @@ export ometa OData2AbstractSQL {
 			|	?(method == 'PUT')
 				-> 'UpsertQuery'
 			|	?(method == 'PATCH' || method == 'MERGE')
-				-> 'UpsertQuery'
+				-> 'UpdateQuery'
 			|	?(method == 'POST')
 				-> 'InsertQuery'
 			|	?(method == 'DELETE')
