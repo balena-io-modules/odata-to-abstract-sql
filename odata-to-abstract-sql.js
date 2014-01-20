@@ -56,7 +56,7 @@
                     return "UpsertQuery";
                 }, function() {
                     this._pred("PATCH" == method || "MERGE" == method);
-                    return "UpsertQuery";
+                    return "UpdateQuery";
                 }, function() {
                     this._pred("POST" == method);
                     return "InsertQuery";
