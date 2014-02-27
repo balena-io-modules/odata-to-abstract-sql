@@ -310,7 +310,7 @@
             var $elf = this, _fromIdx = this.input.idx, bool, op1, op2, operation;
             return this._or(function() {
                 this._form(function() {
-                    return this._or(function() {
+                    return bool = this._or(function() {
                         operation = function() {
                             switch (this.anything()) {
                               case "eq":
@@ -336,7 +336,8 @@
                             }
                         }.call(this);
                         op1 = this._apply("Operand");
-                        return op2 = this._apply("Operand");
+                        op2 = this._apply("Operand");
+                        return [ operation, op1, op2 ];
                     }, function() {
                         operation = function() {
                             switch (this.anything()) {
@@ -351,10 +352,13 @@
                             }
                         }.call(this);
                         op1 = this._apply("Boolean");
-                        return op2 = this._apply("Boolean");
+                        op2 = this._many1(function() {
+                            return this._apply("Boolean");
+                        });
+                        return [ operation, op1 ].concat(op2);
                     });
                 });
-                return [ operation, op1, op2 ];
+                return bool;
             }, function() {
                 this._form(function() {
                     this._applyWithArgs("exactly", "not");
