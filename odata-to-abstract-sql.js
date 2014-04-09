@@ -68,12 +68,13 @@
             });
         },
         PathSegment: function(method, body, path) {
-            var $elf = this, _fromIdx = this.input.idx, aliasedField, childQuery, fields, filter, key, limit, linkResource, navigationWhere, offset, orderby, propertyResource, qualifiedIDField, query, referencedField, resource, resourceMapping, select;
+            var $elf = this, _fromIdx = this.input.idx, aliasedField, childQuery, fields, filter, key, limit, linkResource, navigationWhere, offset, orderby, propertyResource, qualifiedIDField, query, referencedField, referencedIdField, resource, resourceMapping, select, subQuery;
             this._pred(path.resource);
             resource = this._applyWithArgs("Resource", path.resource);
             this.defaultResource = path.resource;
             query = new Query();
             query.from.push(resource.tableName);
+            referencedIdField = [ "ReferencedField", resource.tableName, resource.idField ];
             this._opt(function() {
                 this._pred(path.key);
                 qualifiedIDField = resource.modelName + "." + resource.idField;
@@ -86,7 +87,7 @@
                 }, function() {
                     return this._applyWithArgs("Text", path.key);
                 });
-                return query.where.push([ "Equals", [ "ReferencedField", resource.tableName, resource.idField ], key ]);
+                return query.where.push([ "Equals", referencedIdField, key ]);
             });
             this._opt(function() {
                 this._pred(path.options);
@@ -162,6 +163,15 @@
             }, function() {
                 this._or(function() {
                     return this._pred(!path.options.$filter);
+                }, function() {
+                    this._pred("PATCH" == method || "MERGE" == method);
+                    subQuery = new Query();
+                    this._applyWithArgs("AddExtraFroms", path.options.$filter, subQuery, resource);
+                    filter = this._applyWithArgs("Boolean", path.options.$filter);
+                    subQuery.select.push(referencedIdField);
+                    subQuery.from.push(resource.tableName);
+                    subQuery.where.push(filter);
+                    return query.where.push([ "In", referencedIdField, subQuery.compile("SelectQuery") ]);
                 }, function() {
                     this._applyWithArgs("AddExtraFroms", path.options.$filter, query, resource);
                     filter = this._applyWithArgs("Boolean", path.options.$filter);
