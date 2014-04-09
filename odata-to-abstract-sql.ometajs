@@ -136,7 +136,7 @@ export ometa OData2AbstractSQL {
 
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
-			|	?(method == 'PATCH' || method == 'MERGE')
+			|	?(method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
 				// For update statements we need to use a WHERE id IN (SELECT...) style query
 				{new Query()}:subQuery
 				AddExtraFroms(path.options.$filter, subQuery, resource)
