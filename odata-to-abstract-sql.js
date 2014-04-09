@@ -164,7 +164,9 @@
                 this._or(function() {
                     return this._pred(!path.options.$filter);
                 }, function() {
-                    this._pred("PATCH" == method || "MERGE" == method);
+                    return this._pred("POST" == method);
+                }, function() {
+                    this._pred("PATCH" == method || "MERGE" == method || "DELETE" == method);
                     subQuery = new Query();
                     this._applyWithArgs("AddExtraFroms", path.options.$filter, subQuery, resource);
                     filter = this._applyWithArgs("Boolean", path.options.$filter);
