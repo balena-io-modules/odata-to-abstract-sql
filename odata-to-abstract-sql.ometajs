@@ -136,6 +136,9 @@ export ometa OData2AbstractSQL {
 
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
+			|	?(method == 'POST')
+				// Ignore filters in a POST as we currently have no way to handle them..
+				// TODO: Use an INSERT INTO SELECT ... to allow filters in an insert?
 			|	?(method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
 				// For update statements we need to use a WHERE id IN (SELECT...) style query
 				{new Query()}:subQuery
