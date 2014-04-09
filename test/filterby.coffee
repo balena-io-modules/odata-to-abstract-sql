@@ -165,6 +165,43 @@ do ->
 					]
 				])
 
+	test '/pilot?$filter=' + odata, 'PATCH', name: 'Peter', (result) ->
+		it 'should select from pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.updates.
+				fields(
+					['name', ['Bind', 'pilot', 'name']]
+				).
+				from('pilot').
+				where(['In'
+					['ReferencedField', 'pilot', 'id']
+					['SelectQuery'
+						['Select'
+							[
+								['ReferencedField', 'pilot', 'id']
+							]
+						],
+						['From', 'pilot-can_fly-plane']
+						['From', 'plane']
+						['From', 'pilot']
+						['Where'
+							['And'
+								['Equals'
+									['ReferencedField', 'pilot', 'id']
+									['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+								]
+								['Equals'
+									['ReferencedField', 'plane', 'id']
+									['ReferencedField', 'pilot-can_fly-plane', 'plane']
+								]
+								['Equals'
+									['ReferencedField', 'plane', 'id']
+									['Number', 10]
+								]
+							]
+						]
+					]
+				])
+
 methodTest('substringof', "'Pete'", 'name')
 methodTest('startswith', 'name', "'P'")
 methodTest('endswith', 'name', "'ete'")

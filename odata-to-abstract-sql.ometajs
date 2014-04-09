@@ -68,6 +68,7 @@ export ometa OData2AbstractSQL {
 		{new Query()}:query
 		{query.from.push(resource.tableName)}
 
+		{['ReferencedField', resource.tableName, resource.idField]}:referencedIdField
 		(	?path.key
 			{resource.modelName + '.' + resource.idField}:qualifiedIDField
 			(	?(!body[qualifiedIDField] && !body[resource.idField])
@@ -76,7 +77,7 @@ export ometa OData2AbstractSQL {
 			(	Number(path.key)
 			|	Text(path.key)
 			):key
-			-> query.where.push(['Equals', ['ReferencedField', resource.tableName, resource.idField], key])
+			-> query.where.push(['Equals', referencedIdField, key])
 		)?
 
 		(	?path.options
@@ -135,6 +136,15 @@ export ometa OData2AbstractSQL {
 
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
+			|	?(method == 'PATCH' || method == 'MERGE')
+				// For update statements we need to use a WHERE id IN (SELECT...) style query
+				{new Query()}:subQuery
+				AddExtraFroms(path.options.$filter, subQuery, resource)
+				Boolean(path.options.$filter):filter
+				{subQuery.select.push(referencedIdField)}
+				{subQuery.from.push(resource.tableName)}
+				{subQuery.where.push(filter)}
+				-> query.where.push(['In', referencedIdField, subQuery.compile('SelectQuery')])
 			|	AddExtraFroms(path.options.$filter, query, resource)
 				Boolean(path.options.$filter):filter
 				-> query.where.push(filter)
