@@ -5,7 +5,7 @@
   "main": "odata-to-abstract-sql.js",
   "scripts": {
     "pretest": "npm run-script prepublish",
-    "test": "mocha",
+    "test": "./node_modules/.bin/mocha",
     "prepublish": "node node_modules/ometa-js/bin/ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
   },
   "repository": "git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
@@ -16,9 +16,10 @@
     "lodash": "~2.4.1"
   },
   "devDependencies": {
-    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.9",
-    "coffee-script": "~1.7.1",
     "chai": "~1.8.1",
-    "chai-things": "~0.2.0"
+    "chai-things": "~0.2.0",
+    "coffee-script": "~1.7.1",
+    "mocha": "~1.21.4",
+    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.9"
   }
 }
