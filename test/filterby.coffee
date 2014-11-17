@@ -168,9 +168,8 @@ do ->
 	test '/pilot?$filter=' + odata, 'PATCH', name: 'Peter', (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.updates.
-				fields(
-					['name', ['Bind', 'pilot', 'name']]
-				).
+				fields('name').
+				values(['Bind', 'pilot', 'name']).
 				from('pilot').
 				where(['In'
 					['ReferencedField', 'pilot', 'id']
@@ -239,9 +238,8 @@ do ->
 	test '/pilot?$filter=' + odata, 'POST', name: 'Peter', (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.have.
-				fields(
-					['name', ['Bind', 'pilot', 'name']]
-				).
+				fields('name').
+				values(['Bind', 'pilot', 'name']).
 				from('pilot')
 
 methodTest('substringof', "'Pete'", 'name')

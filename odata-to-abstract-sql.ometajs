@@ -112,8 +112,9 @@ export ometa OData2AbstractSQL {
 			-> query.select.push(aliasedField)
 		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource.resourceName):resourceMapping
-			Fields(method, body, resource.resourceName, _.pairs(resourceMapping)):fields
-			{query.extras.push(['Fields', fields])}
+			BindVars(method, body, resource.resourceName, _.pairs(resourceMapping)):bindVars
+			{query.extras.push(['Fields', _.map(bindVars, 0)])}
+			{query.extras.push(['Values', _.map(bindVars, 1)])}
 		|	?path.options
 			?path.options.$select
 			AddExtraFroms(path.options.$select.properties, query, resource)
@@ -179,7 +180,7 @@ export ometa OData2AbstractSQL {
 		-> orderby
 	,
 
-	Fields :method :body :resourceName =
+	BindVars :method :body :resourceName =
 		[	(	[	'_name'
 					anything
 				]

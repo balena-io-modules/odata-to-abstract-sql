@@ -84,12 +84,20 @@ test '/pilot(1)', 'PUT', (result) ->
 	it 'should insert/update the pilot with id 1', ->
 		expect(result).to.be.a.query.that.upserts.
 			fields(
-				['id', ['Bind', 'pilot', 'id']]
-				['is experienced', ['Bind', 'pilot', 'is_experienced']]
-				['name', ['Bind', 'pilot', 'name']]
-				['age', ['Bind', 'pilot', 'age']]
-				['favourite colour', ['Bind', 'pilot', 'favourite_colour']]
-				['licence', ['Bind', 'pilot', 'licence']]
+				'id'
+				'is experienced'
+				'name'
+				'age'
+				'favourite colour'
+				'licence'
+			).
+			values(
+				['Bind', 'pilot', 'id']
+				['Bind', 'pilot', 'is_experienced']
+				['Bind', 'pilot', 'name']
+				['Bind', 'pilot', 'age']
+				['Bind', 'pilot', 'favourite_colour']
+				['Bind', 'pilot', 'licence']
 			).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
@@ -98,9 +106,8 @@ do ->
 	testFunc = (result) ->
 		it 'should update the pilot with id 1', ->
 			expect(result).to.be.a.query.that.updates.
-				fields(
-					['id', ['Bind', 'pilot', 'id']]
-				).
+				fields('id').
+				values(['Bind', 'pilot', 'id']).
 				from('pilot').
 				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 	test '/pilot(1)', 'PATCH', testFunc
@@ -111,9 +118,14 @@ do ->
 		it 'should update the pilot with id 1', ->
 			expect(result).to.be.a.query.that.updates.
 				fields(
-					['id', ['Bind', 'pilot', 'id']]
-					['is experienced', ['Bind', 'pilot', 'is_experienced']]
-					['favourite colour', ['Bind', 'pilot', 'favourite_colour']]
+					'id'
+					'is experienced'
+					'favourite colour'
+				).
+				values(
+					['Bind', 'pilot', 'id']
+					['Bind', 'pilot', 'is_experienced']
+					['Bind', 'pilot', 'favourite_colour']
 				).
 				from('pilot').
 				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
@@ -123,9 +135,8 @@ do ->
 test '/pilot', 'POST', {name: 'Peter'}, (result) ->
 	it 'should insert a pilot', ->
 		expect(result).to.be.a.query.that.have.
-			fields(
-				['name', ['Bind', 'pilot', 'name']]
-			).
+			fields('name').
+			values(['Bind', 'pilot', 'name']).
 			from('pilot')
 
 
@@ -139,9 +150,14 @@ test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 	it 'should insert/update the pilot__can_fly__plane with id 1', ->
 		expect(result).to.be.a.query.that.upserts.
 			fields(
-				['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
-				['plane', ['Bind', 'pilot__can_fly__plane', 'plane']]
-				['id', ['Bind', 'pilot__can_fly__plane', 'id']]
+				'pilot'
+				'plane'
+				'id'
+			).
+			values(
+				['Bind', 'pilot__can_fly__plane', 'pilot']
+				['Bind', 'pilot__can_fly__plane', 'plane']
+				['Bind', 'pilot__can_fly__plane', 'id']
 			).
 			from('pilot-can_fly-plane').
 			where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
@@ -150,9 +166,8 @@ do ->
 	testFunc = (result) ->
 		it 'should update the pilot__can_fly__plane with id 1', ->
 			expect(result).to.be.a.query.that.updates.
-				fields(
-					['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
-				).
+				fields('pilot').
+				values(['Bind', 'pilot__can_fly__plane', 'pilot']).
 				from('pilot-can_fly-plane').
 				where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
 	test '/pilot__can_fly__plane(1)', 'PATCH', {pilot: 2}, testFunc
@@ -162,8 +177,12 @@ test '/pilot__can_fly__plane', 'POST', {pilot:2, plane:3}, (result) ->
 	it 'should add a pilot__can_fly__plane', ->
 		expect(result).to.be.a.query.that.have.
 			fields(
-				['pilot', ['Bind', 'pilot__can_fly__plane', 'pilot']]
-				['plane', ['Bind', 'pilot__can_fly__plane', 'plane']]
+				'pilot'
+				'plane'
+			).
+			values(
+				['Bind', 'pilot__can_fly__plane', 'pilot']
+				['Bind', 'pilot__can_fly__plane', 'plane']
 			).
 			from('pilot-can_fly-plane')
 
