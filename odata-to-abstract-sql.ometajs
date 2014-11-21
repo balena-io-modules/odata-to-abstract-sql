@@ -68,17 +68,8 @@ export ometa OData2AbstractSQL {
 		{new Query()}:query
 		{query.from.push(resource.tableName)}
 
-		{['ReferencedField', resource.tableName, resource.idField]}:referencedIdField
-		(	?path.key
-			{resource.modelName + '.' + resource.idField}:qualifiedIDField
-			(	?(!body[qualifiedIDField] && !body[resource.idField])
-				{body[qualifiedIDField] = path.key}
-			)?
-			(	Number(path.key)
-			|	Text(path.key)
-			):key
-			-> query.where.push(['Equals', referencedIdField, key])
-		)?
+		ReferencedField(resource.resourceName, resource.idField):referencedIdField
+		PathKey(path, query, resource, referencedIdField, body)?
 
 		(	?path.options
 			?path.options.$expand
@@ -106,9 +97,7 @@ export ometa OData2AbstractSQL {
 				-> [referencedField, resource.resourceName]
 			|	{throw 'Cannot navigate links'}
 			):aliasedField
-			(	?path.link.key
-				-> query.where.push(['Equals', referencedField, ['Number', path.link.key]])
-			)?
+			PathKey(path.link, query, linkResource, referencedField, body)?
 			-> query.select.push(aliasedField)
 		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource.resourceName):resourceMapping
@@ -169,6 +158,19 @@ export ometa OData2AbstractSQL {
 		)
 
 		-> query
+	,
+
+	PathKey :path :query :resource :referencedField :body =
+		?path.key
+		// Add the id field value to the body if it doesn't already exist.
+		{resource.modelName + '.' + resource.idField}:qualifiedIDField
+		(	?(!body[qualifiedIDField] && !body[resource.idField])
+			{body[qualifiedIDField] = path.key}
+		)?
+		(	Number(path.key)
+		|	Text(path.key)
+		):key
+		-> {query.where.push(['Equals', referencedField, key])}
 	,
 
 	OrderBy =
