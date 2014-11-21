@@ -127,8 +127,26 @@ export ometa OData2AbstractSQL {
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
 			|	?(method == 'POST')
-				// Ignore filters in a POST as we currently have no way to handle them..
-				// TODO: Use an INSERT INTO SELECT ... to allow filters in an insert?
+				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
+				{new Query()}:subQuery
+				AddExtraFroms(path.options.$filter, subQuery, resource)
+				Boolean(path.options.$filter):filter
+				{subQuery.select.push([resource.tableName, '*'])}
+				{subQuery.from.push([
+					[	'SelectQuery',
+						[	'Select',
+							_.map(bindVars, function(bindVar) {
+								// Bind vars are the reverse of select fields, so we need to reverse them.
+								return bindVar.reverse()
+							})
+						]
+					],
+					resource.tableName
+				])}
+				{subQuery.where.push(filter)}
+				{_.findIndex(query.extras, {0: 'Values'})}:valuesIndex
+				// Replace the values bind var list with our filtered SELECT query.
+				-> (query.extras[valuesIndex] = ['Values', subQuery.compile('SelectQuery')])
 			|	?(method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
 				// For update statements we need to use a WHERE id IN (SELECT...) style query
 				{new Query()}:subQuery
