@@ -38,6 +38,7 @@ chai.use((chai, utils) ->
 	utils.addProperty(assertionPrototype, 'deletes', queryType('DeleteQuery'))
 
 	utils.addMethod(assertionPrototype, 'fields', multiBodyClause('Fields'))
+	utils.addMethod(assertionPrototype, 'values', multiBodyClause('Values'))
 	utils.addMethod(assertionPrototype, 'from', bodyClause('From'))
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))
 	utils.addMethod(assertionPrototype, 'orderby', (bodyClauses...) ->
