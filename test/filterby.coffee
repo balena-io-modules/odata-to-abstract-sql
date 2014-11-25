@@ -235,11 +235,36 @@ do ->
 					]
 				])
 
-	test '/pilot?$filter=' + odata, 'POST', name: 'Peter', (result) ->
-		it 'should select from pilot where "' + odata + '"', ->
+do ->
+	name = 'Peter'
+	{odata, abstractsql} = createExpression('name', 'eq', "'#{name}'")
+	test '/pilot?$filter=' + odata, 'POST', {name}, (result) ->
+		it 'should insert into pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.have.
 				fields('name').
-				values(['Bind', 'pilot', 'name']).
+				values(
+					'SelectQuery'
+					[	'Select'
+						[	['pilot', '*']
+						]
+					]
+					[	'From'
+						[	[	'SelectQuery'
+								[	'Select'
+									[
+										[	['Bind', 'pilot', 'name']
+											'name'
+										]
+									]
+								]
+							]
+							'pilot'
+						]
+					]
+					[	'Where'
+						abstractsql
+					]
+				).
 				from('pilot')
 
 methodTest('substringof', "'Pete'", 'name')
