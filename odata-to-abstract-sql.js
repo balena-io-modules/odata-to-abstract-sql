@@ -68,7 +68,7 @@
             });
         },
         PathSegment: function(method, body, path) {
-            var $elf = this, _fromIdx = this.input.idx, aliasedField, childQuery, fields, filter, key, limit, linkResource, navigationWhere, offset, orderby, propertyResource, qualifiedIDField, query, referencedField, referencedIdField, resource, resourceMapping, select, subQuery;
+            var $elf = this, _fromIdx = this.input.idx, aliasedField, bindVars, childQuery, fields, filter, limit, linkResource, navigationWhere, offset, orderby, propertyResource, query, referencedField, referencedIdField, resource, resourceMapping, select, subQuery, valuesIndex;
             this._pred(path.resource);
             resource = this._applyWithArgs("Resource", path.resource);
             this.defaultResource = path.resource;
@@ -76,18 +76,7 @@
             query.from.push(resource.tableName);
             referencedIdField = [ "ReferencedField", resource.tableName, resource.idField ];
             this._opt(function() {
-                this._pred(path.key);
-                qualifiedIDField = resource.modelName + "." + resource.idField;
-                this._opt(function() {
-                    this._pred(!body[qualifiedIDField] && !body[resource.idField]);
-                    return body[qualifiedIDField] = path.key;
-                });
-                key = this._or(function() {
-                    return this._applyWithArgs("Number", path.key);
-                }, function() {
-                    return this._applyWithArgs("Text", path.key);
-                });
-                return query.where.push([ "Equals", referencedIdField, key ]);
+                return this._applyWithArgs("PathKey", path, query, resource, referencedIdField, body);
             });
             this._opt(function() {
                 this._pred(path.options);
@@ -132,15 +121,15 @@
                     }.call(this);
                 });
                 this._opt(function() {
-                    this._pred(path.link.key);
-                    return query.where.push([ "Equals", referencedField, [ "Number", path.link.key ] ]);
+                    return this._applyWithArgs("PathKey", path.link, query, linkResource, referencedField, body);
                 });
                 return query.select.push(aliasedField);
             }, function() {
                 this._pred("PUT" == method || "POST" == method || "PATCH" == method || "MERGE" == method);
                 resourceMapping = this._applyWithArgs("ResourceMapping", resource.resourceName);
-                fields = this._applyWithArgs("Fields", method, body, resource.resourceName, _.pairs(resourceMapping));
-                return query.extras.push([ "Fields", fields ]);
+                bindVars = this._applyWithArgs("BindVars", method, body, resource.resourceName, _.pairs(resourceMapping));
+                query.extras.push([ "Fields", _.map(bindVars, 0) ]);
+                return query.extras.push([ "Values", _.map(bindVars, 1) ]);
             }, function() {
                 this._pred(path.options);
                 this._pred(path.options.$select);
@@ -164,7 +153,19 @@
                 this._or(function() {
                     return this._pred(!path.options.$filter);
                 }, function() {
-                    return this._pred("POST" == method);
+                    this._pred("POST" == method);
+                    subQuery = new Query();
+                    this._applyWithArgs("AddExtraFroms", path.options.$filter, subQuery, resource);
+                    filter = this._applyWithArgs("Boolean", path.options.$filter);
+                    subQuery.select.push([ resource.tableName, "*" ]);
+                    subQuery.from.push([ [ "SelectQuery", [ "Select", _.map(bindVars, function(bindVar) {
+                        return bindVar.reverse();
+                    }) ] ], resource.tableName ]);
+                    subQuery.where.push(filter);
+                    valuesIndex = _.findIndex(query.extras, {
+                        0: "Values"
+                    });
+                    return query.extras[valuesIndex] = [ "Values", subQuery.compile("SelectQuery") ];
                 }, function() {
                     this._pred("PATCH" == method || "MERGE" == method || "DELETE" == method);
                     subQuery = new Query();
@@ -201,6 +202,21 @@
             });
             return query;
         },
+        PathKey: function(path, query, resource, referencedField, body) {
+            var $elf = this, _fromIdx = this.input.idx, key, qualifiedIDField;
+            this._pred(path.key);
+            qualifiedIDField = resource.modelName + "." + resource.idField;
+            this._opt(function() {
+                this._pred(!body[qualifiedIDField] && !body[resource.idField]);
+                return body[qualifiedIDField] = path.key;
+            });
+            key = this._or(function() {
+                return this._applyWithArgs("Number", path.key);
+            }, function() {
+                return this._applyWithArgs("Text", path.key);
+            });
+            return query.where.push([ "Equals", referencedField, key ]);
+        },
         OrderBy: function() {
             var $elf = this, _fromIdx = this.input.idx, field, orderby, ordering;
             this._form(function() {
@@ -212,7 +228,7 @@
             });
             return orderby;
         },
-        Fields: function(method, body, resourceName) {
+        BindVars: function(method, body, resourceName) {
             var $elf = this, _fromIdx = this.input.idx, fieldName, fields, mappedFieldName, mappedTableName;
             this._form(function() {
                 return fields = this._many(function() {
