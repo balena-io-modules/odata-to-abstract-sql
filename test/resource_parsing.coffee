@@ -234,3 +234,14 @@ test.skip '/pilot(1)/favourite_colour/red', (result) ->
 
 test.skip '/method(1)/child?foo=bar', (result) ->
 	it 'should do something..'
+
+
+
+test "/team('purple')", (result) ->
+	it 'should select the team with the "favourite colour" id of "purple"', ->
+		expect(result).to.be.a.query.that.
+			selects([[['ReferencedField', 'team', 'favourite colour'], 'favourite_colour']]).
+			from('team').
+			where(
+				['Equals', ['ReferencedField', 'team', 'favourite colour'], ['Text', 'purple']]
+			)

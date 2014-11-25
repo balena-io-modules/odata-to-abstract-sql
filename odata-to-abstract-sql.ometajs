@@ -68,7 +68,9 @@ export ometa OData2AbstractSQL {
 		{new Query()}:query
 		{query.from.push(resource.tableName)}
 
-		ReferencedField(resource.resourceName, resource.idField):referencedIdField
+		// We can't use the ReferencedField rule as resource.idField is the model name (using spaces),
+		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
+		{['ReferencedField', resource.tableName, resource.idField]}:referencedIdField
 		PathKey(path, query, resource, referencedIdField, body)?
 
 		(	?path.options

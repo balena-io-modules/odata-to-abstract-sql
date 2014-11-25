@@ -31,3 +31,7 @@ Fact type:  pilot can fly plane
 
 Fact type:  pilot has licence
 	Necessity: each pilot has exactly one licence
+
+Term:       team
+	Database ID Field: favourite colour
+Fact type:  team has favourite colour
