@@ -245,3 +245,10 @@ test "/team('purple')", (result) ->
 			where(
 				['Equals', ['ReferencedField', 'team', 'favourite colour'], ['Text', 'purple']]
 			)
+
+test '/team', 'POST', {favourite_colour: 'purple'}, (result) ->
+	it 'should insert a team', ->
+		expect(result).to.be.a.query.that.have.
+			fields('favourite colour').
+			values(['Bind', 'team', 'favourite_colour']).
+			from('team')
