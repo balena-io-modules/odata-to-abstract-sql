@@ -252,7 +252,7 @@ do ->
 						[	[	'SelectQuery'
 								[	'Select'
 									[
-										[	['Bind', 'pilot', 'name']
+										[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
 											'name'
 										]
 									]
@@ -351,7 +351,7 @@ do ->
 						[	[	'SelectQuery'
 								[	'Select'
 									[
-										[	['Bind', 'team', 'favourite_colour']
+										[	['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
 											'favourite colour'
 										]
 									]
