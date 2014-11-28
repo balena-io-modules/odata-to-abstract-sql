@@ -35,3 +35,4 @@ Fact type:  pilot has licence
 Term:       team
 	Database ID Field: favourite colour
 Fact type:  team has favourite colour
+	Necessity: each team has exactly one favourite colour

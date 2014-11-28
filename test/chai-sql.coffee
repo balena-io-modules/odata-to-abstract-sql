@@ -54,7 +54,7 @@ chai.use((chai, utils) ->
 )
 
 clientModel = require('./client-model.json')
-exports.operandToAbstractSQL = (operand) ->
+exports.operandToAbstractSQL = (operand, resource = 'pilot') ->
 	if operand.abstractsql?
 		return operand.abstractsql
 	if _.isNumber(operand)
@@ -68,7 +68,7 @@ exports.operandToAbstractSQL = (operand) ->
 		if fieldParts.length > 1
 			mapping = clientModel.resourceToSQLMappings[fieldParts[fieldParts.length - 2]][fieldParts[fieldParts.length - 1]]
 		else
-			mapping = clientModel.resourceToSQLMappings['pilot'][operand]
+			mapping = clientModel.resourceToSQLMappings[resource][operand]
 		return ['ReferencedField'].concat(mapping)
 	throw 'Unknown operand type: ' + operand
 

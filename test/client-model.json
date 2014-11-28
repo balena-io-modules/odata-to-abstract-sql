@@ -371,11 +371,14 @@
 			"topLevel": true,
 			"fields": [
 				{
-					"dataType": "Serial",
+					"dataType": "Color",
 					"fieldName": "favourite colour",
 					"required": true,
-					"index": "PRIMARY KEY",
-					"references": null
+					"index": null,
+					"references": {
+						"tableName": "favourite_colour",
+						"fieldName": null
+					}
 				}
 			],
 			"idField": "favourite colour",
@@ -407,21 +410,17 @@
 					"fieldName": "favourite colour",
 					"required": true,
 					"index": null,
-					"references": null
-				},
-				{
-					"dataType": "Serial",
-					"fieldName": "id",
-					"required": true,
-					"index": "PRIMARY KEY",
-					"references": null
+					"references": {
+						"tableName": "favourite_colour",
+						"fieldName": null
+					}
 				}
 			],
-			"idField": "id",
+			"idField": "team",
+			"referenceScheme": "favourite colour",
 			"actions": [
 				"view",
 				"add",
-				"edit",
 				"delete"
 			]
 		}
@@ -561,18 +560,14 @@
 			]
 		},
 		"team__has__favourite_colour": {
-			"_name": "team-has-favourite_colour",
+			"_name": "team",
 			"team": [
-				"team-has-favourite_colour",
-				"team"
-			],
-			"favourite_colour": [
-				"team-has-favourite_colour",
+				"team",
 				"favourite colour"
 			],
-			"id": [
-				"team-has-favourite_colour",
-				"id"
+			"favourite colour": [
+				"team",
+				"favourite colour"
 			]
 		}
 	}

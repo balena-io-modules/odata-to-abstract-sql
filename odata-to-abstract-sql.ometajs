@@ -138,8 +138,12 @@ export ometa OData2AbstractSQL {
 					[	'SelectQuery',
 						[	'Select',
 							_.map(bindVars, function(bindVar) {
-								// Bind vars are the reverse of select fields, so we need to reverse them.
-								return bindVar.reverse()
+								var alias = bindVar[0],
+									binding = bindVar[1],
+									fields = $elf.clientModel.resources[binding[1]].fields,
+									field = _.find(fields, {fieldName: alias}),
+									cast = ['Cast', binding, field.dataType];
+								return [cast, alias];
 							})
 						]
 					],

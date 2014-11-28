@@ -252,7 +252,7 @@ do ->
 						[	[	'SelectQuery'
 								[	'Select'
 									[
-										[	['Bind', 'pilot', 'name']
+										[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
 											'name'
 										]
 									]
@@ -330,3 +330,38 @@ lambdaTest = (methodName) ->
 
 lambdaTest('any')
 lambdaTest('all')
+
+# Switch operandToAbstractSQL permanently to using 'team' as the resource,
+# as we are switch to using that as our base resource from here on.
+operandToAbstractSQL = _.partialRight(operandToAbstractSQL, 'team')
+do ->
+	favouriteColour = 'purple'
+	{odata, abstractsql} = createExpression('favourite_colour', 'eq', "'#{favouriteColour}'")
+	test '/team?$filter=' + odata, 'POST', {favourite_colour: favouriteColour}, (result) ->
+		it 'should insert into team where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.have.
+				fields('favourite colour').
+				values(
+					'SelectQuery'
+					[	'Select'
+						[	['team', '*']
+						]
+					]
+					[	'From'
+						[	[	'SelectQuery'
+								[	'Select'
+									[
+										[	['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
+											'favourite colour'
+										]
+									]
+								]
+							]
+							'team'
+						]
+					]
+					[	'Where'
+						abstractsql
+					]
+				).
+				from('team')
