@@ -159,7 +159,10 @@
                     filter = this._applyWithArgs("Boolean", path.options.$filter);
                     subQuery.select.push([ resource.tableName, "*" ]);
                     subQuery.from.push([ [ "SelectQuery", [ "Select", _.map(bindVars, function(bindVar) {
-                        return bindVar.reverse();
+                        var alias = bindVar[0], binding = bindVar[1], fields = $elf.clientModel.resources[binding[1]].fields, field = _.find(fields, {
+                            fieldName: alias
+                        }), cast = [ "Cast", binding, field.dataType ];
+                        return [ cast, alias ];
                     }) ] ], resource.tableName ]);
                     subQuery.where.push(filter);
                     valuesIndex = _.findIndex(query.extras, {
