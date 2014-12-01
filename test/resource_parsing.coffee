@@ -93,11 +93,11 @@ test '/pilot(1)', 'PUT', (result) ->
 			).
 			values(
 				['Bind', 'pilot', 'id']
-				['Bind', 'pilot', 'is_experienced']
-				['Bind', 'pilot', 'name']
-				['Bind', 'pilot', 'age']
-				['Bind', 'pilot', 'favourite_colour']
-				['Bind', 'pilot', 'licence']
+				'Default'
+				'Default'
+				'Default'
+				'Default'
+				'Default'
 			).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
@@ -155,8 +155,8 @@ test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 				'id'
 			).
 			values(
-				['Bind', 'pilot__can_fly__plane', 'pilot']
-				['Bind', 'pilot__can_fly__plane', 'plane']
+				'Default'
+				'Default'
 				['Bind', 'pilot__can_fly__plane', 'id']
 			).
 			from('pilot-can_fly-plane').

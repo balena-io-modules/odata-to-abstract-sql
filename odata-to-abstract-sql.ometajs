@@ -216,8 +216,12 @@ export ometa OData2AbstractSQL {
 						:mappedFieldName
 					]
 				]
-				(	?((method === 'PATCH' || method === 'MERGE' || method === 'POST') && (!body || (!body.hasOwnProperty(fieldName) && !body.hasOwnProperty(resourceName + "." + fieldName))))
-					-> null
+				(	?(!body || (!body.hasOwnProperty(fieldName) && !body.hasOwnProperty(resourceName + "." + fieldName)))
+					// The body doesn't contain a bind var for this field.
+					(	?(method === 'PUT')
+						-> [mappedFieldName, 'Default']
+					|	-> null
+					)
 				|	-> [mappedFieldName, ['Bind', resourceName, fieldName]]
 				)
 			)*:fields
