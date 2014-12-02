@@ -134,13 +134,7 @@ export ometa OData2AbstractSQL {
 				// Replace the values bind var list with our filtered SELECT query.
 				-> (query.extras[valuesIndex] = ['Values', subQuery.compile('SelectQuery')])
 			|	?(method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
-				// For update statements we need to use a WHERE id IN (SELECT...) style query
-				{new Query()}:subQuery
-				AddExtraFroms(path.options.$filter, subQuery, resource)
-				Boolean(path.options.$filter):filter
-				{subQuery.select.push(referencedIdField)}
-				{subQuery.from.push(resource.tableName)}
-				{subQuery.where.push(filter)}
+				UpdateFilter(path.options.$filter, resource, referencedIdField):subQuery
 				-> query.where.push(['In', referencedIdField, subQuery.compile('SelectQuery')])
 			|	AddExtraFroms(path.options.$filter, query, resource)
 				Boolean(path.options.$filter):filter
@@ -199,6 +193,19 @@ export ometa OData2AbstractSQL {
 				],
 				resource.tableName
 			])
+			query.where.push(where)
+		}
+		-> query
+	,
+
+	UpdateFilter :filter :resource :referencedIdField =
+		// For update statements we need to use a WHERE id IN (SELECT...) style query
+		{new Query()}:query
+		AddExtraFroms(filter, query, resource)
+		Boolean(filter):where
+		{
+			query.select.push(referencedIdField)
+			query.from.push(resource.tableName)
 			query.where.push(where)
 		}
 		-> query
