@@ -238,70 +238,103 @@ do ->
 do ->
 	name = 'Peter'
 	{odata, abstractsql} = createExpression('name', 'eq', "'#{name}'")
-	test '/pilot?$filter=' + odata, 'POST', {name}, (result) ->
-		it 'should insert into pilot where "' + odata + '"', ->
-			expect(result).to.be.a.query.that.inserts.
-				fields('name').
-				values(
-					'SelectQuery'
-					[	'Select'
-						[	['pilot', '*']
-						]
+	insertTest = (result) ->
+		expect(result).to.be.a.query.that.inserts.
+			fields('id', 'name').
+			values(
+				'SelectQuery'
+				[	'Select'
+					[	['pilot', '*']
 					]
-					[	'From'
-						[	[	'SelectQuery'
-								[	'Select'
-									[
-										[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
-											'name'
-										]
+				]
+				[	'From'
+					[	[	'SelectQuery'
+							[	'Select'
+								[
+									[	['Cast', ['Bind', 'pilot', 'id'], 'Serial']
+										'id'
+									]
+									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
+										'name'
 									]
 								]
 							]
-							'pilot'
+						]
+						'pilot'
+					]
+				]
+				[	'Where'
+					abstractsql
+				]
+			).
+			from('pilot')
+	updateWhere = 
+		[
+			'And'
+			[	'Equals'
+				['ReferencedField', 'pilot', 'id']
+				['Number', 1]
+			]
+			[	'In'
+				['ReferencedField', 'pilot', 'id']
+				[	'SelectQuery'
+					[	'Select'
+						[
+							['ReferencedField', 'pilot', 'id']
 						]
 					]
+					['From', 'pilot']
 					[	'Where'
 						abstractsql
 					]
-				).
-				from('pilot')
+				]
+			]
+		]
+
+	test '/pilot(1)?$filter=' + odata, 'POST', {name}, (result) ->
+		it 'should insert into pilot where "' + odata + '"', ->
+			insertTest(result)
 
 	test '/pilot(1)?$filter=' + odata, 'PATCH', {name}, (result) ->
 		it 'should update the pilot with id 1', ->
 			expect(result).to.be.a.query.that.updates.
-			fields(
-				'id'
-				'name'
-			).
-			values(
-				['Bind', 'pilot', 'id']
-				['Bind', 'pilot', 'name']
-			).
-			from('pilot').
-			where(
-				[
-					'And'
-					[	'Equals'
-						['ReferencedField', 'pilot', 'id']
-						['Number', 1]
-					]
-					[	'In'
-						['ReferencedField', 'pilot', 'id']
-						[	'SelectQuery'
-							[	'Select'
-								[
-									['ReferencedField', 'pilot', 'id']
-								]
-							]
-							['From', 'pilot']
-							[	'Where'
-								abstractsql
-							]
-						]
-					]
-				]
-			)
+				fields(
+					'id'
+					'name'
+				).
+				values(
+					['Bind', 'pilot', 'id']
+					['Bind', 'pilot', 'name']
+				).
+				from('pilot').
+				where(updateWhere)
+
+	test '/pilot(1)?$filter=' + odata, 'PUT', {name}, (result) ->
+		describe 'should upsert the pilot with id 1', ->
+			it 'should be an upsert', ->
+				expect(result).to.be.a.query.that.upserts
+			it 'that inserts', ->
+				insertTest(result[1])
+			it 'and updates', ->
+				expect(result[2]).to.be.a.query.that.updates.
+				fields(
+					'id'
+					'is experienced'
+					'name'
+					'age'
+					'favourite colour'
+					'licence'
+				).
+				values(
+					['Bind', 'pilot', 'id']
+					'Default'
+					['Bind', 'pilot', 'name']
+					'Default'
+					'Default'
+					'Default'
+				).
+				from('pilot').
+				where(updateWhere)
 
 do ->
 	licence = 1

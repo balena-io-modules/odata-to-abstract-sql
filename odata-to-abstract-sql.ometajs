@@ -47,18 +47,23 @@ export ometa OData2AbstractSQL {
 		|	?_.contains(['$metadata', '$serviceroot'], path.resource)
 			-> [path.resource]
 		|	PathSegment(method, body, path):query
-			(	?(method == 'GET')
-				-> 'SelectQuery'
-			|	?(method == 'PUT')
-				-> 'UpsertQuery'
-			|	?(method == 'PATCH' || method == 'MERGE')
-				-> 'UpdateQuery'
-			|	?(method == 'POST')
-				-> 'InsertQuery'
-			|	?(method == 'DELETE')
-				-> 'DeleteQuery'
-			):queryType
-			-> query.compile(queryType)
+			(	?(method == 'PUT')
+				// For PUT the initial pass generates the update query,
+				// so we run it through the parser a second time to get the insert query,
+				// for a full upsert query
+				PathSegment('PUT-INSERT', body, path):insertQuery
+				-> ['UpsertQuery', insertQuery.compile('InsertQuery'), query.compile('UpdateQuery')]
+			|	(	?(method == 'GET')
+					-> 'SelectQuery'
+				|	?(method == 'PATCH' || method == 'MERGE')
+					-> 'UpdateQuery'
+				|	?(method == 'POST')
+					-> 'InsertQuery'
+				|	?(method == 'DELETE')
+					-> 'DeleteQuery'
+				):queryType
+				-> query.compile(queryType)
+			)
 		)
 	,
 	PathSegment :method :body :path =
@@ -101,7 +106,7 @@ export ometa OData2AbstractSQL {
 			):aliasedField
 			PathKey(path.link, query, linkResource, referencedField, body)?
 			-> query.select.push(aliasedField)
-		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
+		|	?(method == 'PUT' || method == 'PUT-INSERT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource.resourceName):resourceMapping
 			BindVars(method, body, resource.resourceName, _.pairs(resourceMapping)):bindVars
 			{query.extras.push(['Fields', _.map(bindVars, 0)])}
@@ -128,12 +133,12 @@ export ometa OData2AbstractSQL {
 
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
-			|	?(method == 'POST')
+			|	?(method == 'POST' || method == 'PUT-INSERT')
 				InsertFilter(path.options.$filter, resource, bindVars):subQuery
 				{_.findIndex(query.extras, {0: 'Values'})}:valuesIndex
 				// Replace the values bind var list with our filtered SELECT query.
 				-> (query.extras[valuesIndex] = ['Values', subQuery.compile('SelectQuery')])
-			|	?(method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
+			|	?(method == 'PUT' || method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
 				UpdateFilter(path.options.$filter, resource, referencedIdField):subQuery
 				-> query.where.push(['In', referencedIdField, subQuery.compile('SelectQuery')])
 			|	AddExtraFroms(path.options.$filter, query, resource)
