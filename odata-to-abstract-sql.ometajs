@@ -129,27 +129,7 @@ export ometa OData2AbstractSQL {
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
 			|	?(method == 'POST')
-				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
-				{new Query()}:subQuery
-				AddExtraFroms(path.options.$filter, subQuery, resource)
-				Boolean(path.options.$filter):filter
-				{subQuery.select.push([resource.tableName, '*'])}
-				{subQuery.from.push([
-					[	'SelectQuery',
-						[	'Select',
-							_.map(bindVars, function(bindVar) {
-								var alias = bindVar[0],
-									binding = bindVar[1],
-									fields = $elf.clientModel.resources[binding[1]].fields,
-									field = _.find(fields, {fieldName: alias}),
-									cast = ['Cast', binding, field.dataType];
-								return [cast, alias];
-							})
-						]
-					],
-					resource.tableName
-				])}
-				{subQuery.where.push(filter)}
+				InsertFilter(path.options.$filter, resource, bindVars):subQuery
 				{_.findIndex(query.extras, {0: 'Values'})}:valuesIndex
 				// Replace the values bind var list with our filtered SELECT query.
 				-> (query.extras[valuesIndex] = ['Values', subQuery.compile('SelectQuery')])
@@ -195,6 +175,33 @@ export ometa OData2AbstractSQL {
 		|	Text(path.key)
 		):key
 		-> {query.where.push(['Equals', referencedField, key])}
+	,
+
+	InsertFilter :filter :resource :bindVars =
+		// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
+		{new Query()}:query
+		AddExtraFroms(filter, query, resource)
+		Boolean(filter):where
+		{
+			query.select.push([resource.tableName, '*'])
+			query.from.push([
+				[	'SelectQuery',
+					[	'Select',
+						_.map(bindVars, function(bindVar) {
+							var alias = bindVar[0],
+								binding = bindVar[1],
+								fields = $elf.clientModel.resources[binding[1]].fields,
+								field = _.find(fields, {fieldName: alias}),
+								cast = ['Cast', binding, field.dataType];
+							return [cast, alias];
+						})
+					]
+				],
+				resource.tableName
+			])
+			query.where.push(where)
+		}
+		-> query
 	,
 
 	OrderBy =
