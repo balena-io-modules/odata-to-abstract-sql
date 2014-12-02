@@ -134,7 +134,7 @@ do ->
 
 test '/pilot', 'POST', {name: 'Peter'}, (result) ->
 	it 'should insert a pilot', ->
-		expect(result).to.be.a.query.that.have.
+		expect(result).to.be.a.query.that.inserts.
 			fields('name').
 			values(['Bind', 'pilot', 'name']).
 			from('pilot')
@@ -166,8 +166,11 @@ do ->
 	testFunc = (result) ->
 		it 'should update the pilot__can_fly__plane with id 1', ->
 			expect(result).to.be.a.query.that.updates.
-				fields('pilot').
-				values(['Bind', 'pilot__can_fly__plane', 'pilot']).
+				fields('pilot', 'id').
+				values(
+					['Bind', 'pilot__can_fly__plane', 'pilot']
+					['Bind', 'pilot__can_fly__plane', 'id']
+				).
 				from('pilot-can_fly-plane').
 				where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
 	test '/pilot__can_fly__plane(1)', 'PATCH', {pilot: 2}, testFunc
@@ -175,7 +178,7 @@ do ->
 
 test '/pilot__can_fly__plane', 'POST', {pilot:2, plane:3}, (result) ->
 	it 'should add a pilot__can_fly__plane', ->
-		expect(result).to.be.a.query.that.have.
+		expect(result).to.be.a.query.that.inserts.
 			fields(
 				'pilot'
 				'plane'
@@ -248,7 +251,7 @@ test "/team('purple')", (result) ->
 
 test '/team', 'POST', {favourite_colour: 'purple'}, (result) ->
 	it 'should insert a team', ->
-		expect(result).to.be.a.query.that.have.
+		expect(result).to.be.a.query.that.inserts.
 			fields('favourite colour').
 			values(['Bind', 'team', 'favourite_colour']).
 			from('team')

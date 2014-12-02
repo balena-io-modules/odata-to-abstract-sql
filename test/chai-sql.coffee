@@ -33,6 +33,7 @@ chai.use((chai, utils) ->
 	utils.addMethod(assertionPrototype, 'select', select)
 	utils.addChainableMethod(assertionPrototype, 'selects', select)
 
+	utils.addProperty(assertionPrototype, 'inserts', queryType('InsertQuery'))
 	utils.addProperty(assertionPrototype, 'updates', queryType('UpdateQuery'))
 	utils.addProperty(assertionPrototype, 'upserts', queryType('UpsertQuery'))
 	utils.addProperty(assertionPrototype, 'deletes', queryType('DeleteQuery'))

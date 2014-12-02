@@ -187,7 +187,7 @@ export ometa OData2AbstractSQL {
 	PathKey :path :query :resource :referencedField :body =
 		?path.key
 		// Add the id field value to the body if it doesn't already exist.
-		{resource.modelName + '.' + resource.idField}:qualifiedIDField
+		{resource.resourceName + '.' + resource.idField}:qualifiedIDField
 		(	?(!body[qualifiedIDField] && !body[resource.idField])
 			{body[qualifiedIDField] = path.key}
 		)?

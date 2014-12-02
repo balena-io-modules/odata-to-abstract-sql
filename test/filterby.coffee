@@ -240,7 +240,7 @@ do ->
 	{odata, abstractsql} = createExpression('name', 'eq', "'#{name}'")
 	test '/pilot?$filter=' + odata, 'POST', {name}, (result) ->
 		it 'should insert into pilot where "' + odata + '"', ->
-			expect(result).to.be.a.query.that.have.
+			expect(result).to.be.a.query.that.inserts.
 				fields('name').
 				values(
 					'SelectQuery'
@@ -339,7 +339,7 @@ do ->
 	{odata, abstractsql} = createExpression('favourite_colour', 'eq', "'#{favouriteColour}'")
 	test '/team?$filter=' + odata, 'POST', {favourite_colour: favouriteColour}, (result) ->
 		it 'should insert into team where "' + odata + '"', ->
-			expect(result).to.be.a.query.that.have.
+			expect(result).to.be.a.query.that.inserts.
 				fields('favourite colour').
 				values(
 					'SelectQuery'
