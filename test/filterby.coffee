@@ -267,6 +267,42 @@ do ->
 				).
 				from('pilot')
 
+	test '/pilot(1)?$filter=' + odata, 'PATCH', {name}, (result) ->
+		it 'should update the pilot with id 1', ->
+			expect(result).to.be.a.query.that.updates.
+			fields(
+				'id'
+				'name'
+			).
+			values(
+				['Bind', 'pilot', 'id']
+				['Bind', 'pilot', 'name']
+			).
+			from('pilot').
+			where(
+				[
+					'And'
+					[	'Equals'
+						['ReferencedField', 'pilot', 'id']
+						['Number', 1]
+					]
+					[	'In'
+						['ReferencedField', 'pilot', 'id']
+						[	'SelectQuery'
+							[	'Select'
+								[
+									['ReferencedField', 'pilot', 'id']
+								]
+							]
+							['From', 'pilot']
+							[	'Where'
+								abstractsql
+							]
+						]
+					]
+				]
+			)
+
 do ->
 	licence = 1
 	{odata, abstractsql} = createExpression('licence/id', 'eq', licence)
