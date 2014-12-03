@@ -374,6 +374,45 @@ do ->
 				).
 				from('pilot')
 
+do ->
+	licence = 1
+	name = 'Licence-1'
+	{odata, abstractsql} = createExpression('licence/name', 'eq', "'#{name}'")
+	test '/pilot?$filter=' + odata, 'POST', {licence}, (result) ->
+		it 'should insert into pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.inserts.
+				fields('licence').
+				values(
+					'SelectQuery'
+					[	'Select'
+						[	['pilot', '*']
+						]
+					]
+					[	'From'
+						'licence'
+					]
+					[	'From'
+						[	[	'SelectQuery'
+								[	'Select'
+									[
+										[	['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
+											'licence'
+										]
+									]
+								]
+							]
+							'pilot'
+						]
+					]
+					[	'Where'
+						[	'And'
+							['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
+							abstractsql
+						]
+					]
+				).
+				from('pilot')
+
 methodTest('substringof', "'Pete'", 'name')
 methodTest('startswith', 'name', "'P'")
 methodTest('endswith', 'name', "'ete'")

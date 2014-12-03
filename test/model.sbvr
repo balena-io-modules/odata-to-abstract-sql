@@ -9,6 +9,9 @@ Term:       favourite colour
 
 Term:       licence
 
+Fact type:  licence has name
+	Necessity: each licence has exactly one name
+
 Term:       plane
 
 Fact type:  plane has name

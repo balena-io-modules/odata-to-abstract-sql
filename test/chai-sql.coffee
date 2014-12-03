@@ -81,23 +81,26 @@ exports.operandToOData = (operand) ->
 	return operand
 
 exports.pilotFields = [
-	["ReferencedField", "pilot", "id"]
-	[["ReferencedField", "pilot", "is experienced"], 'is_experienced']
-	["ReferencedField", "pilot", "name"]
-	["ReferencedField", "pilot", "age"]
-	[["ReferencedField", "pilot", "favourite colour"], 'favourite_colour']
-	["ReferencedField", "pilot", "licence"]
+	['ReferencedField', 'pilot', 'id']
+	[['ReferencedField', 'pilot', 'is experienced'], 'is_experienced']
+	['ReferencedField', 'pilot', 'name']
+	['ReferencedField', 'pilot', 'age']
+	[['ReferencedField', 'pilot', 'favourite colour'], 'favourite_colour']
+	['ReferencedField', 'pilot', 'licence']
 ]
 
-exports.licenceFields = [["ReferencedField", "licence", "id"]]
+exports.licenceFields = [
+	['ReferencedField', 'licence', 'id']
+	['ReferencedField', 'licence', 'name']
+]
 
 exports.planeFields = [
-	["ReferencedField", "plane", "id"]
-	["ReferencedField", "plane", "name"]
+	['ReferencedField', 'plane', 'id']
+	['ReferencedField', 'plane', 'name']
 ]
 
 exports.pilotCanFlyPlaneFields = [
-	["ReferencedField", "pilot-can_fly-plane", "pilot"]
-	["ReferencedField", "pilot-can_fly-plane", "plane"]
-	["ReferencedField", "pilot-can_fly-plane", "id"]
+	['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+	['ReferencedField', 'pilot-can_fly-plane', 'plane']
+	['ReferencedField', 'pilot-can_fly-plane', 'id']
 ]
