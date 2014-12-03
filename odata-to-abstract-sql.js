@@ -37,7 +37,7 @@
     };
     var OData2AbstractSQL = exports.OData2AbstractSQL = OMeta._extend({
         Process: function(method, body) {
-            var $elf = this, _fromIdx = this.input.idx, path, query, queryType;
+            var $elf = this, _fromIdx = this.input.idx, insertQuery, path, query, queryType;
             path = this.anything();
             this._apply("end");
             return this._or(function() {
@@ -48,23 +48,26 @@
                 return [ path.resource ];
             }, function() {
                 query = this._applyWithArgs("PathSegment", method, body, path);
-                queryType = this._or(function() {
-                    this._pred("GET" == method);
-                    return "SelectQuery";
-                }, function() {
+                return this._or(function() {
                     this._pred("PUT" == method);
-                    return "UpsertQuery";
+                    insertQuery = this._applyWithArgs("PathSegment", "PUT-INSERT", body, path);
+                    return [ "UpsertQuery", insertQuery.compile("InsertQuery"), query.compile("UpdateQuery") ];
                 }, function() {
-                    this._pred("PATCH" == method || "MERGE" == method);
-                    return "UpdateQuery";
-                }, function() {
-                    this._pred("POST" == method);
-                    return "InsertQuery";
-                }, function() {
-                    this._pred("DELETE" == method);
-                    return "DeleteQuery";
+                    queryType = this._or(function() {
+                        this._pred("GET" == method);
+                        return "SelectQuery";
+                    }, function() {
+                        this._pred("PATCH" == method || "MERGE" == method);
+                        return "UpdateQuery";
+                    }, function() {
+                        this._pred("POST" == method);
+                        return "InsertQuery";
+                    }, function() {
+                        this._pred("DELETE" == method);
+                        return "DeleteQuery";
+                    });
+                    return query.compile(queryType);
                 });
-                return query.compile(queryType);
             });
         },
         PathSegment: function(method, body, path) {
@@ -125,7 +128,7 @@
                 });
                 return query.select.push(aliasedField);
             }, function() {
-                this._pred("PUT" == method || "POST" == method || "PATCH" == method || "MERGE" == method);
+                this._pred("PUT" == method || "PUT-INSERT" == method || "POST" == method || "PATCH" == method || "MERGE" == method);
                 resourceMapping = this._applyWithArgs("ResourceMapping", resource.resourceName);
                 bindVars = this._applyWithArgs("BindVars", method, body, resource.resourceName, _.pairs(resourceMapping));
                 query.extras.push([ "Fields", _.map(bindVars, 0) ]);
@@ -153,30 +156,15 @@
                 this._or(function() {
                     return this._pred(!path.options.$filter);
                 }, function() {
-                    this._pred("POST" == method);
-                    subQuery = new Query();
-                    this._applyWithArgs("AddExtraFroms", path.options.$filter, subQuery, resource);
-                    filter = this._applyWithArgs("Boolean", path.options.$filter);
-                    subQuery.select.push([ resource.tableName, "*" ]);
-                    subQuery.from.push([ [ "SelectQuery", [ "Select", _.map(bindVars, function(bindVar) {
-                        var alias = bindVar[0], binding = bindVar[1], fields = $elf.clientModel.resources[binding[1]].fields, field = _.find(fields, {
-                            fieldName: alias
-                        }), cast = [ "Cast", binding, field.dataType ];
-                        return [ cast, alias ];
-                    }) ] ], resource.tableName ]);
-                    subQuery.where.push(filter);
+                    this._pred("POST" == method || "PUT-INSERT" == method);
+                    subQuery = this._applyWithArgs("InsertFilter", path.options.$filter, resource, bindVars);
                     valuesIndex = _.findIndex(query.extras, {
                         0: "Values"
                     });
                     return query.extras[valuesIndex] = [ "Values", subQuery.compile("SelectQuery") ];
                 }, function() {
-                    this._pred("PATCH" == method || "MERGE" == method || "DELETE" == method);
-                    subQuery = new Query();
-                    this._applyWithArgs("AddExtraFroms", path.options.$filter, subQuery, resource);
-                    filter = this._applyWithArgs("Boolean", path.options.$filter);
-                    subQuery.select.push(referencedIdField);
-                    subQuery.from.push(resource.tableName);
-                    subQuery.where.push(filter);
+                    this._pred("PUT" == method || "PATCH" == method || "MERGE" == method || "DELETE" == method);
+                    subQuery = this._applyWithArgs("UpdateFilter", path.options.$filter, resource, referencedIdField);
                     return query.where.push([ "In", referencedIdField, subQuery.compile("SelectQuery") ]);
                 }, function() {
                     this._applyWithArgs("AddExtraFroms", path.options.$filter, query, resource);
@@ -208,7 +196,7 @@
         PathKey: function(path, query, resource, referencedField, body) {
             var $elf = this, _fromIdx = this.input.idx, key, qualifiedIDField;
             this._pred(path.key);
-            qualifiedIDField = resource.modelName + "." + resource.idField;
+            qualifiedIDField = resource.resourceName + "." + resource.idField;
             this._opt(function() {
                 this._pred(!body[qualifiedIDField] && !body[resource.idField]);
                 return body[qualifiedIDField] = path.key;
@@ -219,6 +207,35 @@
                 return this._applyWithArgs("Text", path.key);
             });
             return query.where.push([ "Equals", referencedField, key ]);
+        },
+        InsertFilter: function(filter, resource, bindVars) {
+            var $elf = this, _fromIdx = this.input.idx, query, where;
+            query = new Query();
+            this._applyWithArgs("AddExtraFroms", filter, query, resource);
+            where = this._applyWithArgs("Boolean", filter);
+            (function() {
+                query.select.push([ resource.tableName, "*" ]);
+                query.from.push([ [ "SelectQuery", [ "Select", _.map(bindVars, function(bindVar) {
+                    var alias = bindVar[0], binding = bindVar[1], fields = $elf.clientModel.resources[binding[1]].fields, field = _.find(fields, {
+                        fieldName: alias
+                    }), cast = [ "Cast", binding, field.dataType ];
+                    return [ cast, alias ];
+                }) ] ], resource.tableName ]);
+                return query.where.push(where);
+            }).call(this);
+            return query;
+        },
+        UpdateFilter: function(filter, resource, referencedIdField) {
+            var $elf = this, _fromIdx = this.input.idx, query, where;
+            query = new Query();
+            this._applyWithArgs("AddExtraFroms", filter, query, resource);
+            where = this._applyWithArgs("Boolean", filter);
+            (function() {
+                query.select.push(referencedIdField);
+                query.from.push(resource.tableName);
+                return query.where.push(where);
+            }).call(this);
+            return query;
         },
         OrderBy: function() {
             var $elf = this, _fromIdx = this.input.idx, field, orderby, ordering;
@@ -250,8 +267,13 @@
                             });
                         });
                         return this._or(function() {
-                            this._pred(!("PATCH" !== method && "MERGE" !== method && "POST" !== method || body && (body.hasOwnProperty(fieldName) || body.hasOwnProperty(resourceName + "." + fieldName))));
-                            return null;
+                            this._pred(!body || !body.hasOwnProperty(fieldName) && !body.hasOwnProperty(resourceName + "." + fieldName));
+                            return this._or(function() {
+                                this._pred("PUT" === method);
+                                return [ mappedFieldName, "Default" ];
+                            }, function() {
+                                return null;
+                            });
                         }, function() {
                             return [ mappedFieldName, [ "Bind", resourceName, fieldName ] ];
                         });
