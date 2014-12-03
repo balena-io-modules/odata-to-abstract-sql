@@ -11,6 +11,16 @@
 					"required": true,
 					"index": "PRIMARY KEY",
 					"references": null
+				},
+				{
+					"dataType": "Short Text",
+					"fieldName": "name",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "name",
+						"fieldName": null
+					}
 				}
 			],
 			"idField": "id",
@@ -19,6 +29,40 @@
 				"view",
 				"add",
 				"edit",
+				"delete"
+			]
+		},
+		"licence__has__name": {
+			"resourceName": "licence__has__name",
+			"modelName": "licence has name",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "licence",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "licence",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "Short Text",
+					"fieldName": "name",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "name",
+						"fieldName": null
+					}
+				}
+			],
+			"idField": "licence",
+			"referenceScheme": "name",
+			"actions": [
+				"view",
+				"add",
 				"delete"
 			]
 		},
@@ -431,6 +475,21 @@
 			"id": [
 				"licence",
 				"id"
+			],
+			"name": [
+				"licence",
+				"name"
+			]
+		},
+		"licence__has__name": {
+			"_name": "licence",
+			"licence": [
+				"licence",
+				"id"
+			],
+			"name": [
+				"licence",
+				"name"
 			]
 		},
 		"plane": {

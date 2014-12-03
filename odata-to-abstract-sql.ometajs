@@ -47,18 +47,23 @@ export ometa OData2AbstractSQL {
 		|	?_.contains(['$metadata', '$serviceroot'], path.resource)
 			-> [path.resource]
 		|	PathSegment(method, body, path):query
-			(	?(method == 'GET')
-				-> 'SelectQuery'
-			|	?(method == 'PUT')
-				-> 'UpsertQuery'
-			|	?(method == 'PATCH' || method == 'MERGE')
-				-> 'UpdateQuery'
-			|	?(method == 'POST')
-				-> 'InsertQuery'
-			|	?(method == 'DELETE')
-				-> 'DeleteQuery'
-			):queryType
-			-> query.compile(queryType)
+			(	?(method == 'PUT')
+				// For PUT the initial pass generates the update query,
+				// so we run it through the parser a second time to get the insert query,
+				// for a full upsert query
+				PathSegment('PUT-INSERT', body, path):insertQuery
+				-> ['UpsertQuery', insertQuery.compile('InsertQuery'), query.compile('UpdateQuery')]
+			|	(	?(method == 'GET')
+					-> 'SelectQuery'
+				|	?(method == 'PATCH' || method == 'MERGE')
+					-> 'UpdateQuery'
+				|	?(method == 'POST')
+					-> 'InsertQuery'
+				|	?(method == 'DELETE')
+					-> 'DeleteQuery'
+				):queryType
+				-> query.compile(queryType)
+			)
 		)
 	,
 	PathSegment :method :body :path =
@@ -101,7 +106,7 @@ export ometa OData2AbstractSQL {
 			):aliasedField
 			PathKey(path.link, query, linkResource, referencedField, body)?
 			-> query.select.push(aliasedField)
-		|	?(method == 'PUT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
+		|	?(method == 'PUT' || method == 'PUT-INSERT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource.resourceName):resourceMapping
 			BindVars(method, body, resource.resourceName, _.pairs(resourceMapping)):bindVars
 			{query.extras.push(['Fields', _.map(bindVars, 0)])}
@@ -128,39 +133,13 @@ export ometa OData2AbstractSQL {
 
 		(	?(!path.options)
 		|	(	?(!path.options.$filter)
-			|	?(method == 'POST')
-				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
-				{new Query()}:subQuery
-				AddExtraFroms(path.options.$filter, subQuery, resource)
-				Boolean(path.options.$filter):filter
-				{subQuery.select.push([resource.tableName, '*'])}
-				{subQuery.from.push([
-					[	'SelectQuery',
-						[	'Select',
-							_.map(bindVars, function(bindVar) {
-								var alias = bindVar[0],
-									binding = bindVar[1],
-									fields = $elf.clientModel.resources[binding[1]].fields,
-									field = _.find(fields, {fieldName: alias}),
-									cast = ['Cast', binding, field.dataType];
-								return [cast, alias];
-							})
-						]
-					],
-					resource.tableName
-				])}
-				{subQuery.where.push(filter)}
+			|	?(method == 'POST' || method == 'PUT-INSERT')
+				InsertFilter(path.options.$filter, resource, bindVars):subQuery
 				{_.findIndex(query.extras, {0: 'Values'})}:valuesIndex
 				// Replace the values bind var list with our filtered SELECT query.
 				-> (query.extras[valuesIndex] = ['Values', subQuery.compile('SelectQuery')])
-			|	?(method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
-				// For update statements we need to use a WHERE id IN (SELECT...) style query
-				{new Query()}:subQuery
-				AddExtraFroms(path.options.$filter, subQuery, resource)
-				Boolean(path.options.$filter):filter
-				{subQuery.select.push(referencedIdField)}
-				{subQuery.from.push(resource.tableName)}
-				{subQuery.where.push(filter)}
+			|	?(method == 'PUT' || method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
+				UpdateFilter(path.options.$filter, resource, referencedIdField):subQuery
 				-> query.where.push(['In', referencedIdField, subQuery.compile('SelectQuery')])
 			|	AddExtraFroms(path.options.$filter, query, resource)
 				Boolean(path.options.$filter):filter
@@ -197,6 +176,46 @@ export ometa OData2AbstractSQL {
 		-> {query.where.push(['Equals', referencedField, key])}
 	,
 
+	InsertFilter :filter :resource :bindVars =
+		// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
+		{new Query()}:query
+		AddExtraFroms(filter, query, resource)
+		Boolean(filter):where
+		{
+			query.select.push([resource.tableName, '*'])
+			query.from.push([
+				[	'SelectQuery',
+					[	'Select',
+						_.map(bindVars, function(bindVar) {
+							var alias = bindVar[0],
+								binding = bindVar[1],
+								fields = $elf.clientModel.resources[binding[1]].fields,
+								field = _.find(fields, {fieldName: alias}),
+								cast = ['Cast', binding, field.dataType];
+							return [cast, alias];
+						})
+					]
+				],
+				resource.tableName
+			])
+			query.where.push(where)
+		}
+		-> query
+	,
+
+	UpdateFilter :filter :resource :referencedIdField =
+		// For update statements we need to use a WHERE id IN (SELECT...) style query
+		{new Query()}:query
+		AddExtraFroms(filter, query, resource)
+		Boolean(filter):where
+		{
+			query.select.push(referencedIdField)
+			query.from.push(resource.tableName)
+			query.where.push(where)
+		}
+		-> query
+	,
+
 	OrderBy =
 		[	(	:ordering
 				ReferencedProperty(ordering):field
@@ -216,8 +235,12 @@ export ometa OData2AbstractSQL {
 						:mappedFieldName
 					]
 				]
-				(	?((method === 'PATCH' || method === 'MERGE' || method === 'POST') && (!body || (!body.hasOwnProperty(fieldName) && !body.hasOwnProperty(resourceName + "." + fieldName))))
-					-> null
+				(	?(!body || (!body.hasOwnProperty(fieldName) && !body.hasOwnProperty(resourceName + "." + fieldName)))
+					// The body doesn't contain a bind var for this field.
+					(	?(method === 'PUT')
+						-> [mappedFieldName, 'Default']
+					|	-> null
+					)
 				|	-> [mappedFieldName, ['Bind', resourceName, fieldName]]
 				)
 			)*:fields

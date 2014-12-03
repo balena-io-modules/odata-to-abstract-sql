@@ -81,8 +81,22 @@ test '/pilot(1)', 'DELETE', (result) ->
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
 
 test '/pilot(1)', 'PUT', (result) ->
-	it 'should insert/update the pilot with id 1', ->
-		expect(result).to.be.a.query.that.upserts.
+	describe 'should upsert the pilot with id 1', ->
+		whereClause = ['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+		it 'should be an upsert', ->
+			expect(result).to.be.a.query.that.upserts
+		it 'that inserts', ->
+			expect(result[1]).to.be.a.query.that.inserts.
+			fields(
+				'id'
+			).
+			values(
+				['Bind', 'pilot', 'id']
+			).
+			from('pilot').
+			where(whereClause)
+		it 'and updates', ->
+			expect(result[2]).to.be.a.query.that.updates.
 			fields(
 				'id'
 				'is experienced'
@@ -93,14 +107,14 @@ test '/pilot(1)', 'PUT', (result) ->
 			).
 			values(
 				['Bind', 'pilot', 'id']
-				['Bind', 'pilot', 'is_experienced']
-				['Bind', 'pilot', 'name']
-				['Bind', 'pilot', 'age']
-				['Bind', 'pilot', 'favourite_colour']
-				['Bind', 'pilot', 'licence']
+				'Default'
+				'Default'
+				'Default'
+				'Default'
+				'Default'
 			).
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+			where(whereClause)
 
 do ->
 	testFunc = (result) ->
@@ -147,20 +161,34 @@ test '/pilot__can_fly__plane(1)', 'DELETE', (result) ->
 			where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
 
 test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
-	it 'should insert/update the pilot__can_fly__plane with id 1', ->
-		expect(result).to.be.a.query.that.upserts.
-			fields(
-				'pilot'
-				'plane'
-				'id'
-			).
-			values(
-				['Bind', 'pilot__can_fly__plane', 'pilot']
-				['Bind', 'pilot__can_fly__plane', 'plane']
-				['Bind', 'pilot__can_fly__plane', 'id']
-			).
-			from('pilot-can_fly-plane').
-			where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
+	describe 'should upsert the pilot__can_fly__plane with id 1', ->
+		whereClause = ['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]]
+		it 'should be an upsert', ->
+			expect(result).to.be.a.query.that.upserts
+		it 'that inserts', ->
+			expect(result[1]).to.be.a.query.that.inserts.
+				fields(
+					'id'
+				).
+				values(
+					['Bind', 'pilot__can_fly__plane', 'id']
+				).
+				from('pilot-can_fly-plane').
+				where(whereClause)
+		it 'and updates', ->
+			expect(result[2]).to.be.a.query.that.updates.
+				fields(
+					'pilot'
+					'plane'
+					'id'
+				).
+				values(
+					'Default'
+					'Default'
+					['Bind', 'pilot__can_fly__plane', 'id']
+				).
+				from('pilot-can_fly-plane').
+				where(whereClause)
 
 do ->
 	testFunc = (result) ->
