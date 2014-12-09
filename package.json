@@ -20,6 +20,6 @@
     "chai-things": "~0.2.0",
     "coffee-script": "~1.8.0",
     "mocha": "~2.0.1",
-    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.0.9"
+    "odata-parser": "git+ssh://git@bitbucket.org:rulemotion/odata-parser.git#v0.1.0"
   }
 }
