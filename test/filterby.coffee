@@ -83,6 +83,10 @@ do ->
 			"name"
 			"pilot/name"
 			new Date()
+			true
+			false
+			# null is quoted as otherwise we hit issues with coffeescript defaulting values
+			'null'
 		]
 	for lhs in operands
 		for rhs in operands
