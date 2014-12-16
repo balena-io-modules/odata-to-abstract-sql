@@ -362,6 +362,10 @@
         Boolean: function() {
             var $elf = this, _fromIdx = this.input.idx, bool, op1, op2, operation;
             return this._or(function() {
+                return this._apply("True");
+            }, function() {
+                return this._apply("False");
+            }, function() {
                 this._form(function() {
                     return bool = this._or(function() {
                         operation = function() {
@@ -423,6 +427,16 @@
             }, function() {
                 return this._apply("BooleanFunction");
             });
+        },
+        True: function() {
+            var $elf = this, _fromIdx = this.input.idx;
+            this._apply("true");
+            return [ "Boolean", !0 ];
+        },
+        False: function() {
+            var $elf = this, _fromIdx = this.input.idx;
+            this._apply("false");
+            return [ "Boolean", !1 ];
         },
         BooleanFunction: function() {
             var $elf = this, _fromIdx = this.input.idx;
@@ -493,6 +507,8 @@
         Operand: function() {
             var $elf = this, _fromIdx = this.input.idx;
             return this._or(function() {
+                return this._apply("Null");
+            }, function() {
                 return this._apply("Boolean");
             }, function() {
                 return this._apply("Number");
@@ -622,6 +638,12 @@
             }, function() {
                 return this._apply("NumberFunction");
             });
+        },
+        Null: function() {
+            var $elf = this, _fromIdx = this.input.idx, x;
+            x = this.anything();
+            this._pred(null === x);
+            return "Null";
         },
         Text: function() {
             var $elf = this, _fromIdx = this.input.idx, text;
