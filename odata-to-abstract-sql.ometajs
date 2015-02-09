@@ -141,9 +141,7 @@ export ometa OData2AbstractSQL {
 			|	?(method == 'PUT' || method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
 				UpdateFilter(path.options.$filter, resource, referencedIdField):subQuery
 				-> query.where.push(['In', referencedIdField, subQuery.compile('SelectQuery')])
-			|	AddExtraFroms(path.options.$filter, query, resource)
-				Boolean(path.options.$filter):filter
-				-> query.where.push(filter)
+			|	SelectFilter(path.options.$filter, query, resource)
 			)
 			(	?(!path.options.$orderby)
 			|	AddExtraFroms(path.options.$orderby.properties, query, resource)
@@ -174,6 +172,12 @@ export ometa OData2AbstractSQL {
 		|	Text(path.key)
 		):key
 		-> {query.where.push(['Equals', referencedField, key])}
+	,
+
+	SelectFilter :filter :query :resource =
+		AddExtraFroms(filter, query, resource)
+		Boolean(filter):filter
+		-> query.where.push(filter)
 	,
 
 	InsertFilter :filter :resource :bindVars =
@@ -519,6 +523,7 @@ export ometa OData2AbstractSQL {
 	,
 
 	Expands :resource :query =
+		{this.defaultResource}:defaultResource
 		[	(	:expand
 				Resource(expand.name):expandResource
 				// We need to nest the expand query in order to be able to alias column names to match the OData version.
@@ -530,6 +535,14 @@ export ometa OData2AbstractSQL {
 				{nestedExpandQuery.from.push(expandResource.tableName)}
 				NavigateResources(resource, expandResource):navigationWhere
 				{nestedExpandQuery.where.push(navigationWhere)}
+
+				{this.defaultResource = expand.name}
+				(	?(!expand.options)
+				|	(	?(!expand.options.$filter)
+					|	SelectFilter(expand.options.$filter, nestedExpandQuery, expandResource)
+					)
+				)
+				{this.defaultResource = defaultResource}
 
 				{new Query()}:expandQuery
 				{expandQuery.select.push([['AggregateJSON', [expandResource.tableName, '*']], expandResource.resourceName])}

@@ -4,8 +4,25 @@ chaiSql = require './chai-sql'
 {operandToAbstractSQL, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields} = chaiSql
 test = require './test'
 
-createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
+createAggregate = (parentResource, resourceName, attributeOfParent, fields, additionalWhere) ->
 	odataName = resourceName.replace(/-/g, '__')
+	whereClause = 
+		if attributeOfParent
+			[	'Equals'
+				['ReferencedField', resourceName, 'id']
+				['ReferencedField', parentResource, resourceName]
+			]
+		else
+			[	'Equals'
+				['ReferencedField', parentResource, 'id']
+				['ReferencedField', resourceName, parentResource]
+			]
+	if additionalWhere
+		whereClause = [
+			'And'
+			whereClause
+			additionalWhere
+		]
 	[
 		[	'SelectQuery'
 			[	'Select'
@@ -23,16 +40,7 @@ createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
 							resourceName
 						]
 						[	'Where'
-							if attributeOfParent
-								[	'Equals'
-									['ReferencedField', resourceName, 'id']
-									['ReferencedField', parentResource, resourceName]
-								]
-							else
-								[	'Equals'
-									['ReferencedField', parentResource, 'id']
-									['ReferencedField', resourceName, parentResource]
-								]
+							whereClause
 						]
 					]
 					resourceName
@@ -108,4 +116,22 @@ test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane/plane,licence', (r
 				aggregateJSON.pilotCanFlyPlane.plane
 				aggregateJSON.licence
 			].concat(_.filter(pilotFields, 2: 'id'))).
+			from('pilot')
+
+
+test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
+	it 'should select from pilot.*, licence.*', ->
+		expect(result).to.be.a.query.that.
+			selects([
+				createAggregate('pilot', 'licence', true, licenceFields, [
+					'Equals'
+					[	'ReferencedField'
+						'licence'
+						'id'
+					]
+					[	'Number'
+						1
+					]
+				])
+			].concat(_.reject(pilotFields, 2: 'licence'))).
 			from('pilot')
