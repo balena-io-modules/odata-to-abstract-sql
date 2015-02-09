@@ -1,94 +1,59 @@
+_ = require 'lodash'
 expect = require('chai').expect
-{operandToAbstractSQL, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields} = require('./chai-sql')
-test = require('./test')
-aggregateJSON =
-	licence: [
+chaiSql = require './chai-sql'
+{operandToAbstractSQL, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields} = chaiSql
+test = require './test'
+
+createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
+	odataName = resourceName.replace(/-/g, '__')
+	[
 		[	'SelectQuery'
 			[	'Select'
-				[	[	['AggregateJSON', ['licence', '*']]
-						'licence'
+				[	[	['AggregateJSON', [resourceName, '*']]
+						odataName
 					]
 				]
 			]
 			[	'From'
 				[	[	'SelectQuery'
 						[	'Select'
-							licenceFields
+							fields
 						]
 						[	'From'
-							'licence'
+							resourceName
 						]
 						[	'Where'
-							[	'Equals'
-								['ReferencedField', 'licence', 'id']
-								['ReferencedField', 'pilot', 'licence']
-							]
-						]
-					]
-					'licence'
-				]
-			]
-		]
-		'licence'
-	]
-	pilotCanFlyPlane:
-		plane: [
-			[	'SelectQuery'
-				[	'Select'
-					[	[	['AggregateJSON', ['pilot-can_fly-plane', '*']]
-							'pilot__can_fly__plane'
-						]
-					]
-				]
-				[	'From'
-					[	[	'SelectQuery'
-							[	'Select'
-								[	[	[	'SelectQuery'
-											[	'Select'
-												[	[	['AggregateJSON', ['plane', '*']]
-														'plane'
-													]
-												]
-											]
-											[	'From'
-												[	[	'SelectQuery'
-														[	'Select'
-															planeFields
-														]
-														[	'From'
-															'plane'
-														]
-														[	'Where'
-															[	'Equals'
-																['ReferencedField', 'plane', 'id']
-																['ReferencedField', 'pilot-can_fly-plane', 'plane']
-															]
-														]
-													]
-													'plane'
-												]
-											]
-										]
-										'plane'
-									]
-								].concat(_.reject(pilotCanFlyPlaneFields, 2: 'plane'))
-							]
-							[	'From'
-								'pilot-can_fly-plane'
-							]
-							[	'Where'
+							if attributeOfParent
 								[	'Equals'
-									['ReferencedField', 'pilot', 'id']
-									['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+									['ReferencedField', resourceName, 'id']
+									['ReferencedField', parentResource, resourceName]
 								]
-							]
+							else
+								[	'Equals'
+									['ReferencedField', parentResource, 'id']
+									['ReferencedField', resourceName, parentResource]
+								]
 						]
-						'pilot-can_fly-plane'
 					]
+					resourceName
 				]
 			]
-			'pilot__can_fly__plane'
 		]
+		odataName
+	]
+
+aggregateJSON =
+	licence: createAggregate('pilot', 'licence', true, licenceFields)
+	pilotCanFlyPlane:
+		plane: createAggregate(
+			'pilot'
+			'pilot-can_fly-plane'
+			false
+			[
+				createAggregate('pilot-can_fly-plane', 'plane', true, planeFields)
+				_.reject(pilotCanFlyPlaneFields, 2: 'plane')...
+			]
+		)
 
 test '/pilot?$expand=licence', (result) ->
 	it 'should select from pilot.*, licence.*', ->
