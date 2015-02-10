@@ -548,6 +548,10 @@ export ometa OData2AbstractSQL {
 					(	?(!expand.options.$orderby)
 					|	OrderBy(expand.options.$orderby, nestedExpandQuery, expandResource)
 					)
+					(	?(!expand.options.$top)
+					|	Number(expand.options.$top):limit
+						-> nestedExpandQuery.extras.push(['Limit', limit])
+					)
 				)
 				{this.defaultResource = defaultResource}
 
