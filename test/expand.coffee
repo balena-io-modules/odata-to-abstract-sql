@@ -135,3 +135,23 @@ test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
 				])
 			].concat(_.reject(pilotFields, 2: 'licence'))).
 			from('pilot')
+
+test '/pilot?$expand=licence($orderby=id)', (result) ->
+	agg = _.cloneDeep(aggregateJSON.licence)
+	_.chain(agg)
+	.find(0: 'SelectQuery')
+	.find(0: 'From')
+	.find(1: 'licence')
+	.find(0: 'SelectQuery')
+	.value()
+	.push([
+		'OrderBy'
+		['DESC', operandToAbstractSQL('id', 'licence')]
+	])
+	it 'should select from pilot.*, licence.*', ->
+		expect(result).to.be.a.query.that.
+			selects([
+				agg
+				_.reject(pilotFields, 2: 'licence')...
+			]).
+			from('pilot')

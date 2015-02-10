@@ -144,9 +144,7 @@ export ometa OData2AbstractSQL {
 			|	SelectFilter(path.options.$filter, query, resource)
 			)
 			(	?(!path.options.$orderby)
-			|	AddExtraFroms(path.options.$orderby.properties, query, resource)
-				OrderBy(path.options.$orderby.properties):orderby
-				-> query.extras.push(['OrderBy'].concat(orderby))
+			|	OrderBy(path.options.$orderby, query, resource)
 			)
 			(	?(!path.options.$top)
 			|	Number(path.options.$top):limit
@@ -220,7 +218,13 @@ export ometa OData2AbstractSQL {
 		-> query
 	,
 
-	OrderBy =
+	OrderBy :orderby :query :resource =
+		AddExtraFroms(orderby.properties, query, resource)
+		OrderByProperties(orderby.properties):orderby
+		-> query.extras.push(['OrderBy'].concat(orderby))
+	,
+
+	OrderByProperties =
 		[	(	:ordering
 				ReferencedProperty(ordering):field
 				-> [ordering.order.toUpperCase(), field]
@@ -540,6 +544,9 @@ export ometa OData2AbstractSQL {
 				(	?(!expand.options)
 				|	(	?(!expand.options.$filter)
 					|	SelectFilter(expand.options.$filter, nestedExpandQuery, expandResource)
+					)
+					(	?(!expand.options.$orderby)
+					|	OrderBy(expand.options.$orderby, nestedExpandQuery, expandResource)
 					)
 				)
 				{this.defaultResource = defaultResource}
