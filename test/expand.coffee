@@ -195,3 +195,23 @@ test '/pilot?$expand=licence($skip=10)', (result) ->
 				_.reject(pilotFields, 2: 'licence')...
 			]).
 			from('pilot')
+
+test '/pilot?$expand=licence($select=id)', (result) ->
+	agg = _.cloneDeep(aggregateJSON.licence)
+	select =
+		_.chain(agg)
+		.find(0: 'SelectQuery')
+		.find(0: 'From')
+		.find(1: 'licence')
+		.find(0: 'SelectQuery')
+		.find(0: 'Select')
+		.value()
+	select[1] = _.filter(select[1], 2: 'id')
+
+	it 'should select from pilot.*, licence.*', ->
+		expect(result).to.be.a.query.that.
+			selects([
+				agg
+				_.reject(pilotFields, 2: 'licence')...
+			]).
+			from('pilot')

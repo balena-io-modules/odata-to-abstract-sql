@@ -111,24 +111,7 @@ export ometa OData2AbstractSQL {
 			BindVars(method, body, resource.resourceName, _.pairs(resourceMapping)):bindVars
 			{query.extras.push(['Fields', _.map(bindVars, 0)])}
 			{query.extras.push(['Values', _.map(bindVars, 1)])}
-		|	?path.options
-			?path.options.$select
-			AddExtraFroms(path.options.$select.properties, query, resource)
-			Properties(path.options.$select.properties):fields
-			{	_(fields)
-				.reject(function(field) {
-					return _.any(query.select, function(existingField) {
-						return existingField[existingField.length - 1] == field.name;
-					});
-				}, this)
-				.map(function(field) {
-					return this.AliasSelectField(field.resource, field.name);
-				}, this)
-				.value();
-			}:fields
-			{query.select = query.select.concat(fields)}
-		|	AddSelectFields(resource.resourceName, query.select):select
-			{query.select = select}
+		|	AddSelectFields(path, query, resource)
 		)
 
 		(	?(!path.options)
@@ -287,15 +270,29 @@ export ometa OData2AbstractSQL {
 		|	{throw 'Unknown resource: ' + resourceName}
 	,
 
-	AddSelectFields :resourceName :select =
-		ResourceMapping(resourceName):resourceMapping
-		-> select.concat(
-			_(resourceMapping).keys().reject(function(fieldName) {
-				return fieldName === '_name' || _.any(select, function(existingField) {
-					return existingField[existingField.length - 1] == fieldName;
+	AddSelectFields :path :query :resource =
+		(	?path.options
+			?path.options.$select
+			AddExtraFroms(path.options.$select.properties, query, resource)
+			Properties(path.options.$select.properties):fields
+			-> _(fields).reject(function(field) {
+					return _.any(query.select, function(existingField) {
+						return _.last(existingField) == field.name;
+					});
+				}, this)
+				.map(function(field) {
+					return this.AliasSelectField(field.resource, field.name);
+				}, this)
+				.value()
+		|	ResourceMapping(resource.resourceName):resourceMapping
+			-> _(resourceMapping).keys().reject(function(fieldName) {
+				return fieldName === '_name' || _.any(query.select, function(existingField) {
+					return _.last(existingField) == fieldName;
 				});
-			}).map(_.bind(this.AliasSelectField, this, resourceName)).value()
-		),
+			}).map(_.bind(this.AliasSelectField, this, resource.resourceName)).value()
+		):fields
+		-> (query.select = query.select.concat(fields))
+	,
 
 	AliasSelectField :resourceName :fieldName =
 		ReferencedField(resourceName, fieldName):referencedField
@@ -535,12 +532,12 @@ export ometa OData2AbstractSQL {
 				(	?expand.property
 					Expands(expandResource, nestedExpandQuery, [expand.property])
 				)?
-				{nestedExpandQuery.select = this.AddSelectFields(expandResource.resourceName, nestedExpandQuery.select)}
 				{nestedExpandQuery.from.push(expandResource.tableName)}
 				NavigateResources(resource, expandResource):navigationWhere
 				{nestedExpandQuery.where.push(navigationWhere)}
 
 				{this.defaultResource = expand.name}
+				AddSelectFields(expand, nestedExpandQuery, expandResource)
 				(	?(!expand.options)
 				|	(	?(!expand.options.$filter)
 					|	SelectFilter(expand.options.$filter, nestedExpandQuery, expandResource)
