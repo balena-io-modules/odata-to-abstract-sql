@@ -175,3 +175,23 @@ test '/pilot?$expand=licence($top=10)', (result) ->
 				_.reject(pilotFields, 2: 'licence')...
 			]).
 			from('pilot')
+
+test '/pilot?$expand=licence($skip=10)', (result) ->
+	agg = _.cloneDeep(aggregateJSON.licence)
+	_.chain(agg)
+	.find(0: 'SelectQuery')
+	.find(0: 'From')
+	.find(1: 'licence')
+	.find(0: 'SelectQuery')
+	.value()
+	.push([
+		'Offset'
+		operandToAbstractSQL(10)
+	])
+	it 'should select from pilot.*, licence.*', ->
+		expect(result).to.be.a.query.that.
+			selects([
+				agg
+				_.reject(pilotFields, 2: 'licence')...
+			]).
+			from('pilot')
