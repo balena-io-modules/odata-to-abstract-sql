@@ -4,11 +4,6 @@
     }, root, root.OMeta);
 }(this, function(require, exports, OMeta) {
     _ = require("lodash");
-    _.mixin({
-        capitalize: function(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-        }
-    });
     var Query = function() {
         _.extend(this, {
             select: [],
@@ -71,7 +66,7 @@
             });
         },
         PathSegment: function(method, body, path) {
-            var $elf = this, _fromIdx = this.input.idx, aliasedField, bindVars, childQuery, fields, filter, limit, linkResource, navigationWhere, offset, orderby, propertyResource, query, referencedField, referencedIdField, resource, resourceMapping, select, subQuery, valuesIndex;
+            var $elf = this, _fromIdx = this.input.idx, aliasedField, bindVars, childQuery, limit, linkResource, navigationWhere, offset, propertyResource, query, referencedField, referencedIdField, resource, resourceMapping, subQuery, valuesIndex;
             this._pred(path.resource);
             resource = this._applyWithArgs("Resource", path.resource);
             this.defaultResource = path.resource;
@@ -134,21 +129,7 @@
                 query.extras.push([ "Fields", _.map(bindVars, 0) ]);
                 return query.extras.push([ "Values", _.map(bindVars, 1) ]);
             }, function() {
-                this._pred(path.options);
-                this._pred(path.options.$select);
-                this._applyWithArgs("AddExtraFroms", path.options.$select.properties, query, resource);
-                fields = this._applyWithArgs("Properties", path.options.$select.properties);
-                fields = _(fields).reject(function(field) {
-                    return _.any(query.select, function(existingField) {
-                        return existingField[existingField.length - 1] == field.name;
-                    });
-                }, this).map(function(field) {
-                    return this.AliasSelectField(field.resource, field.name);
-                }, this).value();
-                return query.select = query.select.concat(fields);
-            }, function() {
-                select = this._applyWithArgs("AddSelectFields", resource.resourceName, query.select);
-                return query.select = select;
+                return this._applyWithArgs("AddSelectFields", path, query, resource);
             });
             this._or(function() {
                 return this._pred(!path.options);
@@ -167,16 +148,12 @@
                     subQuery = this._applyWithArgs("UpdateFilter", path.options.$filter, resource, referencedIdField);
                     return query.where.push([ "In", referencedIdField, subQuery.compile("SelectQuery") ]);
                 }, function() {
-                    this._applyWithArgs("AddExtraFroms", path.options.$filter, query, resource);
-                    filter = this._applyWithArgs("Boolean", path.options.$filter);
-                    return query.where.push(filter);
+                    return this._applyWithArgs("SelectFilter", path.options.$filter, query, resource);
                 });
                 this._or(function() {
                     return this._pred(!path.options.$orderby);
                 }, function() {
-                    this._applyWithArgs("AddExtraFroms", path.options.$orderby.properties, query, resource);
-                    orderby = this._applyWithArgs("OrderBy", path.options.$orderby.properties);
-                    return query.extras.push([ "OrderBy" ].concat(orderby));
+                    return this._applyWithArgs("OrderBy", path.options.$orderby, query, resource);
                 });
                 this._or(function() {
                     return this._pred(!path.options.$top);
@@ -208,6 +185,12 @@
             });
             return query.where.push([ "Equals", referencedField, key ]);
         },
+        SelectFilter: function(filter, query, resource) {
+            var $elf = this, _fromIdx = this.input.idx, filter;
+            this._applyWithArgs("AddExtraFroms", filter, query, resource);
+            filter = this._applyWithArgs("Boolean", filter);
+            return query.where.push(filter);
+        },
         InsertFilter: function(filter, resource, bindVars) {
             var $elf = this, _fromIdx = this.input.idx, query, where;
             query = new Query();
@@ -237,7 +220,13 @@
             }).call(this);
             return query;
         },
-        OrderBy: function() {
+        OrderBy: function(orderby, query, resource) {
+            var $elf = this, _fromIdx = this.input.idx, orderby;
+            this._applyWithArgs("AddExtraFroms", orderby.properties, query, resource);
+            orderby = this._applyWithArgs("OrderByProperties", orderby.properties);
+            return query.extras.push([ "OrderBy" ].concat(orderby));
+        },
+        OrderByProperties: function() {
             var $elf = this, _fromIdx = this.input.idx, field, orderby, ordering;
             this._form(function() {
                 return orderby = this._many1(function() {
@@ -327,14 +316,29 @@
                 }.call(this);
             });
         },
-        AddSelectFields: function(resourceName, select) {
-            var $elf = this, _fromIdx = this.input.idx, resourceMapping;
-            resourceMapping = this._applyWithArgs("ResourceMapping", resourceName);
-            return select.concat(_(resourceMapping).keys().reject(function(fieldName) {
-                return "_name" === fieldName || _.any(select, function(existingField) {
-                    return existingField[existingField.length - 1] == fieldName;
-                });
-            }).map(_.bind(this.AliasSelectField, this, resourceName)).value());
+        AddSelectFields: function(path, query, resource) {
+            var $elf = this, _fromIdx = this.input.idx, fields, resourceMapping;
+            fields = this._or(function() {
+                this._pred(path.options);
+                this._pred(path.options.$select);
+                this._applyWithArgs("AddExtraFroms", path.options.$select.properties, query, resource);
+                fields = this._applyWithArgs("Properties", path.options.$select.properties);
+                return _(fields).reject(function(field) {
+                    return _.any(query.select, function(existingField) {
+                        return _.last(existingField) == field.name;
+                    });
+                }, this).map(function(field) {
+                    return this.AliasSelectField(field.resource, field.name);
+                }, this).value();
+            }, function() {
+                resourceMapping = this._applyWithArgs("ResourceMapping", resource.resourceName);
+                return _(resourceMapping).keys().reject(function(fieldName) {
+                    return "_name" === fieldName || _.any(query.select, function(existingField) {
+                        return _.last(existingField) == fieldName;
+                    });
+                }).map(_.bind(this.AliasSelectField, this, resource.resourceName)).value();
+            });
+            return query.select = query.select.concat(fields);
         },
         AliasSelectField: function(resourceName, fieldName) {
             var $elf = this, _fromIdx = this.input.idx, referencedField;
@@ -661,7 +665,8 @@
             return [ "Date", date ];
         },
         Expands: function(resource, query) {
-            var $elf = this, _fromIdx = this.input.idx, expand, expandQuery, expandResource, navigationWhere, nestedExpandQuery;
+            var $elf = this, _fromIdx = this.input.idx, defaultResource, expand, expandQuery, expandResource, limit, navigationWhere, nestedExpandQuery, offset;
+            defaultResource = this.defaultResource;
             return this._form(function() {
                 return this._many1(function() {
                     expand = this.anything();
@@ -671,10 +676,38 @@
                         this._pred(expand.property);
                         return this._applyWithArgs("Expands", expandResource, nestedExpandQuery, [ expand.property ]);
                     });
-                    nestedExpandQuery.select = this.AddSelectFields(expandResource.resourceName, nestedExpandQuery.select);
                     nestedExpandQuery.from.push(expandResource.tableName);
                     navigationWhere = this._applyWithArgs("NavigateResources", resource, expandResource);
                     nestedExpandQuery.where.push(navigationWhere);
+                    this.defaultResource = expand.name;
+                    this._applyWithArgs("AddSelectFields", expand, nestedExpandQuery, expandResource);
+                    this._or(function() {
+                        return this._pred(!expand.options);
+                    }, function() {
+                        this._or(function() {
+                            return this._pred(!expand.options.$filter);
+                        }, function() {
+                            return this._applyWithArgs("SelectFilter", expand.options.$filter, nestedExpandQuery, expandResource);
+                        });
+                        this._or(function() {
+                            return this._pred(!expand.options.$orderby);
+                        }, function() {
+                            return this._applyWithArgs("OrderBy", expand.options.$orderby, nestedExpandQuery, expandResource);
+                        });
+                        this._or(function() {
+                            return this._pred(!expand.options.$top);
+                        }, function() {
+                            limit = this._applyWithArgs("Number", expand.options.$top);
+                            return nestedExpandQuery.extras.push([ "Limit", limit ]);
+                        });
+                        return this._or(function() {
+                            return this._pred(!expand.options.$skip);
+                        }, function() {
+                            offset = this._applyWithArgs("Number", expand.options.$skip);
+                            return nestedExpandQuery.extras.push([ "Offset", offset ]);
+                        });
+                    });
+                    this.defaultResource = defaultResource;
                     expandQuery = new Query();
                     expandQuery.select.push([ [ "AggregateJSON", [ expandResource.tableName, "*" ] ], expandResource.resourceName ]);
                     expandQuery.from.push([ nestedExpandQuery.compile("SelectQuery"), expandResource.tableName ]);
