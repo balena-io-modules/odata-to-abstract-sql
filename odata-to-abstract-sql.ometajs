@@ -1,9 +1,4 @@
-_ = require('lodash')
-_.mixin({
-	capitalize: function(string) {
-		return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-	}
-});
+_ = require('lodash');
 
 var Query = function() {
 	_.extend(this, {
