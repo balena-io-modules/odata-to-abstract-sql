@@ -76,9 +76,11 @@
             this._opt(function() {
                 return this._applyWithArgs("PathKey", path, query, resource, referencedIdField, body);
             });
-            this._opt(function() {
-                this._pred(path.options);
-                this._pred(path.options.$expand);
+            this._or(function() {
+                return this._pred(!path.options);
+            }, function() {
+                return this._pred(!path.options.$expand);
+            }, function() {
                 return this._applyWithArgs("Expands", resource, query, path.options.$expand.properties);
             });
             this._or(function() {
@@ -672,8 +674,9 @@
                     expand = this.anything();
                     expandResource = this._applyWithArgs("Resource", expand.name);
                     nestedExpandQuery = new Query();
-                    this._opt(function() {
-                        this._pred(expand.property);
+                    this._or(function() {
+                        return this._pred(!expand.property);
+                    }, function() {
                         return this._applyWithArgs("Expands", expandResource, nestedExpandQuery, [ expand.property ]);
                     });
                     nestedExpandQuery.from.push(expandResource.tableName);

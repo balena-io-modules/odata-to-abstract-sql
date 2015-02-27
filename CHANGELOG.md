@@ -1,3 +1,5 @@
+v0.2.3
+
 * Fixed some cases where failing to parse was silently ignored.
 
 v0.2.2
