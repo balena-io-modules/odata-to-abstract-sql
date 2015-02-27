@@ -73,10 +73,10 @@ export ometa OData2AbstractSQL {
 		{['ReferencedField', resource.tableName, resource.idField]}:referencedIdField
 		PathKey(path, query, resource, referencedIdField, body)?
 
-		(	?path.options
-			?path.options.$expand
-			Expands(resource, query, path.options.$expand.properties)
-		)?
+		(	?(!path.options)
+		|	?(!path.options.$expand)
+		|	Expands(resource, query, path.options.$expand.properties)
+		)
 		(	?path.property
 			PathSegment(method, body, path.property):childQuery
 			{query.merge(childQuery)}
@@ -524,9 +524,9 @@ export ometa OData2AbstractSQL {
 				Resource(expand.name):expandResource
 				// We need to nest the expand query in order to be able to alias column names to match the OData version.
 				{new Query()}:nestedExpandQuery
-				(	?expand.property
-					Expands(expandResource, nestedExpandQuery, [expand.property])
-				)?
+				(	?(!expand.property)
+				|	Expands(expandResource, nestedExpandQuery, [expand.property])
+				)
 				{nestedExpandQuery.from.push(expandResource.tableName)}
 				NavigateResources(resource, expandResource):navigationWhere
 				{nestedExpandQuery.where.push(navigationWhere)}
