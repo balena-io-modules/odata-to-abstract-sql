@@ -528,8 +528,6 @@ export ometa OData2AbstractSQL {
 				|	Expands(expandResource, nestedExpandQuery, [expand.property])
 				)
 				{nestedExpandQuery.from.push(expandResource.tableName)}
-				NavigateResources(resource, expandResource):navigationWhere
-				{nestedExpandQuery.where.push(navigationWhere)}
 
 				{this.defaultResource = expand.name}
 				AddSelectFields(expand, nestedExpandQuery, expandResource)
@@ -551,9 +549,12 @@ export ometa OData2AbstractSQL {
 				)
 				{this.defaultResource = defaultResource}
 
+				NavigateResources(resource, expandResource):navigationWhere
+
 				{new Query()}:expandQuery
 				{expandQuery.select.push([['AggregateJSON', [expandResource.tableName, '*']], expandResource.resourceName])}
 				{expandQuery.from.push([nestedExpandQuery.compile('SelectQuery'), expandResource.tableName])}
+				{expandQuery.where.push(navigationWhere)}
 				{query.select.push([expandQuery.compile('SelectQuery'), expandResource.resourceName])}
 			)+
 		]

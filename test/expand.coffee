@@ -4,7 +4,7 @@ chaiSql = require './chai-sql'
 {operandToAbstractSQL, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields} = chaiSql
 test = require './test'
 
-createAggregate = (parentResource, resourceName, attributeOfParent, fields, additionalWhere) ->
+createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
 	odataName = resourceName.replace(/-/g, '__')
 	whereClause = 
 		if attributeOfParent
@@ -17,12 +17,6 @@ createAggregate = (parentResource, resourceName, attributeOfParent, fields, addi
 				['ReferencedField', parentResource, 'id']
 				['ReferencedField', resourceName, parentResource]
 			]
-	if additionalWhere
-		whereClause = [
-			'And'
-			whereClause
-			additionalWhere
-		]
 	[
 		[	'SelectQuery'
 			[	'Select'
@@ -39,12 +33,12 @@ createAggregate = (parentResource, resourceName, attributeOfParent, fields, addi
 						[	'From'
 							resourceName
 						]
-						[	'Where'
-							whereClause
-						]
 					]
 					resourceName
 				]
+			]
+			[	'Where'
+				whereClause
 			]
 		]
 		odataName
@@ -120,20 +114,77 @@ test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane/plane,licence', (r
 
 
 test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
+	agg = _.cloneDeep(aggregateJSON.licence)
+	_.chain(agg)
+	.find(0: 'SelectQuery')
+	.find(0: 'From')
+	.find(1: 'licence')
+	.find(0: 'SelectQuery')
+	.value()
+	.push([
+		'Where'
+		[	'Equals'
+			[	'ReferencedField'
+				'licence'
+				'id'
+			]
+			[	'Number'
+				1
+			]
+		]
+	])
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				createAggregate('pilot', 'licence', true, licenceFields, [
-					'Equals'
+				agg
+				_.reject(pilotFields, 2: 'licence')...
+			]).
+			from('pilot')
+
+test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
+	agg = _.cloneDeep(aggregateJSON.licence)
+	_.chain(agg)
+	.find(0: 'SelectQuery')
+	.find(0: 'From')
+	.find(1: 'licence')
+	.find(0: 'SelectQuery')
+	.value()
+	.push(
+		[	'From'
+			'pilot'
+		]
+		[
+			'Where'
+			[ 'And',
+				[ 'Equals',
 					[	'ReferencedField'
 						'licence'
+						'id'
+					]
+					[	'ReferencedField'
+						'pilot'
+						'licence'
+					]
+				]
+				[
+					'Equals'
+					[	'ReferencedField'
+						'pilot'
 						'id'
 					]
 					[	'Number'
 						1
 					]
-				])
-			].concat(_.reject(pilotFields, 2: 'licence'))).
+				]
+			]
+		]
+	)
+	it 'should select from pilot.*, licence.*', ->
+		expect(result).to.be.a.query.that.
+			selects([
+				agg
+				_.reject(pilotFields, 2: 'licence')...
+			]).
 			from('pilot')
 
 test '/pilot?$expand=licence($orderby=id)', (result) ->
