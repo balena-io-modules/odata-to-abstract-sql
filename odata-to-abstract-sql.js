@@ -680,8 +680,6 @@
                         return this._applyWithArgs("Expands", expandResource, nestedExpandQuery, [ expand.property ]);
                     });
                     nestedExpandQuery.from.push(expandResource.tableName);
-                    navigationWhere = this._applyWithArgs("NavigateResources", resource, expandResource);
-                    nestedExpandQuery.where.push(navigationWhere);
                     this.defaultResource = expand.name;
                     this._applyWithArgs("AddSelectFields", expand, nestedExpandQuery, expandResource);
                     this._or(function() {
@@ -711,9 +709,11 @@
                         });
                     });
                     this.defaultResource = defaultResource;
+                    navigationWhere = this._applyWithArgs("NavigateResources", resource, expandResource);
                     expandQuery = new Query();
                     expandQuery.select.push([ [ "AggregateJSON", [ expandResource.tableName, "*" ] ], expandResource.resourceName ]);
                     expandQuery.from.push([ nestedExpandQuery.compile("SelectQuery"), expandResource.tableName ]);
+                    expandQuery.where.push(navigationWhere);
                     return query.select.push([ expandQuery.compile("SelectQuery"), expandResource.resourceName ]);
                 });
             });

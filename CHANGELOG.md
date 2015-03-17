@@ -1,3 +1,5 @@
+v0.2.4
+
 * Fixed an issue when an expand references its parent in an option (eg. `/pilot?$expand=licence($filter=pilot/id eq 1)`)
 
 v0.2.3
