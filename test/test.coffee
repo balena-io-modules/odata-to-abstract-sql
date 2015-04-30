@@ -1,5 +1,5 @@
 require('ometa-js')
-ODataParser = require('odata-parser').ODataParser.createInstance()
+ODataParser = require('@resin/odata-parser').ODataParser.createInstance()
 OData2AbstractSQL = require('../odata-to-abstract-sql').OData2AbstractSQL.createInstance()
 OData2AbstractSQL.clientModel = require('./client-model.json')
 
