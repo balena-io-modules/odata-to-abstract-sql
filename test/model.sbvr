@@ -12,6 +12,11 @@ Term:       licence
 Fact type:  licence has name
 	Necessity: each licence has exactly one name
 
+Term:       team
+	Database ID Field: favourite colour
+Fact type:  team has favourite colour
+	Necessity: each team has exactly one favourite colour
+
 Term:       plane
 
 Fact type:  plane has name
@@ -32,10 +37,8 @@ Fact type:  pilot has favourite colour
 
 Fact type:  pilot can fly plane
 
+Fact type:  pilot is on team
+	Necessity: each pilot is on exactly one team
+
 Fact type:  pilot has licence
 	Necessity: each pilot has exactly one licence
-
-Term:       team
-	Database ID Field: favourite colour
-Fact type:  team has favourite colour
-	Necessity: each team has exactly one favourite colour

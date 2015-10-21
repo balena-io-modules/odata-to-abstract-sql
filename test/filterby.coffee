@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{operandToAbstractSQL, operandToOData, pilotFields, licenceFields, planeFields, pilotCanFlyPlaneFields} = require('./chai-sql')
+{operandToAbstractSQL, operandToOData, pilotFields, licenceFields, planeFields, pilotCanFlyPlaneFields, teamFields} = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
 
@@ -327,12 +327,14 @@ do ->
 					'name'
 					'age'
 					'favourite colour'
+					'team'
 					'licence'
 				).
 				values(
 					['Bind', 'pilot', 'id']
 					'Default'
 					['Bind', 'pilot', 'name']
+					'Default'
 					'Default'
 					'Default'
 					'Default'
@@ -428,6 +430,8 @@ operandTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'")
 operandTest(createMethodCall('tolower', 'name'), 'eq', "'pete'")
 operandTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'")
 
+operandTest(createMethodCall('tolower', 'licence/name'), 'eq', "'pete'")
+
 do ->
 	concat = createMethodCall('concat', 'name', "'%20'")
 	operandTest(concat, 'eq', "'Pete%20'")
@@ -515,3 +519,28 @@ do ->
 					]
 				).
 				from('team')
+
+do ->
+	planeName = 'Concorde'
+	{odata, abstractsql} = createExpression('pilot/pilot__can_fly__plane/plane/name', 'eq', "'#{planeName}'")
+	test '/team?$filter=' + odata, (result) ->
+		it 'should select from team where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.
+				selects(teamFields).
+				from('team', 'pilot', 'pilot-can_fly-plane', 'plane').
+				where([
+					'And',
+					[	'Equals'
+						['ReferencedField', 'team', 'favourite colour']
+						['ReferencedField', 'pilot', 'team']
+					]
+					[	'Equals'
+						['ReferencedField', 'pilot', 'id' ]
+						['ReferencedField', 'pilot-can_fly-plane', 'pilot' ]
+					]
+					[	'Equals'
+						['ReferencedField', 'plane', 'id']
+						['ReferencedField', 'pilot-can_fly-plane', 'plane']
+					]
+					abstractsql
+				])
