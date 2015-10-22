@@ -679,6 +679,13 @@
                     }, function() {
                         return this._applyWithArgs("Expands", expandResource, nestedExpandQuery, [ expand.property ]);
                     });
+                    this._or(function() {
+                        return this._pred(!expand.options);
+                    }, function() {
+                        return this._pred(!expand.options.$expand);
+                    }, function() {
+                        return this._applyWithArgs("Expands", expandResource, nestedExpandQuery, expand.options.$expand.properties);
+                    });
                     nestedExpandQuery.from.push(expandResource.tableName);
                     this.defaultResource = expand.name;
                     this._applyWithArgs("AddSelectFields", expand, nestedExpandQuery, expandResource);

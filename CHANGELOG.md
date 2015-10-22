@@ -1,4 +1,10 @@
+v0.2.6
+
 * Added support for nested expands like `$expand=resource($expand=subresource)`
+
+v0.2.5
+
+* Switched to a scoped package.
 
 v0.2.4
 
