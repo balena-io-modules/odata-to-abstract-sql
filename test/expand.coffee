@@ -66,16 +66,18 @@ test '/pilot?$expand=licence', (result) ->
 			from('pilot')
 
 
-test '/pilot?$expand=pilot__can_fly__plane/plane', (result) ->
+nestedExpandTest = (result) ->
 	it 'should select from pilot ..., (select ... FROM ...)', ->
 		expect(result).to.be.a.query.that.
 			selects([
 				aggregateJSON.pilotCanFlyPlane.plane
 			].concat(pilotFields)).
 			from('pilot')
+test '/pilot?$expand=pilot__can_fly__plane/plane', nestedExpandTest
+test '/pilot?$expand=pilot__can_fly__plane($expand=plane)', nestedExpandTest
 
 
-test '/pilot?$expand=pilot__can_fly__plane/plane,licence', (result) ->
+nestedExpandTest = (result) ->
 	it 'should select from pilot.*, plane.*, licence.*', ->
 		expect(result).to.be.a.query.that.
 			selects([
@@ -83,6 +85,8 @@ test '/pilot?$expand=pilot__can_fly__plane/plane,licence', (result) ->
 				aggregateJSON.licence
 			].concat(_.reject(pilotFields, 2: 'licence'))).
 			from('pilot')
+test '/pilot?$expand=pilot__can_fly__plane/plane,licence', nestedExpandTest
+test '/pilot?$expand=pilot__can_fly__plane($expand=plane),licence', nestedExpandTest
 
 
 test '/pilot?$select=licence&$expand=licence', (result) ->
@@ -94,16 +98,18 @@ test '/pilot?$select=licence&$expand=licence', (result) ->
 			from('pilot')
 
 
-test '/pilot?$select=id&$expand=pilot__can_fly__plane/plane', (result) ->
+nestedExpandTest = (result) ->
 	it 'should only select the id and expanded field from pilot', ->
 		expect(result).to.be.a.query.that.
 			selects([
 				aggregateJSON.pilotCanFlyPlane.plane
 			].concat(_.filter(pilotFields, 2: 'id'))).
 			from('pilot')
+test '/pilot?$select=id&$expand=pilot__can_fly__plane/plane', nestedExpandTest
+test '/pilot?$select=id&$expand=pilot__can_fly__plane($expand=plane)', nestedExpandTest
 
 
-test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane/plane,licence', (result) ->
+nestedExpandTest = (result) ->
 	it 'should only select id and the expanded fields', ->
 		expect(result).to.be.a.query.that.
 			selects([
@@ -111,6 +117,8 @@ test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane/plane,licence', (r
 				aggregateJSON.licence
 			].concat(_.filter(pilotFields, 2: 'id'))).
 			from('pilot')
+test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane/plane,licence', nestedExpandTest
+test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane($expand=plane),licence', nestedExpandTest
 
 
 test '/pilot?$expand=licence($filter=id eq 1)', (result) ->

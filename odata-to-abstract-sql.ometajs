@@ -527,6 +527,11 @@ export ometa OData2AbstractSQL {
 				(	?(!expand.property)
 				|	Expands(expandResource, nestedExpandQuery, [expand.property])
 				)
+				(	?(!expand.options)
+				|	(	?(!expand.options.$expand)
+					|	Expands(expandResource, nestedExpandQuery, expand.options.$expand.properties)
+					)
+				)
 				{nestedExpandQuery.from.push(expandResource.tableName)}
 
 				{this.defaultResource = expand.name}
