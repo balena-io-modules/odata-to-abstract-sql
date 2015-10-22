@@ -103,10 +103,12 @@ test '/pilot(1)', 'PUT', (result) ->
 				'name'
 				'age'
 				'favourite colour'
+				'team'
 				'licence'
 			).
 			values(
 				['Bind', 'pilot', 'id']
+				'Default'
 				'Default'
 				'Default'
 				'Default'

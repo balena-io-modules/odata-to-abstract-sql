@@ -66,6 +66,65 @@
 				"delete"
 			]
 		},
+		"team": {
+			"resourceName": "team",
+			"modelName": "team",
+			"topLevel": true,
+			"fields": [
+				{
+					"dataType": "Color",
+					"fieldName": "favourite colour",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "favourite_colour",
+						"fieldName": null
+					}
+				}
+			],
+			"idField": "favourite colour",
+			"referenceScheme": "id",
+			"actions": [
+				"view",
+				"add",
+				"edit",
+				"delete"
+			]
+		},
+		"team__has__favourite_colour": {
+			"resourceName": "team__has__favourite_colour",
+			"modelName": "team has favourite colour",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "team",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "team",
+						"fieldName": "favourite colour"
+					}
+				},
+				{
+					"dataType": "Color",
+					"fieldName": "favourite colour",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "favourite_colour",
+						"fieldName": null
+					}
+				}
+			],
+			"idField": "team",
+			"referenceScheme": "favourite colour",
+			"actions": [
+				"view",
+				"add",
+				"delete"
+			]
+		},
 		"plane": {
 			"resourceName": "plane",
 			"modelName": "plane",
@@ -179,6 +238,16 @@
 					"references": {
 						"tableName": "favourite_colour",
 						"fieldName": null
+					}
+				},
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "team",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "team",
+						"fieldName": "favourite colour"
 					}
 				},
 				{
@@ -375,6 +444,40 @@
 				"delete"
 			]
 		},
+		"pilot__is_on__team": {
+			"resourceName": "pilot__is_on__team",
+			"modelName": "pilot is on team",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "team",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "team",
+						"fieldName": "favourite colour"
+					}
+				}
+			],
+			"idField": "pilot",
+			"referenceScheme": "team",
+			"actions": [
+				"view",
+				"add",
+				"delete"
+			]
+		},
 		"pilot__has__licence": {
 			"resourceName": "pilot__has__licence",
 			"modelName": "pilot has licence",
@@ -408,65 +511,6 @@
 				"add",
 				"delete"
 			]
-		},
-		"team": {
-			"resourceName": "team",
-			"modelName": "team",
-			"topLevel": true,
-			"fields": [
-				{
-					"dataType": "Color",
-					"fieldName": "favourite colour",
-					"required": true,
-					"index": null,
-					"references": {
-						"tableName": "favourite_colour",
-						"fieldName": null
-					}
-				}
-			],
-			"idField": "favourite colour",
-			"referenceScheme": "id",
-			"actions": [
-				"view",
-				"add",
-				"edit",
-				"delete"
-			]
-		},
-		"team__has__favourite_colour": {
-			"resourceName": "team__has__favourite_colour",
-			"modelName": "team has favourite colour",
-			"topLevel": false,
-			"fields": [
-				{
-					"dataType": "ForeignKey",
-					"fieldName": "team",
-					"required": true,
-					"index": null,
-					"references": {
-						"tableName": "team",
-						"fieldName": "favourite colour"
-					}
-				},
-				{
-					"dataType": "Color",
-					"fieldName": "favourite colour",
-					"required": true,
-					"index": null,
-					"references": {
-						"tableName": "favourite_colour",
-						"fieldName": null
-					}
-				}
-			],
-			"idField": "team",
-			"referenceScheme": "favourite colour",
-			"actions": [
-				"view",
-				"add",
-				"delete"
-			]
 		}
 	},
 	"resourceToSQLMappings": {
@@ -490,6 +534,24 @@
 			"name": [
 				"licence",
 				"name"
+			]
+		},
+		"team": {
+			"_name": "team",
+			"favourite_colour": [
+				"team",
+				"favourite colour"
+			]
+		},
+		"team__has__favourite_colour": {
+			"_name": "team",
+			"team": [
+				"team",
+				"favourite colour"
+			],
+			"favourite colour": [
+				"team",
+				"favourite colour"
 			]
 		},
 		"plane": {
@@ -535,6 +597,10 @@
 			"favourite_colour": [
 				"pilot",
 				"favourite colour"
+			],
+			"team": [
+				"pilot",
+				"team"
 			],
 			"licence": [
 				"pilot",
@@ -600,6 +666,17 @@
 				"id"
 			]
 		},
+		"pilot__is_on__team": {
+			"_name": "pilot",
+			"pilot": [
+				"pilot",
+				"id"
+			],
+			"team": [
+				"pilot",
+				"team"
+			]
+		},
 		"pilot__has__licence": {
 			"_name": "pilot",
 			"pilot": [
@@ -609,24 +686,6 @@
 			"licence": [
 				"pilot",
 				"licence"
-			]
-		},
-		"team": {
-			"_name": "team",
-			"favourite_colour": [
-				"team",
-				"favourite colour"
-			]
-		},
-		"team__has__favourite_colour": {
-			"_name": "team",
-			"team": [
-				"team",
-				"favourite colour"
-			],
-			"favourite colour": [
-				"team",
-				"favourite colour"
 			]
 		}
 	}

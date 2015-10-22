@@ -90,6 +90,7 @@ exports.pilotFields = [
 	['ReferencedField', 'pilot', 'name']
 	['ReferencedField', 'pilot', 'age']
 	[['ReferencedField', 'pilot', 'favourite colour'], 'favourite_colour']
+	['ReferencedField', 'pilot', 'team']
 	['ReferencedField', 'pilot', 'licence']
 ]
 
@@ -107,4 +108,8 @@ exports.pilotCanFlyPlaneFields = [
 	['ReferencedField', 'pilot-can_fly-plane', 'pilot']
 	['ReferencedField', 'pilot-can_fly-plane', 'plane']
 	['ReferencedField', 'pilot-can_fly-plane', 'id']
+]
+
+exports.teamFields = [
+	[['ReferencedField', 'team', 'favourite colour'], 'favourite_colour']
 ]
