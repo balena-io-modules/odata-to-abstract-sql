@@ -485,14 +485,11 @@ export ometa OData2AbstractSQL {
 		:prop
 		?prop.name
 		(	?prop.property
-			(	?prop.property.name
-				(	?prop.property.property
-					Property(prop.property)
-				|	-> {resource: prop.name, name: prop.property.name}
-				)
-			|	{console.error(prop)}
-				{throw 'Subproperty without a name'}
-			)
+			{this.defaultResource}:defaultResource
+			{this.defaultResource = prop.name}
+			Property(prop.property):result
+			{this.defaultResource = defaultResource}
+			-> result
 		|	?prop.lambda
 			Resource(prop.name):resource
 			Lambda(resource, prop.lambda)
