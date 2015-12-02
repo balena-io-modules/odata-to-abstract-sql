@@ -162,16 +162,22 @@ export ometa OData2AbstractSQL {
 		AddExtraFroms(filter, query, resource)
 		Boolean(filter):where
 		{
-			query.select.push([resource.tableName, '*'])
+			query.select = _.map(bindVars, function(bindVar) {
+				return ['ReferencedField', resource.tableName, bindVar[0]]
+			})
 			query.from.push([
 				[	'SelectQuery',
 					[	'Select',
-						_.map(bindVars, function(bindVar) {
-							var alias = bindVar[0],
-								binding = bindVar[1],
-								fields = $elf.clientModel.resources[binding[1]].fields,
-								field = _.find(fields, {fieldName: alias}),
-								cast = ['Cast', binding, field.dataType];
+						_.map($elf.clientModel.resources[resource.resourceName].fields, function(field) {
+							var cast,
+								alias = field.fieldName,
+								bindVar = _.find(bindVars, { 0: alias });
+							if(bindVar) {
+								cast = ['Cast', bindVar[1], field.dataType];
+							}
+							else {
+								cast = 'Null';
+							}
 							return [cast, alias];
 						})
 					]
@@ -503,7 +509,7 @@ export ometa OData2AbstractSQL {
 	Null =
 		anything:x
 		?(x === null)
-			-> 'Null'
+		-> 'Null'
 	,
 
 	Text =
