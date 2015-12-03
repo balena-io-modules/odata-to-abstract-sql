@@ -33,12 +33,12 @@ createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
 						[	'From'
 							resourceName
 						]
+						[	'Where'
+							whereClause
+						]
 					]
 					resourceName
 				]
-			]
-			[	'Where'
-				whereClause
 			]
 		]
 		odataName
@@ -121,26 +121,39 @@ test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane/plane,licence', ne
 test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane($expand=plane),licence', nestedExpandTest
 
 
+test '/pilot?$expand=pilot__can_fly__plane($select=id)', (result) ->
+	it 'should only select id and the expanded fields', ->
+		expect(result).to.be.a.query.that.
+			selects([
+				createAggregate('pilot', 'pilot-can_fly-plane', false, _.filter(pilotCanFlyPlaneFields, 2: 'id'))
+			].concat(pilotFields)).
+			from('pilot')
+
+
 test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
 	agg = _.cloneDeep(aggregateJSON.licence)
-	_.chain(agg)
+	aggWhere = _.chain(agg)
 	.find(0: 'SelectQuery')
 	.find(0: 'From')
 	.find(1: 'licence')
 	.find(0: 'SelectQuery')
-	.value()
-	.push([
-		'Where'
-		[	'Equals'
-			[	'ReferencedField'
-				'licence'
-				'id'
-			]
-			[	'Number'
-				1
-			]
-		]
-	])
+	.find(0: 'Where')
+	.tap (aggWhere) ->
+		currentWhere = aggWhere.splice(1, Infinity)
+		aggWhere.push(
+			[ 'And',
+				[	'Equals'
+					[	'ReferencedField'
+						'licence'
+						'id'
+					]
+					[	'Number'
+						1
+					]
+				]
+			].concat(currentWhere)
+		)
+	.run()
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
 			selects([
@@ -156,13 +169,16 @@ test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
 	.find(0: 'From')
 	.find(1: 'licence')
 	.find(0: 'SelectQuery')
-	.value()
-	.push(
-		[	'From'
-			'pilot'
-		]
-		[
-			'Where'
+	.tap (aggSelect) ->
+		aggSelect.splice(aggSelect.length - 1, 0,
+			[	'From'
+				'pilot'
+			]
+		)
+	.find(0: 'Where')
+	.tap (aggWhere) ->
+		currentWhere = aggWhere.splice(1, Infinity)
+		aggWhere.push(
 			[ 'And',
 				[ 'Equals',
 					[	'ReferencedField'
@@ -184,9 +200,9 @@ test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
 						1
 					]
 				]
-			]
-		]
-	)
+			].concat(currentWhere)
+		)
+	.run()
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
 			selects([
