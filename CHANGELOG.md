@@ -1,3 +1,5 @@
+v0.3.0
+
 * Added support for lambda operations on nested properties.
 * Fixed issues with field scoping of foreign keys with `$expand($select)` queries that do not include the foreign key in the select.
 * Fixed database error on insert filter with navigation property.

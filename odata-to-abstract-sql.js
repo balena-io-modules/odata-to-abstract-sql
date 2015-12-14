@@ -199,11 +199,14 @@
             this._applyWithArgs("AddExtraFroms", filter, query, resource);
             where = this._applyWithArgs("Boolean", filter);
             (function() {
-                query.select.push([ resource.tableName, "*" ]);
-                query.from.push([ [ "SelectQuery", [ "Select", _.map(bindVars, function(bindVar) {
-                    var alias = bindVar[0], binding = bindVar[1], fields = $elf.clientModel.resources[binding[1]].fields, field = _.find(fields, {
-                        fieldName: alias
-                    }), cast = [ "Cast", binding, field.dataType ];
+                query.select = _.map(bindVars, function(bindVar) {
+                    return [ "ReferencedField", resource.tableName, bindVar[0] ];
+                });
+                query.from.push([ [ "SelectQuery", [ "Select", _.map($elf.clientModel.resources[resource.resourceName].fields, function(field) {
+                    var cast, alias = field.fieldName, bindVar = _.find(bindVars, {
+                        0: alias
+                    });
+                    cast = bindVar ? [ "Cast", bindVar[1], field.dataType ] : "Null";
                     return [ cast, alias ];
                 }) ] ], resource.tableName ]);
                 return query.where.push(where);
@@ -603,28 +606,16 @@
             });
         },
         Property: function() {
-            var $elf = this, _fromIdx = this.input.idx, prop, resource;
+            var $elf = this, _fromIdx = this.input.idx, defaultResource, prop, resource, result;
             prop = this.anything();
             this._pred(prop.name);
             return this._or(function() {
                 this._pred(prop.property);
-                return this._or(function() {
-                    this._pred(prop.property.name);
-                    return this._or(function() {
-                        this._pred(prop.property.property);
-                        return this._applyWithArgs("Property", prop.property);
-                    }, function() {
-                        return {
-                            resource: prop.name,
-                            name: prop.property.name
-                        };
-                    });
-                }, function() {
-                    console.error(prop);
-                    return function() {
-                        throw "Subproperty without a name";
-                    }.call(this);
-                });
+                defaultResource = this.defaultResource;
+                this.defaultResource = prop.name;
+                result = this._applyWithArgs("Property", prop.property);
+                this.defaultResource = defaultResource;
+                return result;
             }, function() {
                 this._pred(prop.lambda);
                 resource = this._applyWithArgs("Resource", prop.name);
@@ -717,10 +708,10 @@
                     });
                     this.defaultResource = defaultResource;
                     navigationWhere = this._applyWithArgs("NavigateResources", resource, expandResource);
+                    nestedExpandQuery.where.push(navigationWhere);
                     expandQuery = new Query();
                     expandQuery.select.push([ [ "AggregateJSON", [ expandResource.tableName, "*" ] ], expandResource.resourceName ]);
                     expandQuery.from.push([ nestedExpandQuery.compile("SelectQuery"), expandResource.tableName ]);
-                    expandQuery.where.push(navigationWhere);
                     return query.select.push([ expandQuery.compile("SelectQuery"), expandResource.resourceName ]);
                 });
             });
