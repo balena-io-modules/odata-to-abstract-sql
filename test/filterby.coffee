@@ -526,16 +526,16 @@ lambdaTest = (methodName) ->
 	test '/pilot?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
 		it 'should select from pilot where ...', ->
 			subWhere = 
-				['And'
-					['Equals'
+				[	'And'
+					[	'Equals'
 						['ReferencedField', 'pilot', 'id']
 						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
 					]
-					['Equals'
+					[	'Equals'
 						['ReferencedField', 'plane', 'id']
 						['ReferencedField', 'pilot-can_fly-plane', 'plane']
 					]
-					['Equals'
+					[	'Equals'
 						['ReferencedField', 'plane', 'name']
 						['Text', 'Concorde']
 					]
@@ -545,8 +545,8 @@ lambdaTest = (methodName) ->
 				subWhere = ['Not', subWhere]
 
 			where =
-				['Exists'
-					['SelectQuery'
+				[	'Exists'
+					[	'SelectQuery'
 						['Select', []]
 						['From', 'pilot-can_fly-plane']
 						['From', 'plane']
@@ -561,6 +561,47 @@ lambdaTest = (methodName) ->
 				selects(pilotFields).
 				from('pilot').
 				where(where)
+
+	test '/pilot?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
+		it 'should select from pilot where ...', ->
+			subWhere = 
+				[	'And'
+					[	'Equals'
+						['ReferencedField', 'plane', 'id']
+						['ReferencedField', 'pilot-can_fly-plane', 'plane']
+					]
+					[	'Equals'
+						['ReferencedField', 'plane', 'name']
+						['Text', 'Concorde']
+					]
+				]
+			# All is implemented as where none fail
+			if methodName is 'all'
+				subWhere = ['Not', subWhere]
+
+			where =
+				[	'Exists'
+					[	'SelectQuery'
+						['Select', []]
+						['From', 'plane']
+						['Where', subWhere]
+					]
+				]
+			# All is implemented as where none fail
+			if methodName is 'all'
+				where = ['Not', where]
+
+			expect(result).to.be.a.query.that.
+				selects(pilotFields).
+				from('pilot', 'pilot-can_fly-plane').
+				where([
+					'And'
+					[	'Equals'
+						['ReferencedField', 'pilot', 'id']
+						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+					]
+					where
+				])
 
 lambdaTest('any')
 lambdaTest('all')
