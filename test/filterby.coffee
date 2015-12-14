@@ -148,7 +148,68 @@ do ->
 				])
 
 do ->
-	odata = 'pilot__can_fly__plane/plane/id eq 10'
+	{odata, abstractsql} = createExpression('pilot__can_fly__plane/plane/id', 'eq', 10)
+
+	filterWhere = ['And'
+		['Equals'
+			['ReferencedField', 'pilot', 'id']
+			['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+		]
+		['Equals'
+			['ReferencedField', 'plane', 'id']
+			['ReferencedField', 'pilot-can_fly-plane', 'plane']
+		]
+		abstractsql
+	]
+	insertTest = (result) ->
+		expect(result).to.be.a.query.that.inserts.
+			fields('name').
+			values(
+				'SelectQuery'
+				[	'Select'
+					[	[ 'ReferencedField', 'pilot', 'name' ]
+					]
+				]
+				[ 'From', 'pilot-can_fly-plane' ],
+				[ 'From', 'plane' ],
+				[	'From'
+					[	[	'SelectQuery'
+							[	'Select'
+								[
+									[ 'Null', 'id' ]
+									[ 'Null', 'is experienced' ]
+									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
+										'name'
+									]
+									[ 'Null', 'age' ]
+									[ 'Null', 'favourite colour' ]
+									[ 'Null', 'team' ]
+									[ 'Null', 'licence' ]
+								]
+							]
+						]
+						'pilot'
+					]
+				]
+				[	'Where'
+					filterWhere
+				]
+			).
+			from('pilot')
+	updateWhere = ['In'
+		['ReferencedField', 'pilot', 'id']
+		['SelectQuery'
+			['Select'
+				[	['ReferencedField', 'pilot', 'id']
+				]
+			],
+			['From', 'pilot-can_fly-plane']
+			['From', 'plane']
+			['From', 'pilot']
+			['Where', filterWhere]
+		]
+	]
+
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
@@ -163,58 +224,59 @@ do ->
 						['ReferencedField', 'plane', 'id']
 						['ReferencedField', 'pilot-can_fly-plane', 'plane']
 					]
-					['Equals'
-						['ReferencedField', 'plane', 'id']
-						['Number', 10]
-					]
+					abstractsql
 				])
 
-	test '/pilot?$filter=' + odata, 'PATCH', name: 'Peter', (result) ->
-		it 'should select from pilot where "' + odata + '"', ->
+	test "/pilot?$filter=#{odata}", 'PATCH', name: 'Peter', (result) ->
+		it 'should update pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.updates.
 				fields('name').
 				values(['Bind', 'pilot', 'name']).
 				from('pilot').
-				where(['In'
-					['ReferencedField', 'pilot', 'id']
-					['SelectQuery'
-						['Select'
-							[
-								['ReferencedField', 'pilot', 'id']
-							]
-						],
-						['From', 'pilot-can_fly-plane']
-						['From', 'plane']
-						['From', 'pilot']
-						['Where'
-							['And'
-								['Equals'
-									['ReferencedField', 'pilot', 'id']
-									['ReferencedField', 'pilot-can_fly-plane', 'pilot']
-								]
-								['Equals'
-									['ReferencedField', 'plane', 'id']
-									['ReferencedField', 'pilot-can_fly-plane', 'plane']
-								]
-								['Equals'
-									['ReferencedField', 'plane', 'id']
-									['Number', 10]
-								]
-							]
-						]
-					]
-				])
+				where(updateWhere)
+
+	test "/pilot?$filter=#{odata}", 'POST', name: 'Peter', (result) ->
+		it "should insert pilot where '#{odata}'", ->
+			insertTest(result)
+
+	test "/pilot?$filter=#{odata}", 'PUT', name: 'Peter', (result) ->
+		describe "should select from pilot where '#{odata}'", ->
+		it 'should be an upsert', ->
+			expect(result).to.be.a.query.that.upserts
+		it 'that inserts', ->
+			insertTest(result[1])
+		it 'and updates', ->
+			expect(result[2]).to.be.a.query.that.updates.
+				fields(
+					'id'
+					'is experienced'
+					'name'
+					'age'
+					'favourite colour'
+					'team'
+					'licence'
+				).
+				values(
+					'Default'
+					'Default'
+					['Bind', 'pilot', 'name']
+					'Default'
+					'Default'
+					'Default'
+					'Default'
+				).
+				from('pilot').
+				where(updateWhere)
 
 	test '/pilot?$filter=' + odata, 'DELETE', (result) ->
-		it 'should select from pilot where "' + odata + '"', ->
+		it 'should delete from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.deletes.
 				from('pilot').
 				where(['In'
 					['ReferencedField', 'pilot', 'id']
 					['SelectQuery'
 						['Select'
-							[
-								['ReferencedField', 'pilot', 'id']
+							[	['ReferencedField', 'pilot', 'id']
 							]
 						],
 						['From', 'pilot-can_fly-plane']
@@ -248,7 +310,8 @@ do ->
 			values(
 				'SelectQuery'
 				[	'Select'
-					[	['pilot', '*']
+					[	[ 'ReferencedField', 'pilot', 'id' ]
+						[ 'ReferencedField', 'pilot', 'name' ]
 					]
 				]
 				[	'From'
@@ -258,9 +321,14 @@ do ->
 									[	['Cast', ['Bind', 'pilot', 'id'], 'Serial']
 										'id'
 									]
+									[ 'Null', 'is experienced' ]
 									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
 										'name'
 									]
+									[ 'Null', 'age' ]
+									[ 'Null', 'favourite colour' ]
+									[ 'Null', 'team' ]
+									[ 'Null', 'licence' ]
 								]
 							]
 						]
@@ -352,7 +420,8 @@ do ->
 				values(
 					'SelectQuery'
 					[	'Select'
-						[	['pilot', '*']
+						[
+							[ 'ReferencedField', 'pilot', 'licence' ]
 						]
 					]
 					[	'From'
@@ -362,6 +431,12 @@ do ->
 						[	[	'SelectQuery'
 								[	'Select'
 									[
+										[ 'Null', 'id' ]
+										[ 'Null', 'is experienced' ]
+										[ 'Null', 'name' ]
+										[ 'Null', 'age' ]
+										[ 'Null', 'favourite colour' ]
+										[ 'Null', 'team' ]
 										[	['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
 											'licence'
 										]
@@ -384,14 +459,14 @@ do ->
 	licence = 1
 	name = 'Licence-1'
 	{odata, abstractsql} = createExpression('licence/name', 'eq', "'#{name}'")
-	test '/pilot?$filter=' + odata, 'POST', {licence}, (result) ->
+	test "/pilot?$filter=#{odata}", 'POST', {licence}, (result) ->
 		it 'should insert into pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.inserts.
 				fields('licence').
 				values(
 					'SelectQuery'
 					[	'Select'
-						[	['pilot', '*']
+						[	[ 'ReferencedField', 'pilot', 'licence' ]
 						]
 					]
 					[	'From'
@@ -400,7 +475,12 @@ do ->
 					[	'From'
 						[	[	'SelectQuery'
 								[	'Select'
-									[
+									[	[ 'Null', 'id' ]
+										[ 'Null', 'is experienced' ]
+										[ 'Null', 'name' ]
+										[ 'Null', 'age' ]
+										[ 'Null', 'favourite colour' ]
+										[ 'Null', 'team' ]
 										[	['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
 											'licence'
 										]
@@ -498,14 +578,13 @@ do ->
 				values(
 					'SelectQuery'
 					[	'Select'
-						[	['team', '*']
+						[	[ 'ReferencedField', 'team', 'favourite colour' ]
 						]
 					]
 					[	'From'
 						[	[	'SelectQuery'
 								[	'Select'
-									[
-										[	['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
+									[	[	['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
 											'favourite colour'
 										]
 									]

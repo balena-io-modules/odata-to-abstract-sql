@@ -1,3 +1,5 @@
+* Fixed database error on insert filter with navigation property.
+
 v0.2.6
 
 * Added support for nested expands like `$expand=resource($expand=subresource)`
