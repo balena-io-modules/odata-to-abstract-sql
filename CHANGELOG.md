@@ -1,3 +1,7 @@
+v0.3.1
+
+* Updated ometa-js
+
 v0.3.0
 
 * Added support for lambda operations on nested properties.
