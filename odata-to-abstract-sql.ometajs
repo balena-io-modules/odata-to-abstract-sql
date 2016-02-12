@@ -39,7 +39,7 @@ export ometa OData2AbstractSQL {
 		end
 		(	?_.isEmpty(path)
 			-> ['$serviceroot']
-		|	?_.contains(['$metadata', '$serviceroot'], path.resource)
+		|	?_.includes(['$metadata', '$serviceroot'], path.resource)
 			-> [path.resource]
 		|	PathSegment(method, body, path):query
 			(	?(method == 'PUT')
@@ -103,7 +103,7 @@ export ometa OData2AbstractSQL {
 			-> query.select.push(aliasedField)
 		|	?(method == 'PUT' || method == 'PUT-INSERT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource.resourceName):resourceMapping
-			BindVars(method, body, resource.resourceName, _.pairs(resourceMapping)):bindVars
+			BindVars(method, body, resource.resourceName, _.toPairs(resourceMapping)):bindVars
 			{query.extras.push(['Fields', _.map(bindVars, 0)])}
 			{query.extras.push(['Values', _.map(bindVars, 1)])}
 		|	AddSelectFields(path, query, resource)
@@ -261,7 +261,7 @@ export ometa OData2AbstractSQL {
 		{mapping[resourceName]}:mappedField
 		?mappedField
 		?(mappedField[0] == table.tableName)
-		?_.any(table.fields, {fieldName: mappedField[1]})
+		?_.some(table.fields, {fieldName: mappedField[1]})
 	,
 
 	ResourceMapping :resourceName =
@@ -277,17 +277,17 @@ export ometa OData2AbstractSQL {
 			AddExtraFroms(path.options.$select.properties, query, resource)
 			Properties(path.options.$select.properties):fields
 			-> _(fields).reject(function(field) {
-					return _.any(query.select, function(existingField) {
+					return _.some(query.select, function(existingField) {
 						return _.last(existingField) == field.name;
 					});
-				}, this)
+				})
 				.map(function(field) {
-					return this.AliasSelectField(field.resource, field.name);
-				}, this)
+					return $elf.AliasSelectField(field.resource, field.name);
+				})
 				.value()
 		|	ResourceMapping(resource.resourceName):resourceMapping
 			-> _(resourceMapping).keys().reject(function(fieldName) {
-				return fieldName === '_name' || _.any(query.select, function(existingField) {
+				return fieldName === '_name' || _.some(query.select, function(existingField) {
 					return _.last(existingField) == fieldName;
 				});
 			}).map(_.bind(this.AliasSelectField, this, resource.resourceName)).value()
@@ -591,16 +591,16 @@ export ometa OData2AbstractSQL {
 				var currentResource = resource;
 				if(_.isArray(resourceName)) {
 					_.each(resourceName, function(resourceName) {
-						var extraResource = this.Resource(resourceName);
-						this.AddNavigation(query, currentResource, extraResource);
+						var extraResource = $elf.Resource(resourceName);
+						$elf.AddNavigation(query, currentResource, extraResource);
 						currentResource = extraResource;
-					}, this);
+					});
 				}
 				else {
-					var extraResource = this.Resource(resourceName);
-					this.AddNavigation(query, currentResource, extraResource);
+					var extraResource = $elf.Resource(resourceName);
+					$elf.AddNavigation(query, currentResource, extraResource);
 				}
-			}, this);
+			});
 		}
 	,
 
@@ -631,7 +631,7 @@ export ometa OData2AbstractSQL {
 	,
 
 	AddNavigation :query :resource :extraResource =
-		(	?(!_.contains(query.from, extraResource.tableName))
+		(	?(!_.includes(query.from, extraResource.tableName))
 			NavigateResources(resource, extraResource):nagivationWhere
 			{query.from.push(extraResource.tableName)}
 			{query.where.push(nagivationWhere)}
