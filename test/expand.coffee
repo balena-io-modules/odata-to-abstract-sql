@@ -153,7 +153,7 @@ test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
 				]
 			].concat(currentWhere)
 		)
-	.run()
+	.value()
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
 			selects([
@@ -202,7 +202,7 @@ test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
 				]
 			].concat(currentWhere)
 		)
-	.run()
+	.value()
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
 			selects([
