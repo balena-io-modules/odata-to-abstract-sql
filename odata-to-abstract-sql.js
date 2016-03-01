@@ -39,7 +39,7 @@
                 this._pred(_.isEmpty(path));
                 return [ "$serviceroot" ];
             }, function() {
-                this._pred(_.contains([ "$metadata", "$serviceroot" ], path.resource));
+                this._pred(_.includes([ "$metadata", "$serviceroot" ], path.resource));
                 return [ path.resource ];
             }, function() {
                 query = this._applyWithArgs("PathSegment", method, body, path);
@@ -127,7 +127,7 @@
             }, function() {
                 this._pred("PUT" == method || "PUT-INSERT" == method || "POST" == method || "PATCH" == method || "MERGE" == method);
                 resourceMapping = this._applyWithArgs("ResourceMapping", resource.resourceName);
-                bindVars = this._applyWithArgs("BindVars", method, body, resource.resourceName, _.pairs(resourceMapping));
+                bindVars = this._applyWithArgs("BindVars", method, body, resource.resourceName, _.toPairs(resourceMapping));
                 query.extras.push([ "Fields", _.map(bindVars, 0) ]);
                 return query.extras.push([ "Values", _.map(bindVars, 1) ]);
             }, function() {
@@ -305,7 +305,7 @@
             mappedField = mapping[resourceName];
             this._pred(mappedField);
             this._pred(mappedField[0] == table.tableName);
-            return this._pred(_.any(table.fields, {
+            return this._pred(_.some(table.fields, {
                 fieldName: mappedField[1]
             }));
         },
@@ -329,16 +329,16 @@
                 this._applyWithArgs("AddExtraFroms", path.options.$select.properties, query, resource);
                 fields = this._applyWithArgs("Properties", path.options.$select.properties);
                 return _(fields).reject(function(field) {
-                    return _.any(query.select, function(existingField) {
+                    return _.some(query.select, function(existingField) {
                         return _.last(existingField) == field.name;
                     });
-                }, this).map(function(field) {
-                    return this.AliasSelectField(field.resource, field.name);
-                }, this).value();
+                }).map(function(field) {
+                    return $elf.AliasSelectField(field.resource, field.name);
+                }).value();
             }, function() {
                 resourceMapping = this._applyWithArgs("ResourceMapping", resource.resourceName);
                 return _(resourceMapping).keys().reject(function(fieldName) {
-                    return "_name" === fieldName || _.any(query.select, function(existingField) {
+                    return "_name" === fieldName || _.some(query.select, function(existingField) {
                         return _.last(existingField) == fieldName;
                     });
                 }).map(_.bind(this.AliasSelectField, this, resource.resourceName)).value();
@@ -738,14 +738,14 @@
             return _.each(extraFroms, function(resourceName) {
                 var currentResource = resource;
                 if (_.isArray(resourceName)) _.each(resourceName, function(resourceName) {
-                    var extraResource = this.Resource(resourceName);
-                    this.AddNavigation(query, currentResource, extraResource);
+                    var extraResource = $elf.Resource(resourceName);
+                    $elf.AddNavigation(query, currentResource, extraResource);
                     currentResource = extraResource;
-                }, this); else {
-                    var extraResource = this.Resource(resourceName);
-                    this.AddNavigation(query, currentResource, extraResource);
+                }); else {
+                    var extraResource = $elf.Resource(resourceName);
+                    $elf.AddNavigation(query, currentResource, extraResource);
                 }
-            }, this);
+            });
         },
         ExtraFroms: function() {
             var $elf = this, _fromIdx = this.input.idx, extraFroms, froms, nextProp, prop;
@@ -783,7 +783,7 @@
         AddNavigation: function(query, resource, extraResource) {
             var $elf = this, _fromIdx = this.input.idx, nagivationWhere;
             return this._opt(function() {
-                this._pred(!_.contains(query.from, extraResource.tableName));
+                this._pred(!_.includes(query.from, extraResource.tableName));
                 nagivationWhere = this._applyWithArgs("NavigateResources", resource, extraResource);
                 query.from.push(extraResource.tableName);
                 return query.where.push(nagivationWhere);

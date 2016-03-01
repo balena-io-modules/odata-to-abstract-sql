@@ -1,3 +1,7 @@
+v0.3.2
+
+* Updated to lodash v4
+
 v0.3.1
 
 * Updated ometa-js
