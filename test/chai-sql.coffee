@@ -85,6 +85,7 @@ exports.operandToOData = (operand) ->
 	return operand
 
 exports.pilotFields = [
+	[['ReferencedField', 'pilot', 'created at'], 'created_at']
 	['ReferencedField', 'pilot', 'id']
 	[['ReferencedField', 'pilot', 'is experienced'], 'is_experienced']
 	['ReferencedField', 'pilot', 'name']
@@ -92,24 +93,29 @@ exports.pilotFields = [
 	[['ReferencedField', 'pilot', 'favourite colour'], 'favourite_colour']
 	['ReferencedField', 'pilot', 'team']
 	['ReferencedField', 'pilot', 'licence']
+	[['ReferencedField', 'pilot', 'hire date'], 'hire_date']
 ]
 
 exports.licenceFields = [
+	[['ReferencedField', 'licence', 'created at'], 'created_at']
 	['ReferencedField', 'licence', 'id']
 	['ReferencedField', 'licence', 'name']
 ]
 
 exports.planeFields = [
+	[['ReferencedField', 'plane', 'created at'], 'created_at']
 	['ReferencedField', 'plane', 'id']
 	['ReferencedField', 'plane', 'name']
 ]
 
 exports.pilotCanFlyPlaneFields = [
+	[['ReferencedField', 'pilot-can_fly-plane', 'created at'], 'created_at']
 	['ReferencedField', 'pilot-can_fly-plane', 'pilot']
 	['ReferencedField', 'pilot-can_fly-plane', 'plane']
 	['ReferencedField', 'pilot-can_fly-plane', 'id']
 ]
 
 exports.teamFields = [
+	[['ReferencedField', 'team', 'created at'], 'created_at']
 	[['ReferencedField', 'team', 'favourite colour'], 'favourite_colour']
 ]

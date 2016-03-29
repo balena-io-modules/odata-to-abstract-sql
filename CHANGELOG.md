@@ -1,3 +1,5 @@
+* Added support for the majority of OData 4 functions
+
 v0.3.2
 
 * Updated to lodash v4

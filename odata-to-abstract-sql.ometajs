@@ -361,22 +361,32 @@ export ometa OData2AbstractSQL {
 	,
 
 	BooleanFunction =
-			Function('substringof')
-		|	Function('startswith')
+			Function('contains')
 		|	Function('endswith')
+		|	Function('startswith')
+		|	Function('isof')
+		|	Function('substringof')
 	,
 
 	NumberFunction =
 			AliasedFunction('length', 'CharacterLength')
 		|	Function('indexof')
+		|	Function('year')
+		|	Function('month')
+		|	Function('day')
+		|	Function('day')
+		|	Function('hour')
+		|	Function('minute')
+		|	Function('second')
+		|	Function('fractionalseconds')
+		|	Function('totaloffsetminutes')
 		|	Function('round')
 		|	Function('floor')
 		|	Function('ceiling')
 	,
 
 	TextFunction =
-			Function('replace')
-		|	Function('substring'):fn
+			Function('substring'):fn
 			// First parameter needs to be increased by 1.
 			{fn[2][1]++}
 			-> fn
@@ -384,6 +394,15 @@ export ometa OData2AbstractSQL {
 		|	Function('toupper')
 		|	Function('trim')
 		|	Function('concat')
+		|	Function('date')
+		|	Function('time')
+		|	Function('replace')
+	,
+
+	DateFunction =
+			Function('now')
+		|	Function('maxdatetime')
+		|	Function('mindatetime')
 	,
 
 	AliasedFunction :odataName :sqlName =
@@ -516,9 +535,10 @@ export ometa OData2AbstractSQL {
 	,
 
 	Date =
-		anything:date
-		?_.isDate(date)
-		-> ['Date', date]
+			anything:date
+			?_.isDate(date)
+			-> ['Date', date]
+		|	DateFunction
 	,
 
 	Expands :resource :query =
