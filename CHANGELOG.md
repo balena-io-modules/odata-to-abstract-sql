@@ -32,3 +32,22 @@ v0.2.2
 
 * Added support for $filter, $orderby, $top, $skip, and $select as expand options.
 * Updated lodash to ^3.0.0
+
+v0.2.1
+
+* Added support for true/false/null
+
+v0.2.0
+
+* Implemented support for PUT filters.
+* Added support for resource names with underscores.
+
+v0.1.1
+
+* Cast bind vars in inserts in order to guarantee the database knows the correct type in cases where it could be ambiguous.
+
+v0.1.0
+
+* Fixed id fields that had spaces.
+* Implemented support for POST filters.
+* Proper support for keys in $links
