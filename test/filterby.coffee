@@ -19,6 +19,8 @@ sqlOps =
 
 methodMaps =
 	length: 'CharacterLength'
+	date: 'ToDate'
+	time: 'ToTime'
 
 createExpression = (lhs, op, rhs) ->
 	if lhs is 'not'
