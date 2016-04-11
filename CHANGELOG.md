@@ -1,4 +1,5 @@
-* Added support for the majority of OData 4 functions
+* Added support for duration literals.
+* Added support for the majority of OData 4 functions.
 
 v0.3.2
 

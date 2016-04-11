@@ -80,11 +80,14 @@ operandTest(2, 'le', 'name')
 do ->
 	operands = [
 			2
+			-2
 			2.5
+			-2.5
 			"'bar'"
 			"name"
 			"pilot/name"
 			new Date()
+			{ negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }
 			true
 			false
 			# null is quoted as otherwise we hit issues with coffeescript defaulting values
@@ -544,6 +547,7 @@ operandTest(createMethodCall('totaloffsetminutes', 'hire_date'), 'eq', 60)
 operandTest(createMethodCall('now'), 'eq', new Date('2012-12-03T07:16:23Z'))
 operandTest(createMethodCall('maxdatetime'), 'eq', new Date('9999-12-31T11:59:59Z'))
 operandTest(createMethodCall('mindatetime'), 'eq', new Date('1970-01-01T00:00:00Z'))
+operandTest(createMethodCall('totalseconds', { negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }), 'eq', -273906.7)
 operandTest(createMethodCall('round', 'age'), 'eq', 25)
 operandTest(createMethodCall('floor', 'age'), 'eq', 25)
 operandTest(createMethodCall('ceiling', 'age'), 'eq', 25)

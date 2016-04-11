@@ -75,6 +75,8 @@ exports.operandToAbstractSQL = (operand, resource = 'pilot') ->
 		else
 			mapping = clientModel.resourceToSQLMappings[resource][operand]
 		return ['ReferencedField'].concat(mapping)
+	if _.isObject(operand)
+		return [ 'Duration', operand ]
 	throw 'Unknown operand type: ' + operand
 
 exports.operandToOData = (operand) ->
@@ -82,6 +84,30 @@ exports.operandToOData = (operand) ->
 		return operand.odata
 	if _.isDate(operand)
 		return "datetime'" + encodeURIComponent(operand.toISOString()) + "'"
+	if _.isObject(operand)
+		duration = []
+		t = false
+		if operand.negative
+			duration.push('-')
+		duration.push('P')
+		if operand.day?
+			duration.push(operand.day, 'D')
+		if operand.hour?
+			t = true
+			duration.push('T', operand.hour, 'H')
+		if operand.minute?
+			if not t
+				t = true
+				duration.push('T')
+			duration.push(operand.minute, 'M')
+		if operand.second?
+			if not t
+				t = true
+				duration.push('T')
+			duration.push(operand.second, 'S')
+		if duration.length < 3
+			throw new Error('Duration must contain at least 1 component')
+		return "duration'#{duration.join('')}'"
 	return operand
 
 exports.pilotFields = [

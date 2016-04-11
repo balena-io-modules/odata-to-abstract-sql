@@ -380,6 +380,7 @@ export ometa OData2AbstractSQL {
 		|	Function('second')
 		|	Function('fractionalseconds')
 		|	Function('totaloffsetminutes')
+		|	Function('totalseconds')
 		|	Function('round')
 		|	Function('floor')
 		|	Function('ceiling')
@@ -431,6 +432,7 @@ export ometa OData2AbstractSQL {
 		|	Number
 		|	Text
 		|	Date
+		|	Duration
 		|	Math
 	,
 
@@ -539,6 +541,18 @@ export ometa OData2AbstractSQL {
 			?_.isDate(date)
 			-> ['Date', date]
 		|	DateFunction
+	,
+
+	Duration =
+		anything:duration
+		?_.isObject(duration)
+		{	_(duration)
+			.pick('negative', 'day', 'hour', 'minute', 'second')
+			.omitBy(_.isNil)
+			.value()
+		}:duration
+		?(!_(duration).omit('negative').isEmpty())
+		-> ['Duration', duration]
 	,
 
 	Expands :resource :query =
