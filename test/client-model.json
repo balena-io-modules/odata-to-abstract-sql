@@ -6,11 +6,20 @@
 			"topLevel": true,
 			"fields": [
 				{
+					"dataType": "Date Time",
+					"fieldName": "created at",
+					"required": true,
+					"index": null,
+					"references": null,
+					"defaultValue": "CURRENT_TIMESTAMP"
+				},
+				{
 					"dataType": "Serial",
 					"fieldName": "id",
 					"required": true,
 					"index": "PRIMARY KEY",
-					"references": null
+					"references": null,
+					"defaultValue": null
 				},
 				{
 					"dataType": "Short Text",
@@ -20,7 +29,8 @@
 					"references": {
 						"tableName": "name",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "id",
@@ -55,7 +65,8 @@
 					"references": {
 						"tableName": "name",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "licence",
@@ -72,6 +83,14 @@
 			"topLevel": true,
 			"fields": [
 				{
+					"dataType": "Date Time",
+					"fieldName": "created at",
+					"required": true,
+					"index": null,
+					"references": null,
+					"defaultValue": "CURRENT_TIMESTAMP"
+				},
+				{
 					"dataType": "Color",
 					"fieldName": "favourite colour",
 					"required": true,
@@ -79,7 +98,8 @@
 					"references": {
 						"tableName": "favourite_colour",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "favourite colour",
@@ -114,7 +134,8 @@
 					"references": {
 						"tableName": "favourite_colour",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "team",
@@ -131,11 +152,20 @@
 			"topLevel": true,
 			"fields": [
 				{
+					"dataType": "Date Time",
+					"fieldName": "created at",
+					"required": true,
+					"index": null,
+					"references": null,
+					"defaultValue": "CURRENT_TIMESTAMP"
+				},
+				{
 					"dataType": "Serial",
 					"fieldName": "id",
 					"required": true,
 					"index": "PRIMARY KEY",
-					"references": null
+					"references": null,
+					"defaultValue": null
 				},
 				{
 					"dataType": "Short Text",
@@ -145,7 +175,8 @@
 					"references": {
 						"tableName": "name",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "id",
@@ -180,7 +211,8 @@
 					"references": {
 						"tableName": "name",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "plane",
@@ -197,18 +229,28 @@
 			"topLevel": true,
 			"fields": [
 				{
+					"dataType": "Date Time",
+					"fieldName": "created at",
+					"required": true,
+					"index": null,
+					"references": null,
+					"defaultValue": "CURRENT_TIMESTAMP"
+				},
+				{
 					"dataType": "Serial",
 					"fieldName": "id",
 					"required": true,
 					"index": "PRIMARY KEY",
-					"references": null
+					"references": null,
+					"defaultValue": null
 				},
 				{
 					"dataType": "Boolean",
 					"fieldName": "is experienced",
 					"required": true,
 					"index": null,
-					"references": null
+					"references": null,
+					"defaultValue": null
 				},
 				{
 					"dataType": "Short Text",
@@ -218,7 +260,8 @@
 					"references": {
 						"tableName": "name",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				},
 				{
 					"dataType": "Integer",
@@ -228,7 +271,8 @@
 					"references": {
 						"tableName": "age",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				},
 				{
 					"dataType": "Color",
@@ -238,7 +282,8 @@
 					"references": {
 						"tableName": "favourite_colour",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				},
 				{
 					"dataType": "ForeignKey",
@@ -248,7 +293,8 @@
 					"references": {
 						"tableName": "team",
 						"fieldName": "favourite colour"
-					}
+					},
+					"defaultValue": null
 				},
 				{
 					"dataType": "ForeignKey",
@@ -258,7 +304,19 @@
 					"references": {
 						"tableName": "licence",
 						"fieldName": "id"
-					}
+					},
+					"defaultValue": null
+				},
+				{
+					"dataType": "Date Time",
+					"fieldName": "hire date",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "hire_date",
+						"fieldName": null
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "id",
@@ -290,7 +348,8 @@
 					"fieldName": "is experienced",
 					"required": true,
 					"index": null,
-					"references": null
+					"references": null,
+					"defaultValue": null
 				}
 			],
 			"idField": "pilot",
@@ -324,7 +383,8 @@
 					"references": {
 						"tableName": "name",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "pilot",
@@ -358,7 +418,8 @@
 					"references": {
 						"tableName": "age",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "pilot",
@@ -392,7 +453,8 @@
 					"references": {
 						"tableName": "favourite_colour",
 						"fieldName": null
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "pilot",
@@ -409,6 +471,14 @@
 			"topLevel": false,
 			"fields": [
 				{
+					"dataType": "Date Time",
+					"fieldName": "created at",
+					"required": true,
+					"index": null,
+					"references": null,
+					"defaultValue": "CURRENT_TIMESTAMP"
+				},
+				{
 					"dataType": "ForeignKey",
 					"fieldName": "pilot",
 					"required": true,
@@ -416,7 +486,8 @@
 					"references": {
 						"tableName": "pilot",
 						"fieldName": "id"
-					}
+					},
+					"defaultValue": null
 				},
 				{
 					"dataType": "ForeignKey",
@@ -426,14 +497,16 @@
 					"references": {
 						"tableName": "plane",
 						"fieldName": "id"
-					}
+					},
+					"defaultValue": null
 				},
 				{
 					"dataType": "Serial",
 					"fieldName": "id",
 					"required": true,
 					"index": "PRIMARY KEY",
-					"references": null
+					"references": null,
+					"defaultValue": null
 				}
 			],
 			"idField": "id",
@@ -467,7 +540,8 @@
 					"references": {
 						"tableName": "team",
 						"fieldName": "favourite colour"
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "pilot",
@@ -501,11 +575,47 @@
 					"references": {
 						"tableName": "licence",
 						"fieldName": "id"
-					}
+					},
+					"defaultValue": null
 				}
 			],
 			"idField": "pilot",
 			"referenceScheme": "licence",
+			"actions": [
+				"view",
+				"add",
+				"delete"
+			]
+		},
+		"pilot__has__hire_date": {
+			"resourceName": "pilot__has__hire_date",
+			"modelName": "pilot has hire date",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "Date Time",
+					"fieldName": "hire date",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "hire_date",
+						"fieldName": null
+					},
+					"defaultValue": null
+				}
+			],
+			"idField": "pilot",
+			"referenceScheme": "hire date",
 			"actions": [
 				"view",
 				"add",
@@ -516,6 +626,10 @@
 	"resourceToSQLMappings": {
 		"licence": {
 			"_name": "licence",
+			"created_at": [
+				"licence",
+				"created at"
+			],
 			"id": [
 				"licence",
 				"id"
@@ -538,6 +652,10 @@
 		},
 		"team": {
 			"_name": "team",
+			"created_at": [
+				"team",
+				"created at"
+			],
 			"favourite_colour": [
 				"team",
 				"favourite colour"
@@ -556,6 +674,10 @@
 		},
 		"plane": {
 			"_name": "plane",
+			"created_at": [
+				"plane",
+				"created at"
+			],
 			"id": [
 				"plane",
 				"id"
@@ -578,6 +700,10 @@
 		},
 		"pilot": {
 			"_name": "pilot",
+			"created_at": [
+				"pilot",
+				"created at"
+			],
 			"id": [
 				"pilot",
 				"id"
@@ -605,6 +731,10 @@
 			"licence": [
 				"pilot",
 				"licence"
+			],
+			"hire_date": [
+				"pilot",
+				"hire date"
 			]
 		},
 		"pilot__is_experienced": {
@@ -653,6 +783,10 @@
 		},
 		"pilot__can_fly__plane": {
 			"_name": "pilot-can_fly-plane",
+			"created_at": [
+				"pilot-can_fly-plane",
+				"created at"
+			],
 			"pilot": [
 				"pilot-can_fly-plane",
 				"pilot"
@@ -686,6 +820,17 @@
 			"licence": [
 				"pilot",
 				"licence"
+			]
+		},
+		"pilot__has__hire_date": {
+			"_name": "pilot",
+			"pilot": [
+				"pilot",
+				"id"
+			],
+			"hire date": [
+				"pilot",
+				"hire date"
 			]
 		}
 	}

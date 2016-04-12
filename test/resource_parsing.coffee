@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{pilotFields, licenceFields, planeFields} = require('./chai-sql')
+{pilotFields, licenceFields, planeFields, teamFields} = require('./chai-sql')
 test = require('./test')
 
 test '/', (result) ->
@@ -98,6 +98,7 @@ test '/pilot(1)', 'PUT', (result) ->
 		it 'and updates', ->
 			expect(result[2]).to.be.a.query.that.updates.
 			fields(
+				'created at'
 				'id'
 				'is experienced'
 				'name'
@@ -105,9 +106,12 @@ test '/pilot(1)', 'PUT', (result) ->
 				'favourite colour'
 				'team'
 				'licence'
+				'hire date'
 			).
 			values(
+				'Default'
 				['Bind', 'pilot', 'id']
+				'Default'
 				'Default'
 				'Default'
 				'Default'
@@ -180,11 +184,13 @@ test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 		it 'and updates', ->
 			expect(result[2]).to.be.a.query.that.updates.
 				fields(
+					'created at'
 					'pilot'
 					'plane'
 					'id'
 				).
 				values(
+					'Default'
 					'Default'
 					'Default'
 					['Bind', 'pilot__can_fly__plane', 'id']
@@ -273,7 +279,7 @@ test.skip '/method(1)/child?foo=bar', (result) ->
 test "/team('purple')", (result) ->
 	it 'should select the team with the "favourite colour" id of "purple"', ->
 		expect(result).to.be.a.query.that.
-			selects([[['ReferencedField', 'team', 'favourite colour'], 'favourite_colour']]).
+			selects(teamFields).
 			from('team').
 			where(
 				['Equals', ['ReferencedField', 'team', 'favourite colour'], ['Text', 'purple']]

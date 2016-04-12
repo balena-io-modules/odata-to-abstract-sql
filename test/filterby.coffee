@@ -19,6 +19,8 @@ sqlOps =
 
 methodMaps =
 	length: 'CharacterLength'
+	date: 'ToDate'
+	time: 'ToTime'
 
 createExpression = (lhs, op, rhs) ->
 	if lhs is 'not'
@@ -78,11 +80,14 @@ operandTest(2, 'le', 'name')
 do ->
 	operands = [
 			2
+			-2
 			2.5
+			-2.5
 			"'bar'"
 			"name"
 			"pilot/name"
 			new Date()
+			{ negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }
 			true
 			false
 			# null is quoted as otherwise we hit issues with coffeescript defaulting values
@@ -176,6 +181,7 @@ do ->
 					[	[	'SelectQuery'
 							[	'Select'
 								[
+									[ 'Null', 'created at' ]
 									[ 'Null', 'id' ]
 									[ 'Null', 'is experienced' ]
 									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
@@ -185,6 +191,7 @@ do ->
 									[ 'Null', 'favourite colour' ]
 									[ 'Null', 'team' ]
 									[ 'Null', 'licence' ]
+									[ 'Null', 'hire date' ]
 								]
 							]
 						]
@@ -248,6 +255,7 @@ do ->
 		it 'and updates', ->
 			expect(result[2]).to.be.a.query.that.updates.
 				fields(
+					'created at'
 					'id'
 					'is experienced'
 					'name'
@@ -255,11 +263,14 @@ do ->
 					'favourite colour'
 					'team'
 					'licence'
+					'hire date'
 				).
 				values(
 					'Default'
 					'Default'
+					'Default'
 					['Bind', 'pilot', 'name']
+					'Default'
 					'Default'
 					'Default'
 					'Default'
@@ -318,6 +329,7 @@ do ->
 					[	[	'SelectQuery'
 							[	'Select'
 								[
+									[ 'Null', 'created at' ]
 									[	['Cast', ['Bind', 'pilot', 'id'], 'Serial']
 										'id'
 									]
@@ -329,6 +341,7 @@ do ->
 									[ 'Null', 'favourite colour' ]
 									[ 'Null', 'team' ]
 									[ 'Null', 'licence' ]
+									[ 'Null', 'hire date' ]
 								]
 							]
 						]
@@ -390,6 +403,7 @@ do ->
 			it 'and updates', ->
 				expect(result[2]).to.be.a.query.that.updates.
 				fields(
+					'created at'
 					'id'
 					'is experienced'
 					'name'
@@ -397,11 +411,14 @@ do ->
 					'favourite colour'
 					'team'
 					'licence'
+					'hire date'
 				).
 				values(
+					'Default'
 					['Bind', 'pilot', 'id']
 					'Default'
 					['Bind', 'pilot', 'name']
+					'Default'
 					'Default'
 					'Default'
 					'Default'
@@ -431,6 +448,7 @@ do ->
 						[	[	'SelectQuery'
 								[	'Select'
 									[
+										[ 'Null', 'created at' ]
 										[ 'Null', 'id' ]
 										[ 'Null', 'is experienced' ]
 										[ 'Null', 'name' ]
@@ -440,6 +458,7 @@ do ->
 										[	['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
 											'licence'
 										]
+										[ 'Null', 'hire date' ]
 									]
 								]
 							]
@@ -475,7 +494,8 @@ do ->
 					[	'From'
 						[	[	'SelectQuery'
 								[	'Select'
-									[	[ 'Null', 'id' ]
+									[	[ 'Null', 'created at' ]
+										[ 'Null', 'id' ]
 										[ 'Null', 'is experienced' ]
 										[ 'Null', 'name' ]
 										[ 'Null', 'age' ]
@@ -484,6 +504,7 @@ do ->
 										[	['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
 											'licence'
 										]
+										[ 'Null', 'hire date' ]
 									]
 								]
 							]
@@ -499,27 +520,40 @@ do ->
 				).
 				from('pilot')
 
-methodTest('substringof', "'Pete'", 'name')
-methodTest('startswith', 'name', "'P'")
+methodTest('contains', 'name', "'et'")
 methodTest('endswith', 'name', "'ete'")
+methodTest('startswith', 'name', "'P'")
 operandTest(createMethodCall('length', 'name'), 'eq', 4)
 operandTest(createMethodCall('indexof', 'name', "'Pe'"), 'eq', 0)
-operandTest(createMethodCall('replace', 'name', "'ete'", "'at'"), 'eq', "'Pat'")
 operandTest(createMethodCall('substring', 'name', 1), 'eq', "'ete'")
 operandTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'")
 operandTest(createMethodCall('tolower', 'name'), 'eq', "'pete'")
-operandTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'")
-
 operandTest(createMethodCall('tolower', 'licence/name'), 'eq', "'pete'")
-
+operandTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'")
 do ->
 	concat = createMethodCall('concat', 'name', "'%20'")
-	operandTest(concat, 'eq', "'Pete%20'")
 	operandTest(createMethodCall('trim', concat), 'eq', "'Pete'")
-
+	operandTest(concat, 'eq', "'Pete%20'")
+operandTest(createMethodCall('year', 'hire_date'), 'eq', 2011)
+operandTest(createMethodCall('month', 'hire_date'), 'eq', 10)
+operandTest(createMethodCall('day', 'hire_date'), 'eq', 3)
+operandTest(createMethodCall('hour', 'hire_date'), 'eq', 12)
+operandTest(createMethodCall('minute', 'hire_date'), 'eq', 10)
+operandTest(createMethodCall('second', 'hire_date'), 'eq', 25)
+operandTest(createMethodCall('fractionalseconds', 'hire_date'), 'eq', .222)
+operandTest(createMethodCall('date', 'hire_date'), 'eq', "'2011-10-03'")
+operandTest(createMethodCall('time', 'hire_date'), 'eq', "'12:10:25.222'")
+operandTest(createMethodCall('totaloffsetminutes', 'hire_date'), 'eq', 60)
+operandTest(createMethodCall('now'), 'eq', new Date('2012-12-03T07:16:23Z'))
+operandTest(createMethodCall('maxdatetime'), 'eq', new Date('9999-12-31T11:59:59Z'))
+operandTest(createMethodCall('mindatetime'), 'eq', new Date('1970-01-01T00:00:00Z'))
+operandTest(createMethodCall('totalseconds', { negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }), 'eq', -273906.7)
 operandTest(createMethodCall('round', 'age'), 'eq', 25)
 operandTest(createMethodCall('floor', 'age'), 'eq', 25)
 operandTest(createMethodCall('ceiling', 'age'), 'eq', 25)
+
+methodTest('substringof', "'Pete'", 'name')
+operandTest(createMethodCall('replace', 'name', "'ete'", "'at'"), 'eq', "'Pat'")
 
 
 lambdaTest = (methodName) ->
@@ -625,7 +659,8 @@ do ->
 					[	'From'
 						[	[	'SelectQuery'
 								[	'Select'
-									[	[	['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
+									[	[ 'Null', 'created at' ]
+										[	['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
 											'favourite colour'
 										]
 									]

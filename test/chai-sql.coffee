@@ -75,6 +75,8 @@ exports.operandToAbstractSQL = (operand, resource = 'pilot') ->
 		else
 			mapping = clientModel.resourceToSQLMappings[resource][operand]
 		return ['ReferencedField'].concat(mapping)
+	if _.isObject(operand)
+		return [ 'Duration', operand ]
 	throw 'Unknown operand type: ' + operand
 
 exports.operandToOData = (operand) ->
@@ -82,9 +84,34 @@ exports.operandToOData = (operand) ->
 		return operand.odata
 	if _.isDate(operand)
 		return "datetime'" + encodeURIComponent(operand.toISOString()) + "'"
+	if _.isObject(operand)
+		duration = []
+		t = false
+		if operand.negative
+			duration.push('-')
+		duration.push('P')
+		if operand.day?
+			duration.push(operand.day, 'D')
+		if operand.hour?
+			t = true
+			duration.push('T', operand.hour, 'H')
+		if operand.minute?
+			if not t
+				t = true
+				duration.push('T')
+			duration.push(operand.minute, 'M')
+		if operand.second?
+			if not t
+				t = true
+				duration.push('T')
+			duration.push(operand.second, 'S')
+		if duration.length < 3
+			throw new Error('Duration must contain at least 1 component')
+		return "duration'#{duration.join('')}'"
 	return operand
 
 exports.pilotFields = [
+	[['ReferencedField', 'pilot', 'created at'], 'created_at']
 	['ReferencedField', 'pilot', 'id']
 	[['ReferencedField', 'pilot', 'is experienced'], 'is_experienced']
 	['ReferencedField', 'pilot', 'name']
@@ -92,24 +119,29 @@ exports.pilotFields = [
 	[['ReferencedField', 'pilot', 'favourite colour'], 'favourite_colour']
 	['ReferencedField', 'pilot', 'team']
 	['ReferencedField', 'pilot', 'licence']
+	[['ReferencedField', 'pilot', 'hire date'], 'hire_date']
 ]
 
 exports.licenceFields = [
+	[['ReferencedField', 'licence', 'created at'], 'created_at']
 	['ReferencedField', 'licence', 'id']
 	['ReferencedField', 'licence', 'name']
 ]
 
 exports.planeFields = [
+	[['ReferencedField', 'plane', 'created at'], 'created_at']
 	['ReferencedField', 'plane', 'id']
 	['ReferencedField', 'plane', 'name']
 ]
 
 exports.pilotCanFlyPlaneFields = [
+	[['ReferencedField', 'pilot-can_fly-plane', 'created at'], 'created_at']
 	['ReferencedField', 'pilot-can_fly-plane', 'pilot']
 	['ReferencedField', 'pilot-can_fly-plane', 'plane']
 	['ReferencedField', 'pilot-can_fly-plane', 'id']
 ]
 
 exports.teamFields = [
+	[['ReferencedField', 'team', 'created at'], 'created_at']
 	[['ReferencedField', 'team', 'favourite colour'], 'favourite_colour']
 ]

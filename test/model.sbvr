@@ -7,6 +7,9 @@ Term:       age
 Term:       favourite colour
 	Concept Type: Color (Type)
 
+Term:       hire date
+	Concept Type: Date Time (Type)
+
 Term:       licence
 
 Fact type:  licence has name
@@ -42,3 +45,6 @@ Fact type:  pilot is on team
 
 Fact type:  pilot has licence
 	Necessity: each pilot has exactly one licence
+
+Fact type:  pilot has hire date
+	Necessity: each pilot has exactly one hire date
