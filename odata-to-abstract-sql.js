@@ -450,11 +450,15 @@
         BooleanFunction: function() {
             var $elf = this, _fromIdx = this.input.idx;
             return this._or(function() {
-                return this._applyWithArgs("Function", "substringof");
+                return this._applyWithArgs("Function", "contains");
+            }, function() {
+                return this._applyWithArgs("Function", "endswith");
             }, function() {
                 return this._applyWithArgs("Function", "startswith");
             }, function() {
-                return this._applyWithArgs("Function", "endswith");
+                return this._applyWithArgs("Function", "isof");
+            }, function() {
+                return this._applyWithArgs("Function", "substringof");
             });
         },
         NumberFunction: function() {
@@ -463,6 +467,26 @@
                 return this._applyWithArgs("AliasedFunction", "length", "CharacterLength");
             }, function() {
                 return this._applyWithArgs("Function", "indexof");
+            }, function() {
+                return this._applyWithArgs("Function", "year");
+            }, function() {
+                return this._applyWithArgs("Function", "month");
+            }, function() {
+                return this._applyWithArgs("Function", "day");
+            }, function() {
+                return this._applyWithArgs("Function", "day");
+            }, function() {
+                return this._applyWithArgs("Function", "hour");
+            }, function() {
+                return this._applyWithArgs("Function", "minute");
+            }, function() {
+                return this._applyWithArgs("Function", "second");
+            }, function() {
+                return this._applyWithArgs("Function", "fractionalseconds");
+            }, function() {
+                return this._applyWithArgs("Function", "totaloffsetminutes");
+            }, function() {
+                return this._applyWithArgs("Function", "totalseconds");
             }, function() {
                 return this._applyWithArgs("Function", "round");
             }, function() {
@@ -474,8 +498,6 @@
         TextFunction: function() {
             var $elf = this, _fromIdx = this.input.idx, fn;
             return this._or(function() {
-                return this._applyWithArgs("Function", "replace");
-            }, function() {
                 fn = this._applyWithArgs("Function", "substring");
                 fn[2][1]++;
                 return fn;
@@ -487,6 +509,22 @@
                 return this._applyWithArgs("Function", "trim");
             }, function() {
                 return this._applyWithArgs("Function", "concat");
+            }, function() {
+                return this._applyWithArgs("AliasedFunction", "date", "ToDate");
+            }, function() {
+                return this._applyWithArgs("AliasedFunction", "time", "ToTime");
+            }, function() {
+                return this._applyWithArgs("Function", "replace");
+            });
+        },
+        DateFunction: function() {
+            var $elf = this, _fromIdx = this.input.idx;
+            return this._or(function() {
+                return this._applyWithArgs("Function", "now");
+            }, function() {
+                return this._applyWithArgs("Function", "maxdatetime");
+            }, function() {
+                return this._applyWithArgs("Function", "mindatetime");
             });
         },
         AliasedFunction: function(odataName, sqlName) {
@@ -525,6 +563,8 @@
                 return this._apply("Text");
             }, function() {
                 return this._apply("Date");
+            }, function() {
+                return this._apply("Duration");
             }, function() {
                 return this._apply("Math");
             });
@@ -653,9 +693,21 @@
         },
         Date: function() {
             var $elf = this, _fromIdx = this.input.idx, date;
-            date = this.anything();
-            this._pred(_.isDate(date));
-            return [ "Date", date ];
+            return this._or(function() {
+                date = this.anything();
+                this._pred(_.isDate(date));
+                return [ "Date", date ];
+            }, function() {
+                return this._apply("DateFunction");
+            });
+        },
+        Duration: function() {
+            var $elf = this, _fromIdx = this.input.idx, duration;
+            duration = this.anything();
+            this._pred(_.isObject(duration));
+            duration = _(duration).pick("negative", "day", "hour", "minute", "second").omitBy(_.isNil).value();
+            this._pred(!_(duration).omit("negative").isEmpty());
+            return [ "Duration", duration ];
         },
         Expands: function(resource, query) {
             var $elf = this, _fromIdx = this.input.idx, defaultResource, expand, expandQuery, expandResource, limit, navigationWhere, nestedExpandQuery, offset;
