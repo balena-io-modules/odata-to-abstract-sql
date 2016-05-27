@@ -116,6 +116,7 @@ export ometa OData2AbstractSQL {
 			BindVars(method, body, resource.resourceName, _.toPairs(resourceMapping)):bindVars
 			{query.extras.push(['Fields', _.map(bindVars, 0)])}
 			{query.extras.push(['Values', _.map(bindVars, 1)])}
+                |       AddCountField(path, query, resource)
 		|	AddSelectFields(path, query, resource)
 		)
 
@@ -299,6 +300,15 @@ export ometa OData2AbstractSQL {
 			-> resourceMapping
 		|	{throw new Error('Unknown resource: ' + resource.resourceName)}
 	,
+
+        AddCountField :path :query :resource =
+                      ?path.options
+                      ?path.options.$count
+                      ( ?(!path.options.$select)
+                      | AddExtraFroms(path.options.$select.properties, query, resource)
+                      )
+                      -> (query.select.push(['Count', '*']))
+        ,
 
 	AddSelectFields :path :query :resource =
 		(	?path.options
