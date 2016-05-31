@@ -183,6 +183,7 @@ do ->
 								[
 									[ 'Null', 'created at' ]
 									[ 'Null', 'id' ]
+									[ 'Null', 'person' ]
 									[ 'Null', 'is experienced' ]
 									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
 										'name'
@@ -192,6 +193,7 @@ do ->
 									[ 'Null', 'team' ]
 									[ 'Null', 'licence' ]
 									[ 'Null', 'hire date' ]
+									[ 'Null', 'pilot' ]
 								]
 							]
 						]
@@ -257,6 +259,7 @@ do ->
 				fields(
 					'created at'
 					'id'
+					'person'
 					'is experienced'
 					'name'
 					'age'
@@ -264,12 +267,15 @@ do ->
 					'team'
 					'licence'
 					'hire date'
+					'pilot'
 				).
 				values(
 					'Default'
 					'Default'
 					'Default'
+					'Default'
 					['Bind', 'pilot', 'name']
+					'Default'
 					'Default'
 					'Default'
 					'Default'
@@ -333,6 +339,7 @@ do ->
 									[	['Cast', ['Bind', 'pilot', 'id'], 'Serial']
 										'id'
 									]
+									[ 'Null', 'person' ]
 									[ 'Null', 'is experienced' ]
 									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
 										'name'
@@ -342,6 +349,7 @@ do ->
 									[ 'Null', 'team' ]
 									[ 'Null', 'licence' ]
 									[ 'Null', 'hire date' ]
+									[ 'Null', 'pilot' ]
 								]
 							]
 						]
@@ -405,6 +413,7 @@ do ->
 				fields(
 					'created at'
 					'id'
+					'person'
 					'is experienced'
 					'name'
 					'age'
@@ -412,12 +421,15 @@ do ->
 					'team'
 					'licence'
 					'hire date'
+					'pilot'
 				).
 				values(
 					'Default'
 					['Bind', 'pilot', 'id']
 					'Default'
+					'Default'
 					['Bind', 'pilot', 'name']
+					'Default'
 					'Default'
 					'Default'
 					'Default'
@@ -450,6 +462,7 @@ do ->
 									[
 										[ 'Null', 'created at' ]
 										[ 'Null', 'id' ]
+										[ 'Null', 'person' ]
 										[ 'Null', 'is experienced' ]
 										[ 'Null', 'name' ]
 										[ 'Null', 'age' ]
@@ -459,6 +472,7 @@ do ->
 											'licence'
 										]
 										[ 'Null', 'hire date' ]
+										[ 'Null', 'pilot' ]
 									]
 								]
 							]
@@ -496,6 +510,7 @@ do ->
 								[	'Select'
 									[	[ 'Null', 'created at' ]
 										[ 'Null', 'id' ]
+										[ 'Null', 'person' ]
 										[ 'Null', 'is experienced' ]
 										[ 'Null', 'name' ]
 										[ 'Null', 'age' ]
@@ -505,6 +520,7 @@ do ->
 											'licence'
 										]
 										[ 'Null', 'hire date' ]
+										[ 'Null', 'pilot' ]
 									]
 								]
 							]

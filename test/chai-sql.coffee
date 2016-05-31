@@ -113,6 +113,7 @@ exports.operandToOData = (operand) ->
 exports.pilotFields = [
 	[['ReferencedField', 'pilot', 'created at'], 'created_at']
 	['ReferencedField', 'pilot', 'id']
+	['ReferencedField', 'pilot', 'person']
 	[['ReferencedField', 'pilot', 'is experienced'], 'is_experienced']
 	['ReferencedField', 'pilot', 'name']
 	['ReferencedField', 'pilot', 'age']
@@ -120,6 +121,7 @@ exports.pilotFields = [
 	['ReferencedField', 'pilot', 'team']
 	['ReferencedField', 'pilot', 'licence']
 	[['ReferencedField', 'pilot', 'hire date'], 'hire_date']
+	['ReferencedField', 'pilot', 'pilot']
 ]
 
 exports.licenceFields = [

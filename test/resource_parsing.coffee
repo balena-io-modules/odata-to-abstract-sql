@@ -100,6 +100,7 @@ test '/pilot(1)', 'PUT', (result) ->
 			fields(
 				'created at'
 				'id'
+				'person'
 				'is experienced'
 				'name'
 				'age'
@@ -107,10 +108,13 @@ test '/pilot(1)', 'PUT', (result) ->
 				'team'
 				'licence'
 				'hire date'
+				'pilot'
 			).
 			values(
 				'Default'
 				['Bind', 'pilot', 'id']
+				'Default'
+				'Default'
 				'Default'
 				'Default'
 				'Default'
