@@ -81,14 +81,14 @@ export ometa OData2AbstractSQL {
 			PathSegment(method, body, path.property):childQuery
 			{query.merge(childQuery)}
 			(	?path.property.resource
-			|	{throw 'PathSegment has a property without a resource?'}
+			|	{throw new Error('PathSegment has a property without a resource?')}
 			)
 			Resource(path.property.resource):propertyResource
 			NavigateResources(resource, propertyResource):navigationWhere
 			-> query.where.push(navigationWhere)
 		|	?path.link
 			(	?path.link.resource
-			|	{throw 'PathSegment has a link without a resource?'}
+			|	{throw new Error('PathSegment has a link without a resource?')}
 			)
 			Resource(path.link.resource):linkResource
 			(	FieldContainedIn(linkResource.resourceName, resource)
@@ -97,7 +97,7 @@ export ometa OData2AbstractSQL {
 			|	FieldContainedIn(resource.resourceName, linkResource)
 				ReferencedField(linkResource.resourceName, resource.resourceName):referencedField
 				-> [referencedField, resource.resourceName]
-			|	{throw 'Cannot navigate links'}
+			|	{throw new Error('Cannot navigate links')}
 			):aliasedField
 			PathKey(path.link, query, linkResource, referencedField, body)?
 			-> query.select.push(aliasedField)
@@ -253,7 +253,7 @@ export ometa OData2AbstractSQL {
 				{resource.tableName = resourceMapping._name}
 			)
 			-> resource
-		|	{throw 'Unknown resource: ' + resourceName}
+		|	{throw new Error('Unknown resource: ' + resourceName)}
 	,
 
 	FieldContainedIn :resourceName :table =
@@ -268,7 +268,7 @@ export ometa OData2AbstractSQL {
 			ResolveResourceAlias(resourceName):resourceName
 			?this.clientModel.resourceToSQLMappings[resourceName]
 			-> this.clientModel.resourceToSQLMappings[resourceName]
-		|	{throw 'Unknown resource: ' + resourceName}
+		|	{throw new Error('Unknown resource: ' + resourceName)}
 	,
 
 	AddSelectFields :path :query :resource =
@@ -308,7 +308,7 @@ export ometa OData2AbstractSQL {
 		(	?mapping[resourceField]
 			-> ['ReferencedField'].concat(mapping[resourceField])
 		|	{console.error('Unknown mapping: ', mapping, resourceTable, resourceField)}
-			{throw 'Unknown mapping: ' + resourceTable + ' : ' + resourceField}
+			{throw new Error('Unknown mapping: ' + resourceTable + ' : ' + resourceField)}
 		)
 	,
 
@@ -615,7 +615,7 @@ export ometa OData2AbstractSQL {
 				['ReferencedField', resource2.tableName, resource2.idField],
 				fkField
 			]
-		|	{throw 'Cannot navigate resources ' + resource1.tableName + ' and ' + resource2.tableName}
+		|	{throw new Error('Cannot navigate resources ' + resource1.tableName + ' and ' + resource2.tableName)}
 		)
 	,
 
