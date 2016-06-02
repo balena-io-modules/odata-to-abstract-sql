@@ -283,7 +283,7 @@ export ometa OData2AbstractSQL {
 					});
 				})
 				.map(function(field) {
-					return $elf.AliasSelectField(field.resource.resourceName, field.name);
+					return $elf.AliasSelectField(field.resource, field.name);
 				})
 				.value()
 		|	ResourceMapping(resource):resourceMapping
@@ -291,13 +291,12 @@ export ometa OData2AbstractSQL {
 				return fieldName === '_name' || _.some(query.select, function(existingField) {
 					return _.last(existingField) == fieldName;
 				});
-			}).map(_.bind(this.AliasSelectField, this, resource.resourceName)).value()
+			}).map(_.bind(this.AliasSelectField, this, resource)).value()
 		):fields
 		-> (query.select = query.select.concat(fields))
 	,
 
-	AliasSelectField :resourceName :fieldName =
-		Resource(resourceName):resource
+	AliasSelectField :resource :fieldName =
 		ReferencedField(resource, fieldName):referencedField
 		(	?(referencedField[2] === fieldName)
 			-> referencedField
