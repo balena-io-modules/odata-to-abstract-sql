@@ -41,11 +41,13 @@ export ometa OData2AbstractSQL {
 			-> ['$serviceroot']
 		|	?_.includes(['$metadata', '$serviceroot'], path.resource)
 			-> [path.resource]
-		|	PathSegment(method, body, path):query
+		|	{this.reset()}
+			PathSegment(method, body, path):query
 			(	?(method == 'PUT')
 				// For PUT the initial pass generates the update query,
 				// so we run it through the parser a second time to get the insert query,
 				// for a full upsert query
+				{this.reset()}
 				PathSegment('PUT-INSERT', body, path):insertQuery
 				-> ['UpsertQuery', insertQuery.compile('InsertQuery'), query.compile('UpdateQuery')]
 			|	(	?(method == 'GET')
@@ -64,7 +66,7 @@ export ometa OData2AbstractSQL {
 	PathSegment :method :body :path =
 		?path.resource
 		Resource(path.resource):resource
-		{this.defaultResource = path.resource}
+		{this.defaultResource = resource}
 		{new Query()}:query
 		{query.from.push(resource.tableName)}
 
@@ -458,8 +460,7 @@ export ometa OData2AbstractSQL {
 			this.resourceAliases[lambda.identifier] = resource.resourceName;
 		}
 		(	{new Query()}:query
-			Resource(this.defaultResource):defaultResource
-			AddNavigation(query, defaultResource, resource)
+			AddNavigation(query, this.defaultResource, resource)
 			AddExtraFroms(lambda.expression, query, resource)
 			Boolean(lambda.expression):filter
 			{query.where.push(filter)}
@@ -506,18 +507,28 @@ export ometa OData2AbstractSQL {
 		:prop
 		?prop.name
 		(	?prop.property
-			{this.defaultResource}:defaultResource
-			{this.defaultResource = prop.name}
+			{this.parentProp}:parentProp
+			{this.parentProp = prop.name}
 			Property(prop.property):result
-			{this.defaultResource = defaultResource}
+			{this.parentProp = parentProp}
 			-> result
 		|	?(!prop.property)
 			?prop.lambda
 			Resource(prop.name):resource
-			Lambda(resource, prop.lambda)
+			(	?this.parentProp
+				// If we have a parent property we must use it as our current resource
+				{this.defaultResource}:defaultResource
+				Resource(this.parentProp):parentResource
+				{this.defaultResource = parentResource}
+				Lambda(resource, prop.lambda):result
+				{this.defaultResource = defaultResource}
+				-> result
+			|	?(!this.parentProp)
+				Lambda(resource, prop.lambda)
+			)
 		|	?(!prop.property)
 			?(!prop.lambda)
-			-> {resource: this.defaultResource, name: prop.name}
+			-> {resource: this.parentProp || this.defaultResource.resourceName, name: prop.name}
 		)
 	,
 
@@ -574,7 +585,7 @@ export ometa OData2AbstractSQL {
 				)
 				{nestedExpandQuery.from.push(expandResource.tableName)}
 
-				{this.defaultResource = expand.name}
+				{this.defaultResource = expandResource}
 				AddSelectFields(expand, nestedExpandQuery, expandResource)
 				(	?(!expand.options)
 				|	(	?(!expand.options.$filter)
@@ -676,5 +687,11 @@ export ometa OData2AbstractSQL {
 }
 
 OData2AbstractSQL.initialize = function() {
-	this.resourceAliases = {};
+	this.reset();
+};
+
+OData2AbstractSQL.reset = function() { 
+	this.resourceAliases = {}; 
+	this.defaultResource = null; 
+	this.parentProp = null; 
 };
