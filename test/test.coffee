@@ -16,9 +16,10 @@ runExpectation = (describe, input, method, body, expectation) ->
 		try
 			input = ODataParser.matchAll(input, 'OData')
 			result = OData2AbstractSQL.match(input, 'Process', [method, body])
-			expectation(result)
 		catch e
 			expectation(e)
+			return
+		expectation(result)
 
 module.exports = runExpectation.bind(null, describe)
 module.exports.skip = runExpectation.bind(null, describe.skip)
