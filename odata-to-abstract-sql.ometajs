@@ -94,17 +94,17 @@ export ometa OData2AbstractSQL {
 			)
 			Resource(path.link.resource):linkResource
 			(	FieldContainedIn(linkResource.resourceName, resource)
-				ReferencedField(resource.resourceName, linkResource.resourceName):referencedField
+				ReferencedField(resource, linkResource.resourceName):referencedField
 				-> [referencedField, linkResource.resourceName]
 			|	FieldContainedIn(resource.resourceName, linkResource)
-				ReferencedField(linkResource.resourceName, resource.resourceName):referencedField
+				ReferencedField(linkResource, resource.resourceName):referencedField
 				-> [referencedField, resource.resourceName]
 			|	{throw new Error('Cannot navigate links')}
 			):aliasedField
 			PathKey(path.link, query, linkResource, referencedField, body)?
 			-> query.select.push(aliasedField)
 		|	?(method == 'PUT' || method == 'PUT-INSERT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
-			ResourceMapping(resource.resourceName):resourceMapping
+			ResourceMapping(resource):resourceMapping
 			BindVars(method, body, resource.resourceName, _.toPairs(resourceMapping)):bindVars
 			{query.extras.push(['Fields', _.map(bindVars, 0)])}
 			{query.extras.push(['Values', _.map(bindVars, 1)])}
@@ -251,26 +251,25 @@ export ometa OData2AbstractSQL {
 			{this.clientModel.resources[resourceName]}:resource
 			?resource
 			(	?resource.tableName
-			|	ResourceMapping(resourceName):resourceMapping
+			|	ResourceMapping(resource):resourceMapping
 				{resource.tableName = resourceMapping._name}
 			)
 			-> resource
 		|	{throw new Error('Unknown resource: ' + resourceName)}
 	,
 
-	FieldContainedIn :resourceName :table =
-		ResourceMapping(table.resourceName):mapping
-		{mapping[resourceName]}:mappedField
+	FieldContainedIn :fieldName :resource =
+		ResourceMapping(resource):mapping
+		{mapping[fieldName]}:mappedField
 		?mappedField
-		?(mappedField[0] == table.tableName)
-		?_.some(table.fields, {fieldName: mappedField[1]})
+		?(mappedField[0] == resource.tableName)
+		?_.some(resource.fields, {fieldName: mappedField[1]})
 	,
 
-	ResourceMapping :resourceName =
-			ResolveResourceAlias(resourceName):resourceName
-			?this.clientModel.resourceToSQLMappings[resourceName]
-			-> this.clientModel.resourceToSQLMappings[resourceName]
-		|	{throw new Error('Unknown resource: ' + resourceName)}
+	ResourceMapping :resource =
+			?this.clientModel.resourceToSQLMappings[resource.resourceName]
+			-> this.clientModel.resourceToSQLMappings[resource.resourceName]
+		|	{throw new Error('Unknown resource: ' + resource.resourceName)}
 	,
 
 	AddSelectFields :path :query :resource =
@@ -287,7 +286,7 @@ export ometa OData2AbstractSQL {
 					return $elf.AliasSelectField(field.resource.resourceName, field.name);
 				})
 				.value()
-		|	ResourceMapping(resource.resourceName):resourceMapping
+		|	ResourceMapping(resource):resourceMapping
 			-> _(resourceMapping).keys().reject(function(fieldName) {
 				return fieldName === '_name' || _.some(query.select, function(existingField) {
 					return _.last(existingField) == fieldName;
@@ -298,15 +297,16 @@ export ometa OData2AbstractSQL {
 	,
 
 	AliasSelectField :resourceName :fieldName =
-		ReferencedField(resourceName, fieldName):referencedField
+		Resource(resourceName):resource
+		ReferencedField(resource, fieldName):referencedField
 		(	?(referencedField[2] === fieldName)
 			-> referencedField
 		|	-> [referencedField, fieldName]
 		)
 	,
 
-	ReferencedField :resourceTable :resourceField =
-		ResourceMapping(resourceTable):mapping
+	ReferencedField :resource :resourceField =
+		ResourceMapping(resource):mapping
 		(	?mapping[resourceField]
 			-> ['ReferencedField'].concat(mapping[resourceField])
 		|	{console.error('Unknown mapping: ', mapping, resourceTable, resourceField)}
@@ -499,7 +499,7 @@ export ometa OData2AbstractSQL {
 		(	?_.isArray(prop)
 			// It's the result of a lambda
 			-> prop
-		|	ReferencedField(prop.resource.resourceName, prop.name)
+		|	ReferencedField(prop.resource, prop.name)
 		)
 	,
 
@@ -622,13 +622,13 @@ export ometa OData2AbstractSQL {
 
 	NavigateResources :resource1 :resource2 =
 		(	FieldContainedIn(resource1.resourceName, resource2)
-			ReferencedField(resource2.resourceName, resource1.resourceName):fkField
+			ReferencedField(resource2, resource1.resourceName):fkField
 			-> ['Equals',
 				['ReferencedField', resource1.tableName, resource1.idField],
 				fkField
 			]
 		|	FieldContainedIn(resource2.resourceName, resource1)
-			ReferencedField(resource1.resourceName, resource2.resourceName):fkField
+			ReferencedField(resource1, resource2.resourceName):fkField
 			-> ['Equals',
 				['ReferencedField', resource2.tableName, resource2.idField],
 				fkField
