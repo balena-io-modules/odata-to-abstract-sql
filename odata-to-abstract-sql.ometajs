@@ -284,7 +284,7 @@ export ometa OData2AbstractSQL {
 					});
 				})
 				.map(function(field) {
-					return $elf.AliasSelectField(field.resource, field.name);
+					return $elf.AliasSelectField(field.resource.resourceName, field.name);
 				})
 				.value()
 		|	ResourceMapping(resource.resourceName):resourceMapping
@@ -499,7 +499,7 @@ export ometa OData2AbstractSQL {
 		(	?_.isArray(prop)
 			// It's the result of a lambda
 			-> prop
-		|	ReferencedField(prop.resource, prop.name)
+		|	ReferencedField(prop.resource.resourceName, prop.name)
 		)
 	,
 
@@ -528,7 +528,11 @@ export ometa OData2AbstractSQL {
 			)
 		|	?(!prop.property)
 			?(!prop.lambda)
-			-> {resource: this.parentProp || this.defaultResource.resourceName, name: prop.name}
+			(	?this.parentProp
+				Resource(this.parentProp)
+			|	-> this.defaultResource
+			):resource
+			-> {resource: resource, name: prop.name}
 		)
 	,
 
