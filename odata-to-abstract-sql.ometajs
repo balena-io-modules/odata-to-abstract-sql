@@ -511,10 +511,13 @@ export ometa OData2AbstractSQL {
 			Property(prop.property):result
 			{this.defaultResource = defaultResource}
 			-> result
-		|	?prop.lambda
+		|	?(!prop.property)
+			?prop.lambda
 			Resource(prop.name):resource
 			Lambda(resource, prop.lambda)
-		|	-> {resource: this.defaultResource, name: prop.name}
+		|	?(!prop.property)
+			?(!prop.lambda)
+			-> {resource: this.defaultResource, name: prop.name}
 		)
 	,
 

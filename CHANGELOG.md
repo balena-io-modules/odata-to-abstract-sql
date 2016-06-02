@@ -1,3 +1,4 @@
+* Fixed cases where prop.property or prop.lambda could be ignored.
 * Switched to throwing errors rather than strings so that we get stack traces
 
 v0.3.3
