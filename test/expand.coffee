@@ -4,7 +4,7 @@ chaiSql = require './chai-sql'
 { operandToAbstractSQL, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
 test = require './test'
 
-createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
+createAggregate = ({ parentResource, resourceName, attributeOfParent, fields }) ->
 	odataName = resourceName.replace(/-/g, '__')
 	whereClause =
 		if attributeOfParent
@@ -45,14 +45,24 @@ createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
 	]
 
 aggregateJSON =
-	licence: createAggregate('pilot', 'licence', true, licenceFields)
+	licence: createAggregate(
+		parentResource: 'pilot'
+		resourceName: 'licence'
+		attributeOfParent: true
+		fields: licenceFields
+	)
 	pilotCanFlyPlane:
 		plane: createAggregate(
-			'pilot'
-			'pilot-can_fly-plane'
-			false
-			[
-				createAggregate('pilot-can_fly-plane', 'plane', true, planeFields)
+			parentResource: 'pilot'
+			resourceName: 'pilot-can_fly-plane'
+			attributeOfParent: false
+			fields: [
+				createAggregate(
+					parentResource: 'pilot-can_fly-plane'
+					resourceName: 'plane'
+					attributeOfParent: true
+					fields: planeFields
+				)
 				_.reject(pilotCanFlyPlaneFields, 2: 'plane')...
 			]
 		)
@@ -125,7 +135,12 @@ test '/pilot?$expand=pilot__can_fly__plane($select=id)', (result) ->
 	it 'should only select id and the expanded fields', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				createAggregate('pilot', 'pilot-can_fly-plane', false, _.filter(pilotCanFlyPlaneFields, 2: 'id'))
+				createAggregate(
+					parentResource: 'pilot'
+					resourceName: 'pilot-can_fly-plane'
+					attributeOfParent: false
+					fields: _.filter(pilotCanFlyPlaneFields, 2: 'id')
+				)
 			].concat(pilotFields)).
 			from('pilot')
 
