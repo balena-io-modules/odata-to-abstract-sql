@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{ operandToAbstractSQL, pilotFields } = require('./chai-sql')
+{ operandToAbstractSQL, aliasFields, pilotFields } = require('./chai-sql')
 test = require('./test')
 
 pilotName = _.filter(pilotFields, 2: 'name')[0]
@@ -42,20 +42,35 @@ test "/pilot('TextKey')?$select=favourite_colour", (result) ->
 test '/pilot?$select=pilot/name', (result) ->
 	it 'should select name from pilot', ->
 		expect(result).to.be.a.query.that.
-			selects([
+			selects(aliasFields('pilot', [
 				pilotName
-			]).
-			from('pilot')
+			])).
+			from(
+				'pilot'
+				['pilot', 'pilot.pilot']
+			).
+			where(
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot', 'pilot']]
+			)
 
 
 test '/pilot?$select=pilot/name,age', (result) ->
 	it 'should select name, age from pilot', ->
 		expect(result).to.be.a.query.that.
-			selects([
-				pilotName
-				pilotAge
-			]).
-			from('pilot')
+			selects(
+				aliasFields('pilot', [
+					pilotName
+				]).concat([
+					pilotAge
+				])
+			).
+			from(
+				'pilot'
+				['pilot', 'pilot.pilot']
+			).
+			where(
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot', 'pilot']]
+			)
 
 
 test '/pilot?$select=*', (result) ->
@@ -71,9 +86,12 @@ test '/pilot?$select=licence/id', (result) ->
 			selects([
 				operandToAbstractSQL('licence/id')
 			]).
-			from('pilot', 'licence').
+			from(
+				'pilot'
+				['licence', 'pilot.licence']
+			).
 			where(
-				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
+				['Equals', ['ReferencedField', 'pilot.licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 			)
 
 
@@ -83,8 +101,12 @@ test '/pilot?$select=pilot__can_fly__plane/plane/id', (result) ->
 			selects([
 				operandToAbstractSQL('pilot__can_fly__plane/plane/id')
 			]).
-			from('pilot', 'pilot-can_fly-plane', 'plane').
+			from(
+				'pilot'
+				['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
+				['plane', 'pilot.pilot-can_fly-plane.plane']
+			).
 			where(['And'
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
-				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'plane']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']]
+				['Equals', ['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']]
 			])

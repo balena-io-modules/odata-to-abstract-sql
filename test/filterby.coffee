@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{ operandToAbstractSQL, operandToOData, pilotFields, pilotCanFlyPlaneFields, teamFields } = require('./chai-sql')
+{ operandToAbstractSQL, operandToOData, aliasFields, pilotFields, pilotCanFlyPlaneFields, teamFields } = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
 
@@ -85,7 +85,6 @@ do ->
 			-2.5
 			"'bar'"
 			'name'
-			'pilot/name'
 			new Date()
 			{ negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }
 			true
@@ -123,32 +122,36 @@ do ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
 				selects(pilotFields).
-				from('pilot', 'pilot-can_fly-plane').
+				from('pilot', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
 				where(['And'
-					['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
+					['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']]
 					abstractsql
 				])
 
 do ->
-	{ odata, abstractsql } = createExpression('plane/id', 'eq', 10)
+	{ odata, abstractsql } = createExpression(['plane/id', null, 'pilot.pilot-can_fly-plane'], 'eq', 10)
 	test '/pilot(1)/pilot__can_fly__plane?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-				selects(pilotCanFlyPlaneFields).
-				from('pilot', 'pilot-can_fly-plane').
+				selects(aliasFields('pilot', pilotCanFlyPlaneFields)).
+				from(
+					'pilot'
+					['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
+					['plane', 'pilot.pilot-can_fly-plane.plane']
+				).
 				where(['And'
 					['Equals'
 						['ReferencedField', 'pilot', 'id']
 						['Number', 1]
 					]
 					['Equals'
-						['ReferencedField', 'plane', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'plane']
+						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+						['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 					]
 					abstractsql
 					['Equals'
 						['ReferencedField', 'pilot', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+						['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
 					]
 				])
 
@@ -158,11 +161,11 @@ do ->
 	filterWhere = ['And'
 		['Equals'
 			['ReferencedField', 'pilot', 'id']
-			['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+			['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
 		]
 		['Equals'
-			['ReferencedField', 'plane', 'id']
-			['ReferencedField', 'pilot-can_fly-plane', 'plane']
+			['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+			['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 		]
 		abstractsql
 	]
@@ -175,8 +178,8 @@ do ->
 					[	[ 'ReferencedField', 'pilot', 'name' ]
 					]
 				]
-				[ 'From', 'pilot-can_fly-plane' ],
-				[ 'From', 'plane' ],
+				['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
+				['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
 				[	'From'
 					[	[	'SelectQuery'
 							[	'Select'
@@ -212,8 +215,8 @@ do ->
 				[	['ReferencedField', 'pilot', 'id']
 				]
 			],
-			['From', 'pilot-can_fly-plane']
-			['From', 'plane']
+			['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
+			['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
 			['From', 'pilot']
 			['Where', filterWhere]
 		]
@@ -223,15 +226,18 @@ do ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
 				selects(pilotFields).
-				from('pilot', 'pilot-can_fly-plane', 'pilot').
+				from(
+					'pilot'
+					['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
+				).
 				where(['And'
 					['Equals'
 						['ReferencedField', 'pilot', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+						['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
 					]
 					['Equals'
-						['ReferencedField', 'plane', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'plane']
+						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+						['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 					]
 					abstractsql
 				])
@@ -296,21 +302,21 @@ do ->
 							[	['ReferencedField', 'pilot', 'id']
 							]
 						],
-						['From', 'pilot-can_fly-plane']
-						['From', 'plane']
+						['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
+						['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
 						['From', 'pilot']
 						['Where'
 							['And'
 								['Equals'
 									['ReferencedField', 'pilot', 'id']
-									['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+									['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
 								]
 								['Equals'
-									['ReferencedField', 'plane', 'id']
-									['ReferencedField', 'pilot-can_fly-plane', 'plane']
+									['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+									['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 								]
 								['Equals'
-									['ReferencedField', 'plane', 'id']
+									['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
 									['Number', 10]
 								]
 							]
@@ -454,7 +460,9 @@ do ->
 						]
 					]
 					[	'From'
-						'licence'
+						[	'licence'
+							'pilot.licence'
+						]
 					]
 					[	'From'
 						[	[	'SelectQuery'
@@ -481,7 +489,7 @@ do ->
 					]
 					[	'Where'
 						[	'And'
-							['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
+							['Equals', ['ReferencedField', 'pilot.licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 							abstractsql
 						]
 					]
@@ -503,7 +511,9 @@ do ->
 						]
 					]
 					[	'From'
-						'licence'
+						[	'licence'
+							'pilot.licence'
+						]
 					]
 					[	'From'
 						[	[	'SelectQuery'
@@ -529,7 +539,7 @@ do ->
 					]
 					[	'Where'
 						[	'And'
-							['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
+							['Equals', ['ReferencedField', 'pilot.licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 							abstractsql
 						]
 					]
@@ -579,14 +589,14 @@ lambdaTest = (methodName) ->
 				[	'And'
 					[	'Equals'
 						['ReferencedField', 'pilot', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+						['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
 					]
 					[	'Equals'
-						['ReferencedField', 'plane', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'plane']
+						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+						['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 					]
 					[	'Equals'
-						['ReferencedField', 'plane', 'name']
+						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
 						['Text', 'Concorde']
 					]
 				]
@@ -598,8 +608,8 @@ lambdaTest = (methodName) ->
 				[	'Exists'
 					[	'SelectQuery'
 						['Select', []]
-						['From', 'pilot-can_fly-plane']
-						['From', 'plane']
+						['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
+						['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
 						['Where', subWhere]
 					]
 				]
@@ -617,11 +627,11 @@ lambdaTest = (methodName) ->
 			subWhere =
 				[	'And'
 					[	'Equals'
-						['ReferencedField', 'plane', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'plane']
+						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+						['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 					]
 					[	'Equals'
-						['ReferencedField', 'plane', 'name']
+						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
 						['Text', 'Concorde']
 					]
 				]
@@ -633,7 +643,7 @@ lambdaTest = (methodName) ->
 				[	'Exists'
 					[	'SelectQuery'
 						['Select', []]
-						['From', 'plane']
+						['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
 						['Where', subWhere]
 					]
 				]
@@ -643,12 +653,15 @@ lambdaTest = (methodName) ->
 
 			expect(result).to.be.a.query.that.
 				selects(pilotFields).
-				from('pilot', 'pilot-can_fly-plane').
+				from(
+					'pilot'
+					['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
+				).
 				where([
 					'And'
 					[	'Equals'
 						['ReferencedField', 'pilot', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+						['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
 					]
 					where
 				])
@@ -698,20 +711,25 @@ do ->
 		it 'should select from team where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
 				selects(teamFields).
-				from('team', 'pilot', 'pilot-can_fly-plane', 'plane').
+				from(
+					'team'
+					['pilot', 'team.pilot']
+					['pilot-can_fly-plane', 'team.pilot.pilot-can_fly-plane']
+					['plane', 'team.pilot.pilot-can_fly-plane.plane']
+				).
 				where([
 					'And',
 					[	'Equals'
 						['ReferencedField', 'team', 'favourite colour']
-						['ReferencedField', 'pilot', 'team']
+						['ReferencedField', 'team.pilot', 'team']
 					]
 					[	'Equals'
-						['ReferencedField', 'pilot', 'id' ]
-						['ReferencedField', 'pilot-can_fly-plane', 'pilot' ]
+						['ReferencedField', 'team.pilot', 'id' ]
+						['ReferencedField', 'team.pilot.pilot-can_fly-plane', 'pilot' ]
 					]
 					[	'Equals'
-						['ReferencedField', 'plane', 'id']
-						['ReferencedField', 'pilot-can_fly-plane', 'plane']
+						['ReferencedField', 'team.pilot.pilot-can_fly-plane.plane', 'id']
+						['ReferencedField', 'team.pilot.pilot-can_fly-plane', 'plane']
 					]
 					abstractsql
 				])

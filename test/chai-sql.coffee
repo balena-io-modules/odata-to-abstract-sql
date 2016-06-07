@@ -55,7 +55,7 @@ chai.use((chai, utils) ->
 )
 
 clientModel = require('./client-model.json')
-exports.operandToAbstractSQL = (operand, resource = 'pilot') ->
+exports.operandToAbstractSQL = operandToAbstractSQL = (operand, resource = 'pilot', parentAlias = resource) ->
 	if operand.abstractsql?
 		return operand.abstractsql
 	if _.isBoolean(operand)
@@ -71,19 +71,27 @@ exports.operandToAbstractSQL = (operand, resource = 'pilot') ->
 			return ['Text', decodeURIComponent(operand[1...(operand.length - 1)])]
 		fieldParts = operand.split('/')
 		if fieldParts.length > 1
+			alias = parentAlias
+			for fieldPart in fieldParts[...-2]
+				alias = "#{alias}.#{fieldPart.replace(/__/g, '-')}"
 			mapping = clientModel.resourceToSQLMappings[fieldParts[fieldParts.length - 2]][fieldParts[fieldParts.length - 1]]
+			mapping = ["#{alias}.#{mapping[0]}", mapping[1...]...]
 		else
 			mapping = clientModel.resourceToSQLMappings[resource][operand]
 		return ['ReferencedField'].concat(mapping)
+	if _.isArray(operand)
+		return operandToAbstractSQL(operand...)
 	if _.isObject(operand)
 		return [ 'Duration', operand ]
 	throw new Error('Unknown operand type: ' + operand)
 
-exports.operandToOData = (operand) ->
+exports.operandToOData = operandToOData = (operand) ->
 	if operand.odata?
 		return operand.odata
 	if _.isDate(operand)
 		return "datetime'" + encodeURIComponent(operand.toISOString()) + "'"
+	if _.isArray(operand)
+		return operandToOData(operand[0])
 	if _.isObject(operand)
 		duration = []
 		t = false
@@ -109,6 +117,20 @@ exports.operandToOData = (operand) ->
 			throw new Error('Duration must contain at least 1 component')
 		return "duration'#{duration.join('')}'"
 	return operand
+
+exports.aliasFields = do ->
+	aliasField = (resourceAlias, field) ->
+		if field[0] is 'ReferencedField'
+			return [field[0], "#{resourceAlias}.#{field[1]}", field[2]]
+		if field.length is 2 and field[0][0] is 'ReferencedField'
+			return [
+				aliasField(resourceAlias, field[0])
+				field[1]
+			]
+		else
+			return field
+	return (resourceAlias, fields) ->
+		_.map(fields, _.partial(aliasField, resourceAlias))
 
 exports.pilotFields = [
 	[['ReferencedField', 'pilot', 'created at'], 'created_at']
