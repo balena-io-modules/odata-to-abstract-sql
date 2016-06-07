@@ -243,12 +243,13 @@ export ometa OData2AbstractSQL {
 	,
 
 	ResolveResourceAlias :aliasName =
-		-> (this.resourceAliases[aliasName] || aliasName)
+		?this.resourceAliases[aliasName]
+		-> this.resourceAliases[aliasName]
 	,
 
 	Resource :resourceName =
 			ResolveResourceAlias(resourceName):resourceName
-			{this.clientModel.resources[resourceName]}:resource
+		|	{this.clientModel.resources[resourceName]}:resource
 			?resource
 			(	?resource.tableName
 			|	ResourceMapping(resource):resourceMapping
@@ -456,7 +457,7 @@ export ometa OData2AbstractSQL {
 	Lambda :resource :lambda =
 		{this.resourceAliases}:resourceAliases
 		{	this.resourceAliases = _.clone(this.resourceAliases);
-			this.resourceAliases[lambda.identifier] = resource.resourceName;
+			this.resourceAliases[lambda.identifier] = resource;
 		}
 		(	{new Query()}:query
 			AddNavigation(query, this.defaultResource, resource)
@@ -638,17 +639,15 @@ export ometa OData2AbstractSQL {
 
 	AddExtraFroms :searchPoint :query :resource =
 		ExtraFroms(searchPoint):extraFroms
-		{	_.each(extraFroms, function(resourceName) {
+		{	_.each(extraFroms, function(extraResource) {
 				var currentResource = resource;
-				if(_.isArray(resourceName)) {
-					_.each(resourceName, function(resourceName) {
-						var extraResource = $elf.Resource(resourceName);
+				if(_.isArray(extraResource)) {
+					_.each(extraResource, function(extraResource) {
 						$elf.AddNavigation(query, currentResource, extraResource);
 						currentResource = extraResource;
 					});
 				}
 				else {
-					var extraResource = $elf.Resource(resourceName);
 					$elf.AddNavigation(query, currentResource, extraResource);
 				}
 			});
@@ -664,13 +663,14 @@ export ometa OData2AbstractSQL {
 				)*
 			]
 		|	:nextProp
+			{this.defaultResource}:parentResource
 			(	{nextProp}:prop
 				?prop
 				?prop.name
 				?prop.property
 				?prop.property.name
 				{prop.property}:nextProp
-				ResolveResourceAlias(prop.name)
+				Resource(prop.name, parentResource):parentResource
 			)+:extraFroms
 			(	?(extraFroms.length == 1)
 				-> froms.push(extraFroms[0])
@@ -682,7 +682,9 @@ export ometa OData2AbstractSQL {
 	,
 
 	AddNavigation :query :resource :extraResource =
-		(	?(!_.includes(query.from, extraResource.tableName))
+		(	?(!_.some(query.from, function(from) {
+				return from === extraResource.tableName || from[1] === extraResource.tableName;
+			}))
 			NavigateResources(resource, extraResource):nagivationWhere
 			{query.from.push(extraResource.tableName)}
 			{query.where.push(nagivationWhere)}
