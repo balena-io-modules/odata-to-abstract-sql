@@ -619,6 +619,7 @@ export ometa OData2AbstractSQL {
 					)
 					AddExtraQueryOptions(expandResource, expand, nestedExpandQuery)
 				)
+
 				{this.defaultResource = defaultResource}
 
 				NavigateResources(resource, expandResource):navigationWhere
@@ -632,20 +633,23 @@ export ometa OData2AbstractSQL {
 		]
 	,
 
-	AddExtraQueryOptions: resource :path :query =
+	AddExtraQueryOptions :resource :path :query =
 		// When querying /$count, $orderby/$top/$skip must be ignored
-		?path.count
-		|	(	?(!path.options.$orderby)
-			|	OrderBy(path.options.$orderby, query, resource)
+		(	?path.count
+		|	(
+				(	?(!path.options.$orderby)
+				|	OrderBy(path.options.$orderby, query, resource)
+				)
+				(	?(!path.options.$top)
+				|	Number(path.options.$top):limit
+					-> query.extras.push(['Limit', limit])
+				)
+				(	?(!path.options.$skip)
+				|	Number(path.options.$skip):offset
+					-> query.extras.push(['Offset', offset])
+				)
 			)
-			(	?(!path.options.$top)
-			|	Number(path.options.$top):limit
-				-> query.extras.push(['Limit', limit])
-			)
-			(	?(!path.options.$skip)
-			|	Number(path.options.$skip):offset
-				-> query.extras.push(['Offset', offset])
-			)
+		)
 	,
 
 	NavigateResources :resource1 :resource2 =
