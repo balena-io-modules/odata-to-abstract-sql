@@ -59,6 +59,12 @@ operandTest = (lhs, op, rhs) ->
 				selects(pilotFields).
 				from('pilot').
 				where(abstractsql)
+	test '/pilot/$count?$filter=' + odata, (result) ->
+		it 'should count(*) from pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.
+			selects([['Count', '*'], '$count']).
+			from('pilot').
+			where(abstractsql)
 
 methodTest = (args...) ->
 	{ odata, abstractsql } = createMethodCall.apply(null, args)
@@ -68,33 +74,19 @@ methodTest = (args...) ->
 				selects(pilotFields).
 				from('pilot').
 				where(abstractsql)
-
-operandTestCount = (lhs, op, rhs) ->
-	{odata, abstractsql} = createExpression(lhs, op, rhs)
 	test '/pilot/$count?$filter=' + odata, (result) ->
 		it 'should count(*) from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-			selects([['Count', '*']]).
+			selects([['Count', '*'], '$count']).
 			from('pilot').
 			where(abstractsql)
 
-methodTestCount = (args...) ->
-	{odata, abstractsql} = createMethodCall.apply(null, args)
-	test '/pilot/$count?$filter=' + odata, (result) ->
-		it 'should count(*) from pilot where "' + odata + '"', ->
-			expect(result).to.be.a.query.that.
-			selects([['Count', '*']]).
-			from('pilot').
-			where(abstractsql)
-
-
-for opTest in [operandTest, operandTestCount]
-	opTest(2, 'eq', 'name')
-	opTest(2, 'ne', 'name')
-	opTest(2, 'gt', 'name')
-	opTest(2, 'ge', 'name')
-	opTest(2, 'lt', 'name')
-	opTest(2, 'le', 'name')
+operandTest(2, 'eq', 'name')
+operandTest(2, 'ne', 'name')
+operandTest(2, 'gt', 'name')
+operandTest(2, 'ge', 'name')
+operandTest(2, 'lt', 'name')
+operandTest(2, 'le', 'name')
 
 
 # Test each combination of operands
@@ -116,17 +108,15 @@ do ->
 	for lhs in operands
 		for rhs in operands
 			operandTest(lhs, 'eq', rhs)
-			operandTestCount(lhs, 'eq', rhs)
 
 do ->
 	left = createExpression('age', 'gt', 2)
 	right = createExpression('age', 'lt', 10)
-	for opTest in [operandTest, operandTestCount]
-		opTest(left, 'and', right)
-		opTest(left, 'or', right)
-		opTest('is_experienced')
-		opTest('not', 'is_experienced')
-		opTest('not', left)
+	operandTest(left, 'and', right)
+	operandTest(left, 'or', right)
+	operandTest('is_experienced')
+	operandTest('not', 'is_experienced')
+	operandTest('not', left)
 
 do ->
 	mathOps = [
@@ -138,7 +128,6 @@ do ->
 	for mathOp in mathOps
 		mathOp = createExpression('age', mathOp, 2)
 		operandTest(mathOp, 'gt', 10)
-		operandTestCount(mathOp, 'gt', 10)
 
 do ->
 	{ odata, abstractsql } = createExpression('pilot__can_fly__plane/id', 'eq', 10)
@@ -570,133 +559,145 @@ do ->
 				).
 				from('pilot')
 
-for mTest in [methodTest, methodTestCount]
-	mTest('contains', 'name', "'et'")
-	mTest('endswith', 'name', "'ete'")
-	mTest('startswith', 'name', "'P'")
+methodTest('contains', 'name', "'et'")
+methodTest('endswith', 'name', "'ete'")
+methodTest('startswith', 'name', "'P'")
 
-for opTest in [operandTest, operandTestCount]
-	opTest(createMethodCall('length', 'name'), 'eq', 4)
-	opTest(createMethodCall('indexof', 'name', "'Pe'"), 'eq', 0)
-	opTest(createMethodCall('substring', 'name', 1), 'eq', "'ete'")
-	opTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'")
-	opTest(createMethodCall('tolower', 'name'), 'eq', "'pete'")
-	opTest(createMethodCall('tolower', 'licence/name'), 'eq', "'pete'")
-	opTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'")
+operandTest(createMethodCall('length', 'name'), 'eq', 4)
+operandTest(createMethodCall('indexof', 'name', "'Pe'"), 'eq', 0)
+operandTest(createMethodCall('substring', 'name', 1), 'eq', "'ete'")
+operandTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'")
+operandTest(createMethodCall('tolower', 'name'), 'eq', "'pete'")
+operandTest(createMethodCall('tolower', 'licence/name'), 'eq', "'pete'")
+operandTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'")
 do ->
 	concat = createMethodCall('concat', 'name', "'%20'")
 	operandTest(createMethodCall('trim', concat), 'eq', "'Pete'")
 	operandTest(concat, 'eq', "'Pete%20'")
-	operandTestCount(createMethodCall('trim', concat), 'eq', "'Pete'")
-	operandTestCount(concat, 'eq', "'Pete%20'")
 
-for opTest in [operandTest, operandTestCount]
-	opTest(createMethodCall('year', 'hire_date'), 'eq', 2011)
-	opTest(createMethodCall('month', 'hire_date'), 'eq', 10)
-	opTest(createMethodCall('day', 'hire_date'), 'eq', 3)
-	opTest(createMethodCall('hour', 'hire_date'), 'eq', 12)
-	opTest(createMethodCall('minute', 'hire_date'), 'eq', 10)
-	opTest(createMethodCall('second', 'hire_date'), 'eq', 25)
-	opTest(createMethodCall('fractionalseconds', 'hire_date'), 'eq', .222)
-	opTest(createMethodCall('date', 'hire_date'), 'eq', "'2011-10-03'")
-	opTest(createMethodCall('time', 'hire_date'), 'eq', "'12:10:25.222'")
-	opTest(createMethodCall('totaloffsetminutes', 'hire_date'), 'eq', 60)
-	opTest(createMethodCall('now'), 'eq', new Date('2012-12-03T07:16:23Z'))
-	opTest(createMethodCall('maxdatetime'), 'eq', new Date('9999-12-31T11:59:59Z'))
-	opTest(createMethodCall('mindatetime'), 'eq', new Date('1970-01-01T00:00:00Z'))
-	opTest(createMethodCall('totalseconds', { negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }), 'eq', -273906.7)
-	opTest(createMethodCall('round', 'age'), 'eq', 25)
-	opTest(createMethodCall('floor', 'age'), 'eq', 25)
-	opTest(createMethodCall('ceiling', 'age'), 'eq', 25)
+operandTest(createMethodCall('year', 'hire_date'), 'eq', 2011)
+operandTest(createMethodCall('month', 'hire_date'), 'eq', 10)
+operandTest(createMethodCall('day', 'hire_date'), 'eq', 3)
+operandTest(createMethodCall('hour', 'hire_date'), 'eq', 12)
+operandTest(createMethodCall('minute', 'hire_date'), 'eq', 10)
+operandTest(createMethodCall('second', 'hire_date'), 'eq', 25)
+operandTest(createMethodCall('fractionalseconds', 'hire_date'), 'eq', .222)
+operandTest(createMethodCall('date', 'hire_date'), 'eq', "'2011-10-03'")
+operandTest(createMethodCall('time', 'hire_date'), 'eq', "'12:10:25.222'")
+operandTest(createMethodCall('totaloffsetminutes', 'hire_date'), 'eq', 60)
+operandTest(createMethodCall('now'), 'eq', new Date('2012-12-03T07:16:23Z'))
+operandTest(createMethodCall('maxdatetime'), 'eq', new Date('9999-12-31T11:59:59Z'))
+operandTest(createMethodCall('mindatetime'), 'eq', new Date('1970-01-01T00:00:00Z'))
+operandTest(createMethodCall('totalseconds', { negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }), 'eq', -273906.7)
+operandTest(createMethodCall('round', 'age'), 'eq', 25)
+operandTest(createMethodCall('floor', 'age'), 'eq', 25)
+operandTest(createMethodCall('ceiling', 'age'), 'eq', 25)
 
 methodTest('substringof', "'Pete'", 'name')
-methodTestCount('substringof', "'Pete'", 'name')
 operandTest(createMethodCall('replace', 'name', "'ete'", "'at'"), 'eq', "'Pat'")
-operandTestCount(createMethodCall('replace', 'name', "'ete'", "'at'"), 'eq', "'Pat'")
 
 lambdaTest = (methodName) ->
-	test '/pilot?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
-		it 'should select from pilot where ...', ->
-			subWhere =
-				[	'And'
-					[	'Equals'
-						['ReferencedField', 'pilot', 'id']
-						['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
-					]
-					[	'Equals'
-						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
-						['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
-					]
-					[	'Equals'
-						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
-						['Text', 'Concorde']
-					]
-				]
-			# All is implemented as where none fail
-			if methodName is 'all'
-				subWhere = ['Not', subWhere]
+	do ->
+		subWhere =
+			[	'And'
+		    [	'Equals'
+		      ['ReferencedField', 'pilot', 'id']
+		      ['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
+		    ]
+		    [	'Equals'
+		      ['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+		      ['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
+		    ]
+		    [	'Equals'
+		      ['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
+		      ['Text', 'Concorde']
+		    ]
+		]
+		# All is implemented as where none fail
+		if methodName is 'all'
+			subWhere = ['Not', subWhere]
 
-			where =
-				[	'Exists'
-					[	'SelectQuery'
-						['Select', []]
-						['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
-						['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
-						['Where', subWhere]
-					]
-				]
-			# All is implemented as where none fail
-			if methodName is 'all'
-				where = ['Not', where]
+		where =
+			[	'Exists'
+				[	'SelectQuery'
+				['Select', []]
+				['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
+				['From', 'plane', ['pilot.pilot-can_fly-plane.plane']]
+				['Where', subWhere]
+			]
+		]
+		# All is implemented as where none fail
+		if methodName is 'all'
+			where = ['Not', where]
 
-			expect(result).to.be.a.query.that.
-				selects(pilotFields).
-				from('pilot').
-				where(where)
+		test '/pilot?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
+			it 'should select from pilot where ...', ->
+				expect(result).to.be.a.query.that.
+					selects(pilotFields).
+					from('pilot').
+					where(where)
+
+		test '/pilot/$count?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
+			it 'should select count(*) from pilot where ...', ->
+				expect(result).to.be.a.query.that.
+					selects([['Count', '*'], '$count']).
+					from('pilot').
+					where(where)
+
+	do ->
+		subWhere =
+			[	'And'
+				[	'Equals'
+					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
+				]
+				[	'Equals'
+					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
+					['Text', 'Concorde']
+				]
+		]
+		# All is implemented as where none fail
+		if methodName is 'all'
+			subWhere = ['Not', subWhere]
+
+		innerWhere =
+			[ 'Exists'
+				[ 'SelectQuery'
+					['Select', []]
+					['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
+					['Where', subwhere]
+				]
+			]
+		# All is implemented as where none fail
+		if methodName is 'all'
+			innerWhere = ['Not', innerWhere]
+
+		where =
+			[ 'And'
+				[ 'Equals'
+					['ReferencedField', 'pilot', 'id']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
+				]
+				innerWhere
+			]
 
 	test '/pilot?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
 		it 'should select from pilot where ...', ->
-			subWhere =
-				[	'And'
-					[	'Equals'
-						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
-						['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
-					]
-					[	'Equals'
-						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
-						['Text', 'Concorde']
-					]
-				]
-			# All is implemented as where none fail
-			if methodName is 'all'
-				subWhere = ['Not', subWhere]
-
-			where =
-				[	'Exists'
-					[	'SelectQuery'
-						['Select', []]
-						['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
-						['Where', subWhere]
-					]
-				]
-			# All is implemented as where none fail
-			if methodName is 'all'
-				where = ['Not', where]
-
 			expect(result).to.be.a.query.that.
 				selects(pilotFields).
 				from(
-					'pilot'
-					['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
-				).
-				where([
-					'And'
-					[	'Equals'
-						['ReferencedField', 'pilot', 'id']
-						['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
-					]
-					where
-				])
+					'pilot',
+					['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
+				where(where)
+
+	test '/pilot/$count?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
+		it 'should select count(*) from pilot where ...', ->
+			expect(result).to.be.a.query.that.
+				selects([['Count', '*'], '$count']).
+				from(
+				'pilot',
+				['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
+				where(where)
 
 lambdaTest('any')
 lambdaTest('all')

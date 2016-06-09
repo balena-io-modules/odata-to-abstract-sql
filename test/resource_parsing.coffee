@@ -1,7 +1,6 @@
 expect = require('chai').expect
 { aliasFields, pilotFields, licenceFields, planeFields, teamFields } = require('./chai-sql')
 test = require('./test')
-assert = require('chai').assert
 
 test '/', (result) ->
 	it 'Service root should return $serviceroot', ->
@@ -366,34 +365,28 @@ test '/pilot/$count?$orderby=id asc', (result) ->
 	it 'should select count(*) from pilot and ignore orderby', ->
 		expect(result).to.be.a.query.that.
 		selects([['Count', '*']]).
-		from('pilot')
-		assert.equal(result.length, 3)
-
+		from('pilot').and.has.a.lengthOf(3)
 
 test '/pilot/$count?$skip=5', (result) ->
 	it 'should select count(*) from pilot and ignore skip', ->
 		expect(result).to.be.a.query.that.
 		selects([['Count', '*']]).
-		from('pilot')
-		assert.equal(result.length, 3)
+		from('pilot').and.has.a.lengthOf(3)
 
 test '/pilot/$count?$top=5', (result) ->
 	it 'should select count(*) from pilot and ignore top', ->
 		expect(result).to.be.a.query.that.
 		selects([['Count', '*']]).
-		from('pilot')
-		assert.equal(result.length, 3)
+		from('pilot').and.has.a.lengthOf(3)
 
 test '/pilot/$count?$top=5&$skip=5', (result) ->
 	it 'should select count(*) from pilot and ignore top and skip', ->
 		expect(result).to.be.a.query.that.
 		selects([['Count', '*']]).
-		from('pilot')
-		assert.equal(result.length, 3)
+		from('pilot').and.has.a.lengthOf(3)
 
 test '/pilot/$count?$select=id', (result) ->
 	it 'should select count(*) from pilot and ignore select', ->
 		expect(result).to.be.a.query.that.
 		selects([['Count', '*']]).
-		from('pilot')
-		assert.equal(result.length, 3)
+		from('pilot').and.has.a.lengthOf(3)
