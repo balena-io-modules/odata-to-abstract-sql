@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{pilotFields} = require('./chai-sql')
+{ pilotFields } = require('./chai-sql')
 test = require('./test')
 
 filterString = [1..2000].map((i) -> 'id eq ' + i).join(' or ')

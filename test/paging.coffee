@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{operandToAbstractSQL, pilotFields} = require('./chai-sql')
+{ operandToAbstractSQL, pilotFields } = require('./chai-sql')
 test = require('./test')
 
 

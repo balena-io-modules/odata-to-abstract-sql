@@ -10,19 +10,19 @@ chai.use((chai, utils) ->
 	)
 	queryType = (type) ->
 		->
-			obj = utils.flag(@, 'object')
+			obj = utils.flag(this, 'object')
 			expect(obj).to.contain.something.that.equals type
 	bodyClause = (bodyType) ->
 		(bodyClauses...) ->
-			obj = utils.flag(@, 'object')
+			obj = utils.flag(this, 'object')
 			for bodyClause, i in bodyClauses
 				expect(obj).to.contain.something.that.deep.equals([bodyType, bodyClause], bodyType + ' - ' + i)
-			return @
+			return this
 	multiBodyClause = (bodyType) ->
 		(bodyClauses...) ->
-			obj = utils.flag(@, 'object')
+			obj = utils.flag(this, 'object')
 			expect(obj).to.contain.something.that.deep.equals([bodyType, bodyClauses], bodyType)
-			return @
+			return this
 
 	select = do ->
 		bodySelect = bodyClause('Select')
@@ -44,9 +44,9 @@ chai.use((chai, utils) ->
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))
 	utils.addMethod(assertionPrototype, 'orderby', (bodyClauses...) ->
 		bodyType = 'OrderBy'
-		obj = utils.flag(@, 'object')
+		obj = utils.flag(this, 'object')
 		expect(obj).to.contain.something.that.deep.equals([bodyType].concat(bodyClauses), bodyType)
-		return @
+		return this
 	)
 	utils.addMethod(assertionPrototype, 'groupby', multiBodyClause('GroupBy'))
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))
@@ -77,7 +77,7 @@ exports.operandToAbstractSQL = (operand, resource = 'pilot') ->
 		return ['ReferencedField'].concat(mapping)
 	if _.isObject(operand)
 		return [ 'Duration', operand ]
-	throw 'Unknown operand type: ' + operand
+	throw new Error('Unknown operand type: ' + operand)
 
 exports.operandToOData = (operand) ->
 	if operand.odata?

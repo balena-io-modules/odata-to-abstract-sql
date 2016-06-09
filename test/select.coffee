@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{operandToAbstractSQL, pilotFields} = require('./chai-sql')
+{ operandToAbstractSQL, pilotFields } = require('./chai-sql')
 test = require('./test')
 
 pilotName = _.filter(pilotFields, 2: 'name')[0]
@@ -20,7 +20,7 @@ test '/pilot?$select=favourite_colour', (result) ->
 			).
 			from('pilot')
 
-test "/pilot(1)?$select=favourite_colour", (result) ->
+test '/pilot(1)?$select=favourite_colour', (result) ->
 	it 'should select from pilot with id', ->
 		expect(result).to.be.a.query.that.
 			selects(
