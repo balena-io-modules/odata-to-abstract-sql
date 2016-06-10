@@ -404,9 +404,9 @@ test '/pilot?$expand=licence/$count($filter=id gt 5)', (result) ->
 	it 'should select from pilot.*, count(*) licence for id gt 5', ->
 		expect(result).to.be.a.query.that.
 			selects([
-					agg
-					_.reject(pilotFields, 2: 'licence')...
-				]).
+				agg
+				_.reject(pilotFields, 2: 'licence')...
+			]).
 			from('pilot')
 
 test '/pilot?$expand=licence/$count($orderby=id asc)', (result) ->

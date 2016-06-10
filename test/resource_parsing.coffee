@@ -357,8 +357,8 @@ test '/pilot(5)/licence/$count', (result) ->
 			selects([['Count', '*']]).
 			from('pilot', 'licence').
 			where(['And',
-		         ['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 5]]
-		         ['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 5]]
+				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 			])
 
 test '/pilot/$count?$orderby=id asc', (result) ->
