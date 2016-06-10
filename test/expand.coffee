@@ -1,12 +1,12 @@
 _ = require 'lodash'
 expect = require('chai').expect
 chaiSql = require './chai-sql'
-{operandToAbstractSQL, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields} = chaiSql
+{ operandToAbstractSQL, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
 test = require './test'
 
 createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
 	odataName = resourceName.replace(/-/g, '__')
-	whereClause = 
+	whereClause =
 		if attributeOfParent
 			[	'Equals'
 				['ReferencedField', resourceName, 'id']

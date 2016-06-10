@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{operandToAbstractSQL, pilotFields} = require('./chai-sql')
+{ operandToAbstractSQL, pilotFields } = require('./chai-sql')
 test = require('./test')
 
 test '/pilot?$orderby=name', (result) ->
@@ -20,7 +20,7 @@ test '/pilot?$orderby=name,age', (result) ->
 				['DESC', operandToAbstractSQL('age')]
 			)
 
-			
+
 test '/pilot?$orderby=name desc', (result) ->
 	it 'should order by name desc', ->
 		expect(result).to.be.a.query.that.
@@ -28,7 +28,7 @@ test '/pilot?$orderby=name desc', (result) ->
 			from('pilot').
 			orderby(['DESC', operandToAbstractSQL('name')])
 
-			
+
 test '/pilot?$orderby=name asc', (result) ->
 	it 'should order by name asc', ->
 		expect(result).to.be.a.query.that.

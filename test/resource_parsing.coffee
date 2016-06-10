@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{pilotFields, licenceFields, planeFields, teamFields} = require('./chai-sql')
+{ pilotFields, licenceFields, planeFields, teamFields } = require('./chai-sql')
 test = require('./test')
 
 test '/', (result) ->
@@ -149,10 +149,10 @@ do ->
 				).
 				from('pilot').
 				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
-	test '/pilot(1)', 'PATCH', {is_experienced: true, favourite_colour: null}, testFunc
-	test '/pilot(1)', 'MERGE', {is_experienced: true, favourite_colour: null}, testFunc
+	test '/pilot(1)', 'PATCH', { is_experienced: true, favourite_colour: null }, testFunc
+	test '/pilot(1)', 'MERGE', { is_experienced: true, favourite_colour: null }, testFunc
 
-test '/pilot', 'POST', {name: 'Peter'}, (result) ->
+test '/pilot', 'POST', { name: 'Peter' }, (result) ->
 	it 'should insert a pilot', ->
 		expect(result).to.be.a.query.that.inserts.
 			fields('name').
@@ -209,10 +209,10 @@ do ->
 				).
 				from('pilot-can_fly-plane').
 				where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
-	test '/pilot__can_fly__plane(1)', 'PATCH', {pilot: 2}, testFunc
-	test '/pilot__can_fly__plane(1)', 'MERGE', {pilot: 2}, testFunc
+	test '/pilot__can_fly__plane(1)', 'PATCH', { pilot: 2 }, testFunc
+	test '/pilot__can_fly__plane(1)', 'MERGE', { pilot: 2 }, testFunc
 
-test '/pilot__can_fly__plane', 'POST', {pilot:2, plane:3}, (result) ->
+test '/pilot__can_fly__plane', 'POST', { pilot: 2, plane: 3 }, (result) ->
 	it 'should add a pilot__can_fly__plane', ->
 		expect(result).to.be.a.query.that.inserts.
 			fields(
@@ -285,7 +285,7 @@ test "/team('purple')", (result) ->
 				['Equals', ['ReferencedField', 'team', 'favourite colour'], ['Text', 'purple']]
 			)
 
-test '/team', 'POST', {favourite_colour: 'purple'}, (result) ->
+test '/team', 'POST', { favourite_colour: 'purple' }, (result) ->
 	it 'should insert a team', ->
 		expect(result).to.be.a.query.that.inserts.
 			fields('favourite colour').

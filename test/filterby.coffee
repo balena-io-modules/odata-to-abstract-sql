@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{operandToAbstractSQL, operandToOData, pilotFields, licenceFields, planeFields, pilotCanFlyPlaneFields, teamFields} = require('./chai-sql')
+{ operandToAbstractSQL, operandToOData, pilotFields, licenceFields, planeFields, pilotCanFlyPlaneFields, teamFields } = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
 
@@ -52,7 +52,7 @@ createMethodCall = (method, args...) ->
 	}
 
 operandTest = (lhs, op, rhs) ->
-	{odata, abstractsql} = createExpression(lhs, op, rhs)
+	{ odata, abstractsql } = createExpression(lhs, op, rhs)
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
@@ -61,7 +61,7 @@ operandTest = (lhs, op, rhs) ->
 				where(abstractsql)
 
 methodTest = (args...) ->
-	{odata, abstractsql} = createMethodCall.apply(null, args)
+	{ odata, abstractsql } = createMethodCall.apply(null, args)
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
@@ -84,8 +84,8 @@ do ->
 			2.5
 			-2.5
 			"'bar'"
-			"name"
-			"pilot/name"
+			'name'
+			'pilot/name'
 			new Date()
 			{ negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }
 			true
@@ -118,7 +118,7 @@ do ->
 		operandTest(mathOp, 'gt', 10)
 
 do ->
-	{odata, abstractsql} = createExpression('pilot__can_fly__plane/id', 'eq', 10)
+	{ odata, abstractsql } = createExpression('pilot__can_fly__plane/id', 'eq', 10)
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
@@ -130,7 +130,7 @@ do ->
 				])
 
 do ->
-	{odata, abstractsql} = createExpression('plane/id', 'eq', 10)
+	{ odata, abstractsql } = createExpression('plane/id', 'eq', 10)
 	test '/pilot(1)/pilot__can_fly__plane?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
@@ -153,7 +153,7 @@ do ->
 				])
 
 do ->
-	{odata, abstractsql} = createExpression('pilot__can_fly__plane/plane/id', 'eq', 10)
+	{ odata, abstractsql } = createExpression('pilot__can_fly__plane/plane/id', 'eq', 10)
 
 	filterWhere = ['And'
 		['Equals'
@@ -314,7 +314,7 @@ do ->
 
 do ->
 	name = 'Peter'
-	{odata, abstractsql} = createExpression('name', 'eq', "'#{name}'")
+	{ odata, abstractsql } = createExpression('name', 'eq', "'#{name}'")
 	insertTest = (result) ->
 		expect(result).to.be.a.query.that.inserts.
 			fields('id', 'name').
@@ -353,7 +353,7 @@ do ->
 				]
 			).
 			from('pilot')
-	updateWhere = 
+	updateWhere =
 		[
 			'And'
 			[	'Equals'
@@ -376,11 +376,11 @@ do ->
 			]
 		]
 
-	test '/pilot(1)?$filter=' + odata, 'POST', {name}, (result) ->
+	test '/pilot(1)?$filter=' + odata, 'POST', { name }, (result) ->
 		it 'should insert into pilot where "' + odata + '"', ->
 			insertTest(result)
 
-	test '/pilot(1)?$filter=' + odata, 'PATCH', {name}, (result) ->
+	test '/pilot(1)?$filter=' + odata, 'PATCH', { name }, (result) ->
 		it 'should update the pilot with id 1', ->
 			expect(result).to.be.a.query.that.updates.
 				fields(
@@ -394,7 +394,7 @@ do ->
 				from('pilot').
 				where(updateWhere)
 
-	test '/pilot(1)?$filter=' + odata, 'PUT', {name}, (result) ->
+	test '/pilot(1)?$filter=' + odata, 'PUT', { name }, (result) ->
 		describe 'should upsert the pilot with id 1', ->
 			it 'should be an upsert', ->
 				expect(result).to.be.a.query.that.upserts
@@ -429,8 +429,8 @@ do ->
 
 do ->
 	licence = 1
-	{odata, abstractsql} = createExpression('licence/id', 'eq', licence)
-	test '/pilot?$filter=' + odata, 'POST', {licence}, (result) ->
+	{ odata, abstractsql } = createExpression('licence/id', 'eq', licence)
+	test '/pilot?$filter=' + odata, 'POST', { licence }, (result) ->
 		it 'should insert into pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.inserts.
 				fields('licence').
@@ -477,8 +477,8 @@ do ->
 do ->
 	licence = 1
 	name = 'Licence-1'
-	{odata, abstractsql} = createExpression('licence/name', 'eq', "'#{name}'")
-	test "/pilot?$filter=#{odata}", 'POST', {licence}, (result) ->
+	{ odata, abstractsql } = createExpression('licence/name', 'eq', "'#{name}'")
+	test "/pilot?$filter=#{odata}", 'POST', { licence }, (result) ->
 		it 'should insert into pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.inserts.
 				fields('licence').
@@ -559,7 +559,7 @@ operandTest(createMethodCall('replace', 'name', "'ete'", "'at'"), 'eq', "'Pat'")
 lambdaTest = (methodName) ->
 	test '/pilot?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
 		it 'should select from pilot where ...', ->
-			subWhere = 
+			subWhere =
 				[	'And'
 					[	'Equals'
 						['ReferencedField', 'pilot', 'id']
@@ -598,7 +598,7 @@ lambdaTest = (methodName) ->
 
 	test '/pilot?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
 		it 'should select from pilot where ...', ->
-			subWhere = 
+			subWhere =
 				[	'And'
 					[	'Equals'
 						['ReferencedField', 'plane', 'id']
@@ -645,8 +645,8 @@ lambdaTest('all')
 operandToAbstractSQL = _.partialRight(operandToAbstractSQL, 'team')
 do ->
 	favouriteColour = 'purple'
-	{odata, abstractsql} = createExpression('favourite_colour', 'eq', "'#{favouriteColour}'")
-	test '/team?$filter=' + odata, 'POST', {favourite_colour: favouriteColour}, (result) ->
+	{ odata, abstractsql } = createExpression('favourite_colour', 'eq', "'#{favouriteColour}'")
+	test '/team?$filter=' + odata, 'POST', { favourite_colour: favouriteColour }, (result) ->
 		it 'should insert into team where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.inserts.
 				fields('favourite colour').
@@ -677,7 +677,7 @@ do ->
 
 do ->
 	planeName = 'Concorde'
-	{odata, abstractsql} = createExpression('pilot/pilot__can_fly__plane/plane/name', 'eq', "'#{planeName}'")
+	{ odata, abstractsql } = createExpression('pilot/pilot__can_fly__plane/plane/name', 'eq', "'#{planeName}'")
 	test '/team?$filter=' + odata, (result) ->
 		it 'should select from team where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.

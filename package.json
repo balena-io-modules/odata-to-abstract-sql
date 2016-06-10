@@ -4,9 +4,10 @@
   "description": "A consumer of the OData parser, written in OMeta",
   "main": "odata-to-abstract-sql.js",
   "scripts": {
-    "pretest": "npm run-script prepublish",
-    "test": "./node_modules/.bin/mocha",
-    "prepublish": "node node_modules/ometa-js/bin/ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
+    "lint": "resin-lint test",
+    "pretest": "npm run lint && npm run prepublish",
+    "test": "mocha",
+    "prepublish": "ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
   },
   "repository": "git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
   "author": "",
@@ -16,10 +17,11 @@
     "lodash": "^4.0.0"
   },
   "devDependencies": {
+    "@resin/odata-parser": "~0.1.8",
     "chai": "^3.5.0",
     "chai-things": "~0.2.0",
     "coffee-script": "~1.10.0",
     "mocha": "^2.1.0",
-    "@resin/odata-parser": "~0.1.8"
+    "resin-lint": "^1.2.2"
   }
 }
