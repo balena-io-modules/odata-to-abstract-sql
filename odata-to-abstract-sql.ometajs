@@ -574,20 +574,7 @@ export ometa OData2AbstractSQL {
 				{this.defaultResource = expand.name}
 				AddSelectFields(expand, nestedExpandQuery, expandResource)
 				(	?(!expand.options)
-				|	(	?(!expand.options.$filter)
-					|	SelectFilter(expand.options.$filter, nestedExpandQuery, expandResource)
-					)
-					(	?(!expand.options.$orderby)
-					|	OrderBy(expand.options.$orderby, nestedExpandQuery, expandResource)
-					)
-					(	?(!expand.options.$top)
-					|	Number(expand.options.$top):limit
-						-> nestedExpandQuery.extras.push(['Limit', limit])
-					)
-					(	?(!expand.options.$skip)
-					|	Number(expand.options.$skip):offset
-						-> nestedExpandQuery.extras.push(['Offset', offset])
-					)
+				|	ExpandOptions(nestedExpandQuery, expandResource, expand.options)
 				)
 				{this.defaultResource = defaultResource}
 
@@ -600,6 +587,25 @@ export ometa OData2AbstractSQL {
 				{query.select.push([expandQuery.compile('SelectQuery'), expandResource.resourceName])}
 			)+
 		]
+	,
+
+	ExpandOptions :nestedExpandQuery :expandResource =
+		%{	'$filter'?:
+				:x
+				SelectFilter(x, nestedExpandQuery, expandResource)
+			,
+			'$orderby'?:
+				:x
+				OrderBy(x, nestedExpandQuery, expandResource)
+			,
+			'$top'?:
+				Number:limit
+				-> nestedExpandQuery.extras.push(['Limit', limit])
+			,
+			'$skip'?:
+				Number:offset
+				-> nestedExpandQuery.extras.push(['Offset', offset])
+		}
 	,
 
 	NavigateResources :resource1 :resource2 =
