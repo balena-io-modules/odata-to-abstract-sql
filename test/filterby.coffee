@@ -612,7 +612,8 @@ lambdaTest = (methodName) ->
 		      ['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
 		      ['Text', 'Concorde']
 		    ]
-		]
+			]
+
 		# All is implemented as where none fail
 		if methodName is 'all'
 			subWhere = ['Not', subWhere]
@@ -655,7 +656,7 @@ lambdaTest = (methodName) ->
 					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
 					['Text', 'Concorde']
 				]
-		]
+			]
 		# All is implemented as where none fail
 		if methodName is 'all'
 			subWhere = ['Not', subWhere]
@@ -681,23 +682,23 @@ lambdaTest = (methodName) ->
 				innerWhere
 			]
 
-	test '/pilot?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
-		it 'should select from pilot where ...', ->
-			expect(result).to.be.a.query.that.
-				selects(pilotFields).
-				from(
+		test '/pilot?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
+			it 'should select from pilot where ...', ->
+				expect(result).to.be.a.query.that.
+					selects(pilotFields).
+					from(
+						'pilot',
+						['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
+					where(where)
+
+		test '/pilot/$count?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
+			it 'should select count(*) from pilot where ...', ->
+				expect(result).to.be.a.query.that.
+					selects([['Count', '*'], '$count']).
+					from(
 					'pilot',
 					['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
-				where(where)
-
-	test '/pilot/$count?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
-		it 'should select count(*) from pilot where ...', ->
-			expect(result).to.be.a.query.that.
-				selects([['Count', '*'], '$count']).
-				from(
-				'pilot',
-				['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
-				where(where)
+					where(where)
 
 lambdaTest('any')
 lambdaTest('all')
@@ -752,7 +753,7 @@ do ->
 				).
 				where([
 					'And',
-					[	'Equals'
+					[ 'Equals'
 						['ReferencedField', 'team', 'favourite colour']
 						['ReferencedField', 'team.pilot', 'team']
 					]
