@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{ operandToAbstractSQL, operandToOData, pilotFields, licenceFields, planeFields, pilotCanFlyPlaneFields, teamFields } = require('./chai-sql')
+{ operandToAbstractSQL, operandToOData, pilotFields, pilotCanFlyPlaneFields, teamFields } = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
 
