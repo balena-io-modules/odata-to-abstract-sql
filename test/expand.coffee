@@ -132,7 +132,7 @@ test '/pilot?$expand=pilot__can_fly__plane($select=id)', (result) ->
 
 test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
 	agg = _.cloneDeep(aggregateJSON.licence)
-	aggWhere = _.chain(agg)
+	_.chain(agg)
 	.find(0: 'SelectQuery')
 	.find(0: 'From')
 	.find(1: 'licence')
