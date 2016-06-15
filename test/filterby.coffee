@@ -600,18 +600,18 @@ lambdaTest = (methodName) ->
 	do ->
 		subWhere =
 			[	'And'
-		    [	'Equals'
-		      ['ReferencedField', 'pilot', 'id']
-		      ['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
-		    ]
-		    [	'Equals'
-		      ['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
-		      ['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
-		    ]
-		    [	'Equals'
-		      ['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
-		      ['Text', 'Concorde']
-		    ]
+				[	'Equals'
+					['ReferencedField', 'pilot', 'id']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
+				]
+				[	'Equals'
+					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
+				]
+				[	'Equals'
+					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
+					['Text', 'Concorde']
+				]
 			]
 
 		# All is implemented as where none fail
@@ -626,7 +626,7 @@ lambdaTest = (methodName) ->
 				['From', 'plane', ['pilot.pilot-can_fly-plane.plane']]
 				['Where', subWhere]
 			]
-		]
+
 		# All is implemented as where none fail
 		if methodName is 'all'
 			where = ['Not', where]
@@ -655,7 +655,6 @@ lambdaTest = (methodName) ->
 				[	'Equals'
 					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
 					['Text', 'Concorde']
-				]
 			]
 		# All is implemented as where none fail
 		if methodName is 'all'
@@ -669,6 +668,7 @@ lambdaTest = (methodName) ->
 					['Where', subwhere]
 				]
 			]
+
 		# All is implemented as where none fail
 		if methodName is 'all'
 			innerWhere = ['Not', innerWhere]
@@ -689,7 +689,7 @@ lambdaTest = (methodName) ->
 					from(
 						'pilot',
 						['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
-					where(where)
+						where(where)
 
 		test '/pilot/$count?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
 			it 'should select count(*) from pilot where ...', ->

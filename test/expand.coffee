@@ -389,15 +389,15 @@ test '/pilot?$expand=licence/$count($filter=id gt 5)', (result) ->
 		currentWhere = aggWhere.splice(1, Infinity)
 		aggWhere.push(
 			[ 'And',
-			  [	'GreaterThan'
-			     [	'ReferencedField'
-			        'licence'
-			        'id'
-			     ]
-			     [	'Number'
-			        5
-			     ]
-			  ]
+				[	'GreaterThan'
+					[	'ReferencedField'
+						'licence'
+						'id'
+					]
+					[	'Number'
+						5
+					]
+				]
 			].concat(currentWhere)
 		)
 	.value()
