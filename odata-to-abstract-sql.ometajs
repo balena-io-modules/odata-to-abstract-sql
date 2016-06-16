@@ -708,7 +708,8 @@ export ometa OData2AbstractSQL {
 
 	AddNavigation :query :resource :extraResource =
 		(	?(!_.some(query.from, function(from) {
-				return from === extraResource.tableAlias || from[1] === extraResource.tableAlias;
+				return from === extraResource.tableAlias ||
+					(_.isArray(from) && from[1] === extraResource.tableAlias);
 			}))
 			NavigateResources(resource, extraResource):nagivationWhere
 			{query.fromResource(extraResource)}
