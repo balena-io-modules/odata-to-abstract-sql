@@ -293,7 +293,7 @@ export ometa OData2AbstractSQL {
 
 	AddCountField :path :query :resource =
 		?path.count
-		-> (query.select.push(['Count', '*']))
+		-> (query.select.push([['Count', '*'], '$count']))
 	,
 
 	AddSelectFields :path :query :resource =

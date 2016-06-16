@@ -613,7 +613,6 @@ lambdaTest = (methodName) ->
 					['Text', 'Concorde']
 				]
 			]
-
 		# All is implemented as where none fail
 		if methodName is 'all'
 			subWhere = ['Not', subWhere]
@@ -626,7 +625,6 @@ lambdaTest = (methodName) ->
 				['From', 'plane', ['pilot.pilot-can_fly-plane.plane']]
 				['Where', subWhere]
 			]
-
 		# All is implemented as where none fail
 		if methodName is 'all'
 			where = ['Not', where]
@@ -655,6 +653,7 @@ lambdaTest = (methodName) ->
 				[	'Equals'
 					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
 					['Text', 'Concorde']
+				]
 			]
 		# All is implemented as where none fail
 		if methodName is 'all'
