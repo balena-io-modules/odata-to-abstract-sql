@@ -256,7 +256,7 @@ export ometa OData2AbstractSQL {
 	,
 
 	Resource :resourceName :parentResource =
-			ResolveResourceAlias(resourceName):resourceName
+			ResolveResourceAlias(resourceName)
 		|	{this.clientModel.resources[resourceName]}:resource
 			?resource
 			{_.clone(resource)}:resource
@@ -720,7 +720,7 @@ OData2AbstractSQL.initialize = function() {
 	this.reset();
 };
 
-OData2AbstractSQL.reset = function() { 
-	this.resourceAliases = {}; 
-	this.defaultResource = null; 
+OData2AbstractSQL.reset = function() {
+	this.resourceAliases = {};
+	this.defaultResource = null;
 };
