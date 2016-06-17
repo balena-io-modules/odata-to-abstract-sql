@@ -3,6 +3,8 @@ v0.3.4
 * Switched to using sensible aliases for tables so that self-references can be handled.
 * Fixed cases where prop.property or prop.lambda could be ignored.
 * Switched to throwing errors rather than strings so that we get stack traces
+* Added support for /$count
+* Added tests for count
 
 v0.3.3
 
