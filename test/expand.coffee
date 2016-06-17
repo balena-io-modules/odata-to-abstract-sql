@@ -377,12 +377,13 @@ test '/pilot?$orderby=id asc&$expand=licence/$count', (result) ->
 				['ASC', operandToAbstractSQL('id')]
 			)
 
+
 test '/pilot?$expand=licence/$count($filter=id gt 5)', (result) ->
 	agg = _.cloneDeep(aggregateJSONCount.licence)
-	aggWhere = _.chain(agg)
+	_.chain(agg)
 	.find(0: 'SelectQuery')
 	.find(0: 'From')
-	.find(1: 'licence')
+	.find(1: 'pilot.licence')
 	.find(0: 'SelectQuery')
 	.find(0: 'Where')
 	.tap (aggWhere) ->
@@ -391,7 +392,7 @@ test '/pilot?$expand=licence/$count($filter=id gt 5)', (result) ->
 			[ 'And',
 				[	'GreaterThan'
 					[	'ReferencedField'
-						'licence'
+						'pilot.licence'
 						'id'
 					]
 					[	'Number'
@@ -408,6 +409,7 @@ test '/pilot?$expand=licence/$count($filter=id gt 5)', (result) ->
 				_.reject(pilotFields, 2: 'licence')...
 			]).
 			from('pilot')
+
 
 test '/pilot?$expand=licence/$count($orderby=id asc)', (result) ->
 	it 'should select from pilot.*, count(*) and ignore orderby', ->

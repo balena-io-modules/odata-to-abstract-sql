@@ -355,10 +355,13 @@ test '/pilot(5)/licence/$count', (result) ->
 	it 'should select count(*) the licence from pilot where pilot/id', ->
 		expect(result).to.be.a.query.that.
 			selects([[['Count', '*'], '$count']]).
-			from('pilot', 'licence').
+			from(
+				'pilot',
+				['licence', 'pilot.licence']
+			).
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 5]]
-				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
+				['Equals', ['ReferencedField', 'pilot.licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 			])
 
 test '/pilot/$count?$orderby=id asc', (result) ->

@@ -62,7 +62,7 @@ operandTest = (lhs, op, rhs) ->
 	test '/pilot/$count?$filter=' + odata, (result) ->
 		it 'should count(*) from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-			selects([['Count', '*'], '$count']).
+			selects([[['Count', '*'], '$count']]).
 			from('pilot').
 			where(abstractsql)
 
@@ -77,7 +77,7 @@ methodTest = (args...) ->
 	test '/pilot/$count?$filter=' + odata, (result) ->
 		it 'should count(*) from pilot where "' + odata + '"', ->
 			expect(result).to.be.a.query.that.
-			selects([['Count', '*'], '$count']).
+			selects([[['Count', '*'], '$count']]).
 			from('pilot').
 			where(abstractsql)
 
@@ -619,11 +619,12 @@ lambdaTest = (methodName) ->
 
 		where =
 			[	'Exists'
-				[	'SelectQuery'
-				['Select', []]
-				['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
-				['From', 'plane', ['pilot.pilot-can_fly-plane.plane']]
-				['Where', subWhere]
+				[ 'SelectQuery'
+					['Select', []]
+					['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
+					['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
+					['Where', subWhere]
+				]
 			]
 		# All is implemented as where none fail
 		if methodName is 'all'
@@ -639,7 +640,7 @@ lambdaTest = (methodName) ->
 		test '/pilot/$count?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
 			it 'should select count(*) from pilot where ...', ->
 				expect(result).to.be.a.query.that.
-					selects([['Count', '*'], '$count']).
+					selects([[['Count', '*'], '$count']]).
 					from('pilot').
 					where(where)
 
@@ -664,7 +665,7 @@ lambdaTest = (methodName) ->
 				[ 'SelectQuery'
 					['Select', []]
 					['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
-					['Where', subwhere]
+					['Where', subWhere]
 				]
 			]
 
@@ -693,11 +694,11 @@ lambdaTest = (methodName) ->
 		test '/pilot/$count?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
 			it 'should select count(*) from pilot where ...', ->
 				expect(result).to.be.a.query.that.
-					selects([['Count', '*'], '$count']).
+					selects([[['Count', '*'], '$count']]).
 					from(
-					'pilot',
-					['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
-					where(where)
+						'pilot',
+						['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
+						where(where)
 
 lambdaTest('any')
 lambdaTest('all')
