@@ -1,3 +1,7 @@
+* Switched to using sensible aliases for tables so that self-references can be handled.
+* Fixed cases where prop.property or prop.lambda could be ignored.
+* Switched to throwing errors rather than strings so that we get stack traces
+
 v0.3.3
 
 * Added support for duration literals.

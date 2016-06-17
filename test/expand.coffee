@@ -1,26 +1,27 @@
 _ = require 'lodash'
 expect = require('chai').expect
 chaiSql = require './chai-sql'
-{ operandToAbstractSQL, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
+{ operandToAbstractSQL, aliasFields, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
 test = require './test'
 
-createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
+createAggregate = ({ parentResource, resourceName, attributeOfParent, fields }) ->
+	resourceAlias = "#{parentResource}.#{resourceName}"
 	odataName = resourceName.replace(/-/g, '__')
 	whereClause =
 		if attributeOfParent
 			[	'Equals'
-				['ReferencedField', resourceName, 'id']
+				['ReferencedField', resourceAlias, 'id']
 				['ReferencedField', parentResource, resourceName]
 			]
 		else
 			[	'Equals'
 				['ReferencedField', parentResource, 'id']
-				['ReferencedField', resourceName, parentResource]
+				['ReferencedField', resourceAlias, parentResource]
 			]
 	[
 		[	'SelectQuery'
 			[	'Select'
-				[	[	['AggregateJSON', [resourceName, '*']]
+				[	[	['AggregateJSON', [resourceAlias, '*']]
 						odataName
 					]
 				]
@@ -28,16 +29,18 @@ createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
 			[	'From'
 				[	[	'SelectQuery'
 						[	'Select'
-							fields
+							aliasFields(parentResource, fields)
 						]
 						[	'From'
-							resourceName
+							[	resourceName
+								resourceAlias
+							]
 						]
 						[	'Where'
 							whereClause
 						]
 					]
-					resourceName
+					resourceAlias
 				]
 			]
 		]
@@ -45,14 +48,30 @@ createAggregate = (parentResource, resourceName, attributeOfParent, fields) ->
 	]
 
 aggregateJSON =
-	licence: createAggregate('pilot', 'licence', true, licenceFields)
+	pilot: createAggregate(
+		parentResource: 'pilot'
+		resourceName: 'pilot'
+		attributeOfParent: false
+		fields: pilotFields
+	)
+	licence: createAggregate(
+		parentResource: 'pilot'
+		resourceName: 'licence'
+		attributeOfParent: true
+		fields: licenceFields
+	)
 	pilotCanFlyPlane:
 		plane: createAggregate(
-			'pilot'
-			'pilot-can_fly-plane'
-			false
-			[
-				createAggregate('pilot-can_fly-plane', 'plane', true, planeFields)
+			parentResource: 'pilot'
+			resourceName: 'pilot-can_fly-plane'
+			attributeOfParent: false
+			fields: [
+				createAggregate(
+					parentResource: 'pilot.pilot-can_fly-plane'
+					resourceName: 'plane'
+					attributeOfParent: true
+					fields: planeFields
+				)
 				_.reject(pilotCanFlyPlaneFields, 2: 'plane')...
 			]
 		)
@@ -125,7 +144,12 @@ test '/pilot?$expand=pilot__can_fly__plane($select=id)', (result) ->
 	it 'should only select id and the expanded fields', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				createAggregate('pilot', 'pilot-can_fly-plane', false, _.filter(pilotCanFlyPlaneFields, 2: 'id'))
+				createAggregate(
+					parentResource: 'pilot'
+					resourceName: 'pilot-can_fly-plane'
+					attributeOfParent: false
+					fields: _.filter(pilotCanFlyPlaneFields, 2: 'id')
+				)
 			].concat(pilotFields)).
 			from('pilot')
 
@@ -135,7 +159,7 @@ test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
 	_.chain(agg)
 	.find(0: 'SelectQuery')
 	.find(0: 'From')
-	.find(1: 'licence')
+	.find(1: 'pilot.licence')
 	.find(0: 'SelectQuery')
 	.find(0: 'Where')
 	.tap (aggWhere) ->
@@ -144,7 +168,7 @@ test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
 			[ 'And',
 				[	'Equals'
 					[	'ReferencedField'
-						'licence'
+						'pilot.licence'
 						'id'
 					]
 					[	'Number'
@@ -167,12 +191,14 @@ test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
 	_.chain(agg)
 	.find(0: 'SelectQuery')
 	.find(0: 'From')
-	.find(1: 'licence')
+	.find(1: 'pilot.licence')
 	.find(0: 'SelectQuery')
 	.tap (aggSelect) ->
 		aggSelect.splice(aggSelect.length - 1, 0,
 			[	'From'
-				'pilot'
+				[	'pilot'
+					'pilot.licence.pilot'
+				]
 			]
 		)
 	.find(0: 'Where')
@@ -182,18 +208,18 @@ test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
 			[ 'And',
 				[ 'Equals',
 					[	'ReferencedField'
-						'licence'
+						'pilot.licence'
 						'id'
 					]
 					[	'ReferencedField'
-						'pilot'
+						'pilot.licence.pilot'
 						'licence'
 					]
 				]
 				[
 					'Equals'
 					[	'ReferencedField'
-						'pilot'
+						'pilot.licence.pilot'
 						'id'
 					]
 					[	'Number'
@@ -216,12 +242,12 @@ test '/pilot?$expand=licence($orderby=id)', (result) ->
 	_.chain(agg)
 	.find(0: 'SelectQuery')
 	.find(0: 'From')
-	.find(1: 'licence')
+	.find(1: 'pilot.licence')
 	.find(0: 'SelectQuery')
 	.value()
 	.push([
 		'OrderBy'
-		['DESC', operandToAbstractSQL('id', 'licence')]
+		['DESC', ['ReferencedField', 'pilot.licence', 'id']]
 	])
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
@@ -236,7 +262,7 @@ test '/pilot?$expand=licence($top=10)', (result) ->
 	_.chain(agg)
 	.find(0: 'SelectQuery')
 	.find(0: 'From')
-	.find(1: 'licence')
+	.find(1: 'pilot.licence')
 	.find(0: 'SelectQuery')
 	.value()
 	.push([
@@ -256,7 +282,7 @@ test '/pilot?$expand=licence($skip=10)', (result) ->
 	_.chain(agg)
 	.find(0: 'SelectQuery')
 	.find(0: 'From')
-	.find(1: 'licence')
+	.find(1: 'pilot.licence')
 	.find(0: 'SelectQuery')
 	.value()
 	.push([
@@ -277,7 +303,7 @@ test '/pilot?$expand=licence($select=id)', (result) ->
 		_.chain(agg)
 		.find(0: 'SelectQuery')
 		.find(0: 'From')
-		.find(1: 'licence')
+		.find(1: 'pilot.licence')
 		.find(0: 'SelectQuery')
 		.find(0: 'Select')
 		.value()
@@ -289,4 +315,12 @@ test '/pilot?$expand=licence($select=id)', (result) ->
 				agg
 				_.reject(pilotFields, 2: 'licence')...
 			]).
+			from('pilot')
+
+test '/pilot?$expand=pilot', (result) ->
+	it 'should select from pilot.*, aggregated pilot.*', ->
+		expect(result).to.be.a.query.that.
+			selects([
+				aggregateJSON.pilot
+			].concat(_.reject(pilotFields, 2: 'pilot'))).
 			from('pilot')

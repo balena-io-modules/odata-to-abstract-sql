@@ -223,6 +223,37 @@
 				"delete"
 			]
 		},
+		"person": {
+			"resourceName": "person",
+			"modelName": "person",
+			"topLevel": true,
+			"fields": [
+				{
+					"dataType": "Date Time",
+					"fieldName": "created at",
+					"required": true,
+					"index": null,
+					"references": null,
+					"defaultValue": "CURRENT_TIMESTAMP"
+				},
+				{
+					"dataType": "Serial",
+					"fieldName": "id",
+					"required": true,
+					"index": "PRIMARY KEY",
+					"references": null,
+					"defaultValue": null
+				}
+			],
+			"idField": "id",
+			"referenceScheme": "id",
+			"actions": [
+				"view",
+				"add",
+				"edit",
+				"delete"
+			]
+		},
 		"pilot": {
 			"resourceName": "pilot",
 			"modelName": "pilot",
@@ -242,6 +273,17 @@
 					"required": true,
 					"index": "PRIMARY KEY",
 					"references": null,
+					"defaultValue": null
+				},
+				{
+					"dataType": "ConceptType",
+					"fieldName": "person",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "person",
+						"fieldName": "id"
+					},
 					"defaultValue": null
 				},
 				{
@@ -315,6 +357,17 @@
 					"references": {
 						"tableName": "hire_date",
 						"fieldName": null
+					},
+					"defaultValue": null
+				},
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
 					},
 					"defaultValue": null
 				}
@@ -621,6 +674,41 @@
 				"add",
 				"delete"
 			]
+		},
+		"pilot__was_trained_by__pilot": {
+			"resourceName": "pilot__was_trained_by__pilot",
+			"modelName": "pilot was trained by pilot",
+			"topLevel": false,
+			"fields": [
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					}
+				},
+				{
+					"dataType": "ForeignKey",
+					"fieldName": "pilot",
+					"required": true,
+					"index": null,
+					"references": {
+						"tableName": "pilot",
+						"fieldName": "id"
+					},
+					"defaultValue": null
+				}
+			],
+			"idField": "pilot",
+			"referenceScheme": "pilot",
+			"actions": [
+				"view",
+				"add",
+				"delete"
+			]
 		}
 	},
 	"resourceToSQLMappings": {
@@ -698,6 +786,17 @@
 				"name"
 			]
 		},
+		"person": {
+			"_name": "person",
+			"created_at": [
+				"person",
+				"created at"
+			],
+			"id": [
+				"person",
+				"id"
+			]
+		},
 		"pilot": {
 			"_name": "pilot",
 			"created_at": [
@@ -707,6 +806,10 @@
 			"id": [
 				"pilot",
 				"id"
+			],
+			"person": [
+				"pilot",
+				"person"
 			],
 			"is_experienced": [
 				"pilot",
@@ -735,6 +838,10 @@
 			"hire_date": [
 				"pilot",
 				"hire date"
+			],
+			"pilot": [
+				"pilot",
+				"pilot"
 			]
 		},
 		"pilot__is_experienced": {
@@ -831,6 +938,13 @@
 			"hire date": [
 				"pilot",
 				"hire date"
+			]
+		},
+		"pilot__was_trained_by__pilot": {
+			"_name": "pilot",
+			"pilot": [
+				"pilot",
+				"pilot"
 			]
 		}
 	}

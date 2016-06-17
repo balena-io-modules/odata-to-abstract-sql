@@ -14,6 +14,14 @@ Query.prototype.merge = function(otherQuery) {
 	this.where = this.where.concat(otherQuery.where);
 	this.extras = this.extras.concat(otherQuery.extras);
 };
+Query.prototype.fromResource = function(resource) {
+	if(resource.tableName !== resource.tableAlias) {
+		this.from.push([resource.tableName, resource.tableAlias]);
+	}
+	else {
+		this.from.push(resource.tableName);
+	}
+};
 Query.prototype.compile = function(queryType) {
 	var compiled = [queryType],
 		where = this.where;
@@ -41,11 +49,13 @@ export ometa OData2AbstractSQL {
 			-> ['$serviceroot']
 		|	?_.includes(['$metadata', '$serviceroot'], path.resource)
 			-> [path.resource]
-		|	PathSegment(method, body, path):query
+		|	{this.reset()}
+			PathSegment(method, body, path):query
 			(	?(method == 'PUT')
 				// For PUT the initial pass generates the update query,
 				// so we run it through the parser a second time to get the insert query,
 				// for a full upsert query
+				{this.reset()}
 				PathSegment('PUT-INSERT', body, path):insertQuery
 				-> ['UpsertQuery', insertQuery.compile('InsertQuery'), query.compile('UpdateQuery')]
 			|	(	?(method == 'GET')
@@ -63,14 +73,14 @@ export ometa OData2AbstractSQL {
 	,
 	PathSegment :method :body :path =
 		?path.resource
-		Resource(path.resource):resource
-		{this.defaultResource = path.resource}
+		Resource(path.resource, this.defaultResource):resource
+		{this.defaultResource = resource}
 		{new Query()}:query
-		{query.from.push(resource.tableName)}
+		{query.fromResource(resource)}
 
 		// We can't use the ReferencedField rule as resource.idField is the model name (using spaces),
 		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
-		{['ReferencedField', resource.tableName, resource.idField]}:referencedIdField
+		{['ReferencedField', resource.tableAlias, resource.idField]}:referencedIdField
 		PathKey(path, query, resource, referencedIdField, body)?
 
 		(	?(!path.options)
@@ -81,28 +91,28 @@ export ometa OData2AbstractSQL {
 			PathSegment(method, body, path.property):childQuery
 			{query.merge(childQuery)}
 			(	?path.property.resource
-			|	{throw 'PathSegment has a property without a resource?'}
+			|	{throw new Error('PathSegment has a property without a resource?')}
 			)
-			Resource(path.property.resource):propertyResource
+			Resource(path.property.resource, resource):propertyResource
 			NavigateResources(resource, propertyResource):navigationWhere
 			-> query.where.push(navigationWhere)
 		|	?path.link
 			(	?path.link.resource
-			|	{throw 'PathSegment has a link without a resource?'}
+			|	{throw new Error('PathSegment has a link without a resource?')}
 			)
-			Resource(path.link.resource):linkResource
+			Resource(path.link.resource, resource):linkResource
 			(	FieldContainedIn(linkResource.resourceName, resource)
-				ReferencedField(resource.resourceName, linkResource.resourceName):referencedField
+				ReferencedField(resource, linkResource.resourceName):referencedField
 				-> [referencedField, linkResource.resourceName]
 			|	FieldContainedIn(resource.resourceName, linkResource)
-				ReferencedField(linkResource.resourceName, resource.resourceName):referencedField
+				ReferencedField(linkResource, resource.resourceName):referencedField
 				-> [referencedField, resource.resourceName]
-			|	{throw 'Cannot navigate links'}
+			|	{throw new Error('Cannot navigate links')}
 			):aliasedField
 			PathKey(path.link, query, linkResource, referencedField, body)?
 			-> query.select.push(aliasedField)
 		|	?(method == 'PUT' || method == 'PUT-INSERT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
-			ResourceMapping(resource.resourceName):resourceMapping
+			ResourceMapping(resource):resourceMapping
 			BindVars(method, body, resource.resourceName, _.toPairs(resourceMapping)):bindVars
 			{query.extras.push(['Fields', _.map(bindVars, 0)])}
 			{query.extras.push(['Values', _.map(bindVars, 1)])}
@@ -163,7 +173,7 @@ export ometa OData2AbstractSQL {
 		Boolean(filter):where
 		{
 			query.select = _.map(bindVars, function(bindVar) {
-				return ['ReferencedField', resource.tableName, bindVar[0]]
+				return ['ReferencedField', resource.tableAlias, bindVar[0]]
 			})
 			query.from.push([
 				[	'SelectQuery',
@@ -182,7 +192,7 @@ export ometa OData2AbstractSQL {
 						})
 					]
 				],
-				resource.tableName
+				resource.tableAlias
 			])
 			query.where.push(where)
 		}
@@ -196,7 +206,7 @@ export ometa OData2AbstractSQL {
 		Boolean(filter):where
 		{
 			query.select.push(referencedIdField)
-			query.from.push(resource.tableName)
+			query.fromResource(resource)
 			query.where.push(where)
 		}
 		-> query
@@ -241,34 +251,53 @@ export ometa OData2AbstractSQL {
 	,
 
 	ResolveResourceAlias :aliasName =
-		-> (this.resourceAliases[aliasName] || aliasName)
+		?this.resourceAliases[aliasName]
+		-> this.resourceAliases[aliasName]
 	,
 
-	Resource :resourceName =
-			ResolveResourceAlias(resourceName):resourceName
-			{this.clientModel.resources[resourceName]}:resource
+	Resource :resourceName :parentResource =
+			ResolveResourceAlias(resourceName)
+		|	{this.clientModel.resources[resourceName]}:resource
 			?resource
+			{_.clone(resource)}:resource
 			(	?resource.tableName
-			|	ResourceMapping(resourceName):resourceMapping
+			|	ResourceMapping(resource):resourceMapping
 				{resource.tableName = resourceMapping._name}
 			)
+
+			(	?parentResource
+				-> (parentResource.tableAlias + '.' + resource.tableName)
+			|	-> resource.tableName
+			):tableAlias
+			{resource.tableAlias = tableAlias}
 			-> resource
-		|	{throw 'Unknown resource: ' + resourceName}
+		|	{throw new Error('Unknown resource: ' + resourceName)}
 	,
 
-	FieldContainedIn :resourceName :table =
-		ResourceMapping(table.resourceName):mapping
-		{mapping[resourceName]}:mappedField
+	FieldContainedIn :fieldName :resource =
+		ResourceMapping(resource):mapping
+		{mapping[fieldName]}:mappedField
 		?mappedField
-		?(mappedField[0] == table.tableName)
-		?_.some(table.fields, {fieldName: mappedField[1]})
+		?(mappedField[0] == resource.tableAlias)
+		?_.some(resource.fields, {fieldName: mappedField[1]})
 	,
 
-	ResourceMapping :resourceName =
-			ResolveResourceAlias(resourceName):resourceName
-			?this.clientModel.resourceToSQLMappings[resourceName]
-			-> this.clientModel.resourceToSQLMappings[resourceName]
-		|	{throw 'Unknown resource: ' + resourceName}
+	ResourceMapping :resource =
+			?this.clientModel.resourceToSQLMappings[resource.resourceName]
+			{this.clientModel.resourceToSQLMappings[resource.resourceName]}:resourceMapping
+			(	?resource.tableAlias
+				?(resource.tableAlias != resourceMapping._name)
+				{_.mapValues(resourceMapping, function(mapping) {
+					if(_.isArray(mapping)) {
+						return [resource.tableAlias, mapping[1]];
+					}
+					else {
+ 						return resource.tableAlias;
+					}
+				})}:resourceMapping
+			)?
+			-> resourceMapping
+		|	{throw new Error('Unknown resource: ' + resource.resourceName)}
 	,
 
 	AddSelectFields :path :query :resource =
@@ -285,30 +314,30 @@ export ometa OData2AbstractSQL {
 					return $elf.AliasSelectField(field.resource, field.name);
 				})
 				.value()
-		|	ResourceMapping(resource.resourceName):resourceMapping
+		|	ResourceMapping(resource):resourceMapping
 			-> _(resourceMapping).keys().reject(function(fieldName) {
 				return fieldName === '_name' || _.some(query.select, function(existingField) {
 					return _.last(existingField) == fieldName;
 				});
-			}).map(_.bind(this.AliasSelectField, this, resource.resourceName)).value()
+			}).map(_.bind(this.AliasSelectField, this, resource)).value()
 		):fields
 		-> (query.select = query.select.concat(fields))
 	,
 
-	AliasSelectField :resourceName :fieldName =
-		ReferencedField(resourceName, fieldName):referencedField
+	AliasSelectField :resource :fieldName =
+		ReferencedField(resource, fieldName):referencedField
 		(	?(referencedField[2] === fieldName)
 			-> referencedField
 		|	-> [referencedField, fieldName]
 		)
 	,
 
-	ReferencedField :resourceTable :resourceField =
-		ResourceMapping(resourceTable):mapping
+	ReferencedField :resource :resourceField =
+		ResourceMapping(resource):mapping
 		(	?mapping[resourceField]
 			-> ['ReferencedField'].concat(mapping[resourceField])
 		|	{console.error('Unknown mapping: ', mapping, resourceTable, resourceField)}
-			{throw 'Unknown mapping: ' + resourceTable + ' : ' + resourceField}
+			{throw new Error('Unknown mapping: ' + resourceTable + ' : ' + resourceField)}
 		)
 	,
 
@@ -454,12 +483,13 @@ export ometa OData2AbstractSQL {
 
 	Lambda :resource :lambda =
 		{this.resourceAliases}:resourceAliases
+		{this.defaultResource}:defaultResource
 		{	this.resourceAliases = _.clone(this.resourceAliases);
-			this.resourceAliases[lambda.identifier] = resource.resourceName;
+			this.resourceAliases[lambda.identifier] = resource;
 		}
 		(	{new Query()}:query
-			Resource(this.defaultResource):defaultResource
-			AddNavigation(query, defaultResource, resource)
+			AddNavigation(query, this.defaultResource, resource)
+			{this.defaultResource = resource}
 			AddExtraFroms(lambda.expression, query, resource)
 			Boolean(lambda.expression):filter
 			{query.where.push(filter)}
@@ -479,9 +509,11 @@ export ometa OData2AbstractSQL {
 					]
 				]
 			):result
-			// Make sure resourceAliases are always reset at the end.
+			// Make sure resourceAliases/defaultResource are always reset at the end.
 			{this.resourceAliases = resourceAliases}
+			{this.defaultResource = defaultResource}
 		|	{this.resourceAliases = resourceAliases}
+			{this.defaultResource = defaultResource}
 			?false
 		)
 		-> result
@@ -507,14 +539,25 @@ export ometa OData2AbstractSQL {
 		?prop.name
 		(	?prop.property
 			{this.defaultResource}:defaultResource
-			{this.defaultResource = prop.name}
-			Property(prop.property):result
-			{this.defaultResource = defaultResource}
-			-> result
-		|	?prop.lambda
-			Resource(prop.name):resource
+			(	{	try {
+						return $elf.Resource(prop.name, this.defaultResource);
+					} catch (e) {}
+				}:propResource
+				?propResource
+				{this.defaultResource = propResource}
+				Property(prop.property):result
+				{this.defaultResource = defaultResource}
+				-> result
+			|	{this.defaultResource = defaultResource}
+				Property(prop.property)
+			)
+		|	?(!prop.property)
+			?prop.lambda
+			Resource(prop.name, this.defaultResource):resource
 			Lambda(resource, prop.lambda)
-		|	-> {resource: this.defaultResource, name: prop.name}
+		|	?(!prop.property)
+			?(!prop.lambda)
+			-> {resource: this.defaultResource, name: prop.name}
 		)
 	,
 
@@ -558,7 +601,8 @@ export ometa OData2AbstractSQL {
 	Expands :resource :query =
 		{this.defaultResource}:defaultResource
 		[	(	:expand
-				Resource(expand.name):expandResource
+				Resource(expand.name, defaultResource):expandResource
+				{this.defaultResource = expandResource}
 				// We need to nest the expand query in order to be able to alias column names to match the OData version.
 				{new Query()}:nestedExpandQuery
 				(	?(!expand.property)
@@ -569,9 +613,8 @@ export ometa OData2AbstractSQL {
 					|	Expands(expandResource, nestedExpandQuery, expand.options.$expand.properties)
 					)
 				)
-				{nestedExpandQuery.from.push(expandResource.tableName)}
+				{nestedExpandQuery.fromResource(expandResource)}
 
-				{this.defaultResource = expand.name}
 				AddSelectFields(expand, nestedExpandQuery, expandResource)
 				(	?(!expand.options)
 				|	(	?(!expand.options.$filter)
@@ -595,8 +638,8 @@ export ometa OData2AbstractSQL {
 				{nestedExpandQuery.where.push(navigationWhere)}
 
 				{new Query()}:expandQuery
-				{expandQuery.select.push([['AggregateJSON', [expandResource.tableName, '*']], expandResource.resourceName])}
-				{expandQuery.from.push([nestedExpandQuery.compile('SelectQuery'), expandResource.tableName])}
+				{expandQuery.select.push([['AggregateJSON', [expandResource.tableAlias, '*']], expandResource.resourceName])}
+				{expandQuery.from.push([nestedExpandQuery.compile('SelectQuery'), expandResource.tableAlias])}
 				{query.select.push([expandQuery.compile('SelectQuery'), expandResource.resourceName])}
 			)+
 		]
@@ -604,34 +647,32 @@ export ometa OData2AbstractSQL {
 
 	NavigateResources :resource1 :resource2 =
 		(	FieldContainedIn(resource1.resourceName, resource2)
-			ReferencedField(resource2.resourceName, resource1.resourceName):fkField
+			ReferencedField(resource2, resource1.resourceName):fkField
 			-> ['Equals',
-				['ReferencedField', resource1.tableName, resource1.idField],
+				['ReferencedField', resource1.tableAlias, resource1.idField],
 				fkField
 			]
 		|	FieldContainedIn(resource2.resourceName, resource1)
-			ReferencedField(resource1.resourceName, resource2.resourceName):fkField
+			ReferencedField(resource1, resource2.resourceName):fkField
 			-> ['Equals',
-				['ReferencedField', resource2.tableName, resource2.idField],
+				['ReferencedField', resource2.tableAlias, resource2.idField],
 				fkField
 			]
-		|	{throw 'Cannot navigate resources ' + resource1.tableName + ' and ' + resource2.tableName}
+		|	{throw new Error('Cannot navigate resources ' + resource1.tableName + ' and ' + resource2.tableName)}
 		)
 	,
 
 	AddExtraFroms :searchPoint :query :resource =
 		ExtraFroms(searchPoint):extraFroms
-		{	_.each(extraFroms, function(resourceName) {
+		{	_.each(extraFroms, function(extraResource) {
 				var currentResource = resource;
-				if(_.isArray(resourceName)) {
-					_.each(resourceName, function(resourceName) {
-						var extraResource = $elf.Resource(resourceName);
+				if(_.isArray(extraResource)) {
+					_.each(extraResource, function(extraResource) {
 						$elf.AddNavigation(query, currentResource, extraResource);
 						currentResource = extraResource;
 					});
 				}
 				else {
-					var extraResource = $elf.Resource(resourceName);
 					$elf.AddNavigation(query, currentResource, extraResource);
 				}
 			});
@@ -647,13 +688,14 @@ export ometa OData2AbstractSQL {
 				)*
 			]
 		|	:nextProp
+			{this.defaultResource}:parentResource
 			(	{nextProp}:prop
 				?prop
 				?prop.name
 				?prop.property
 				?prop.property.name
 				{prop.property}:nextProp
-				ResolveResourceAlias(prop.name)
+				Resource(prop.name, parentResource):parentResource
 			)+:extraFroms
 			(	?(extraFroms.length == 1)
 				-> froms.push(extraFroms[0])
@@ -665,13 +707,21 @@ export ometa OData2AbstractSQL {
 	,
 
 	AddNavigation :query :resource :extraResource =
-		(	?(!_.includes(query.from, extraResource.tableName))
+		(	?(!_.some(query.from, function(from) {
+				return from === extraResource.tableAlias ||
+					(_.isArray(from) && from[1] === extraResource.tableAlias);
+			}))
 			NavigateResources(resource, extraResource):nagivationWhere
-			{query.from.push(extraResource.tableName)}
+			{query.fromResource(extraResource)}
 			{query.where.push(nagivationWhere)}
 		)?
 }
 
 OData2AbstractSQL.initialize = function() {
+	this.reset();
+};
+
+OData2AbstractSQL.reset = function() {
 	this.resourceAliases = {};
+	this.defaultResource = null;
 };

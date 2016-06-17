@@ -25,7 +25,10 @@ Term:       plane
 Fact type:  plane has name
 	Necessity: each plane has exactly one name
 
+Term:      person
+
 Term:       pilot
+	Concept Type: person
 
 Fact type:  pilot is experienced
 
@@ -48,3 +51,7 @@ Fact type:  pilot has licence
 
 Fact type:  pilot has hire date
 	Necessity: each pilot has exactly one hire date
+
+Fact type:  pilot1 was trained by pilot2
+	Synonymous Form: pilot2 trained pilot1
+	Necessity: each pilot was trained by exactly one pilot

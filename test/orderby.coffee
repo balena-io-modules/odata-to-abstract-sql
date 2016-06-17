@@ -52,10 +52,13 @@ test '/pilot?$orderby=licence/id asc', (result) ->
 	it 'should order by licence/id asc', ->
 		expect(result).to.be.a.query.that.
 			selects(pilotFields).
-			from('pilot', 'licence').
+			from(
+				'pilot'
+				['licence', 'pilot.licence']
+			).
 			where(
 				['Equals'
-					['ReferencedField', 'licence', 'id']
+					['ReferencedField', 'pilot.licence', 'id']
 					['ReferencedField', 'pilot', 'licence']
 				]
 			).
@@ -68,15 +71,19 @@ test '/pilot?$orderby=pilot__can_fly__plane/plane/id asc', (result) ->
 	it 'should order by pilot__can_fly__plane/plane/id asc', ->
 		expect(result).to.be.a.query.that.
 			selects(pilotFields).
-			from('pilot', 'pilot-can_fly-plane', 'pilot').
+			from(
+				'pilot'
+				['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
+				['plane', 'pilot.pilot-can_fly-plane.plane']
+			).
 			where(['And'
 				['Equals'
 					['ReferencedField', 'pilot', 'id']
-					['ReferencedField', 'pilot-can_fly-plane', 'pilot']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
 				]
 				['Equals'
-					['ReferencedField', 'plane', 'id']
-					['ReferencedField', 'pilot-can_fly-plane', 'plane']
+					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 				]
 			]).
 			orderby(

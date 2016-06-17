@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{ pilotFields, licenceFields, planeFields, teamFields } = require('./chai-sql')
+{ aliasFields, pilotFields, licenceFields, planeFields, teamFields } = require('./chai-sql')
 test = require('./test')
 
 test '/', (result) ->
@@ -31,46 +31,60 @@ test "/pilot('TextKey')", (result) ->
 test '/pilot(1)/licence', (result) ->
 	it 'should select from the licence of pilot with id', ->
 		expect(result).to.be.a.query.that.
-			selects(licenceFields).
-			from('pilot', 'licence').
+			selects(aliasFields('pilot', licenceFields)).
+			from(
+				'pilot'
+				['licence', 'pilot.licence']
+			).
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
-				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
+				['Equals', ['ReferencedField', 'pilot.licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 			])
 
 
 test '/licence(1)/pilot', (result) ->
 	it 'should select from the pilots of licence with id', ->
 		expect(result).to.be.a.query.that.
-			selects(pilotFields).
-			from('pilot', 'licence').
+			selects(aliasFields('licence', pilotFields)).
+			from(
+				'licence'
+				['pilot', 'licence.pilot']
+			).
 			where(['And',
 				['Equals', ['ReferencedField', 'licence', 'id'], ['Number', 1]]
-				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
+				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'licence.pilot', 'licence']]
 			])
 
 
 test '/pilot(1)/pilot__can_fly__plane/plane', (result) ->
 	it 'should select from the plane of pilot with id', ->
 		expect(result).to.be.a.query.that.
-			selects(planeFields).
-			from('pilot', 'pilot-can_fly-plane', 'plane').
+			selects(aliasFields('pilot.pilot-can_fly-plane', planeFields)).
+			from(
+				'pilot'
+				['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
+				['plane', 'pilot.pilot-can_fly-plane.plane']
+			).
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
-				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'plane']]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
+				['Equals', ['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']]
 			])
 
 
 test '/plane(1)/pilot__can_fly__plane/pilot', (result) ->
 	it 'should select from the pilots of plane with id', ->
 		expect(result).to.be.a.query.that.
-			selects(pilotFields).
-			from('pilot', 'plane').
+			selects(aliasFields('plane.pilot-can_fly-plane', pilotFields)).
+			from(
+				'plane'
+				['pilot-can_fly-plane', 'plane.pilot-can_fly-plane']
+				['pilot', 'plane.pilot-can_fly-plane.pilot']
+			).
 			where(['And',
 				['Equals', ['ReferencedField', 'plane', 'id'], ['Number', 1]]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
-				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'plane']]
+				['Equals', ['ReferencedField', 'plane.pilot-can_fly-plane.pilot', 'id'], ['ReferencedField', 'plane.pilot-can_fly-plane', 'pilot']]
+				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'plane.pilot-can_fly-plane', 'plane']]
 			])
 
 
@@ -100,6 +114,7 @@ test '/pilot(1)', 'PUT', (result) ->
 			fields(
 				'created at'
 				'id'
+				'person'
 				'is experienced'
 				'name'
 				'age'
@@ -107,10 +122,13 @@ test '/pilot(1)', 'PUT', (result) ->
 				'team'
 				'licence'
 				'hire date'
+				'pilot'
 			).
 			values(
 				'Default'
 				['Bind', 'pilot', 'id']
+				'Default'
+				'Default'
 				'Default'
 				'Default'
 				'Default'
@@ -259,11 +277,14 @@ test "/pilot('Peter')/$links/licence('X')", (result) ->
 test '/pilot(1)/pilot__can_fly__plane/$links/plane', (result) ->
 	it 'should select the list of plane ids, for generating the links', ->
 		expect(result).to.be.a.query.that.
-			selects([[['ReferencedField', 'pilot-can_fly-plane', 'plane'], 'plane']]).
-			from('pilot').
+			selects([[['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane'], 'plane']]).
+			from(
+				'pilot'
+				['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
+			).
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot-can_fly-plane', 'pilot']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']]
 			])
 
 
