@@ -18,6 +18,9 @@
         this.where = this.where.concat(otherQuery.where);
         this.extras = this.extras.concat(otherQuery.extras);
     };
+    Query.prototype.fromResource = function(resource) {
+        resource.tableName !== resource.tableAlias ? this.from.push([ resource.tableName, resource.tableAlias ]) : this.from.push(resource.tableName);
+    };
     Query.prototype.compile = function(queryType) {
         var compiled = [ queryType ], where = this.where;
         "SelectQuery" === queryType && compiled.push([ "Select", this.select ]);
@@ -42,9 +45,11 @@
                 this._pred(_.includes([ "$metadata", "$serviceroot" ], path.resource));
                 return [ path.resource ];
             }, function() {
+                this.reset();
                 query = this._applyWithArgs("PathSegment", method, body, path);
                 return this._or(function() {
                     this._pred("PUT" == method);
+                    this.reset();
                     insertQuery = this._applyWithArgs("PathSegment", "PUT-INSERT", body, path);
                     return [ "UpsertQuery", insertQuery.compile("InsertQuery"), query.compile("UpdateQuery") ];
                 }, function() {
@@ -68,11 +73,11 @@
         PathSegment: function(method, body, path) {
             var $elf = this, _fromIdx = this.input.idx, aliasedField, bindVars, childQuery, limit, linkResource, navigationWhere, offset, propertyResource, query, referencedField, referencedIdField, resource, resourceMapping, subQuery, valuesIndex;
             this._pred(path.resource);
-            resource = this._applyWithArgs("Resource", path.resource);
-            this.defaultResource = path.resource;
+            resource = this._applyWithArgs("Resource", path.resource, this.defaultResource);
+            this.defaultResource = resource;
             query = new Query();
-            query.from.push(resource.tableName);
-            referencedIdField = [ "ReferencedField", resource.tableName, resource.idField ];
+            query.fromResource(resource);
+            referencedIdField = [ "ReferencedField", resource.tableAlias, resource.idField ];
             this._opt(function() {
                 return this._applyWithArgs("PathKey", path, query, resource, referencedIdField, body);
             });
@@ -91,10 +96,10 @@
                     return this._pred(path.property.resource);
                 }, function() {
                     return function() {
-                        throw "PathSegment has a property without a resource?";
+                        throw new Error("PathSegment has a property without a resource?");
                     }.call(this);
                 });
-                propertyResource = this._applyWithArgs("Resource", path.property.resource);
+                propertyResource = this._applyWithArgs("Resource", path.property.resource, resource);
                 navigationWhere = this._applyWithArgs("NavigateResources", resource, propertyResource);
                 return query.where.push(navigationWhere);
             }, function() {
@@ -103,21 +108,21 @@
                     return this._pred(path.link.resource);
                 }, function() {
                     return function() {
-                        throw "PathSegment has a link without a resource?";
+                        throw new Error("PathSegment has a link without a resource?");
                     }.call(this);
                 });
-                linkResource = this._applyWithArgs("Resource", path.link.resource);
+                linkResource = this._applyWithArgs("Resource", path.link.resource, resource);
                 aliasedField = this._or(function() {
                     this._applyWithArgs("FieldContainedIn", linkResource.resourceName, resource);
-                    referencedField = this._applyWithArgs("ReferencedField", resource.resourceName, linkResource.resourceName);
+                    referencedField = this._applyWithArgs("ReferencedField", resource, linkResource.resourceName);
                     return [ referencedField, linkResource.resourceName ];
                 }, function() {
                     this._applyWithArgs("FieldContainedIn", resource.resourceName, linkResource);
-                    referencedField = this._applyWithArgs("ReferencedField", linkResource.resourceName, resource.resourceName);
+                    referencedField = this._applyWithArgs("ReferencedField", linkResource, resource.resourceName);
                     return [ referencedField, resource.resourceName ];
                 }, function() {
                     return function() {
-                        throw "Cannot navigate links";
+                        throw new Error("Cannot navigate links");
                     }.call(this);
                 });
                 this._opt(function() {
@@ -126,7 +131,7 @@
                 return query.select.push(aliasedField);
             }, function() {
                 this._pred("PUT" == method || "PUT-INSERT" == method || "POST" == method || "PATCH" == method || "MERGE" == method);
-                resourceMapping = this._applyWithArgs("ResourceMapping", resource.resourceName);
+                resourceMapping = this._applyWithArgs("ResourceMapping", resource);
                 bindVars = this._applyWithArgs("BindVars", method, body, resource.resourceName, _.toPairs(resourceMapping));
                 query.extras.push([ "Fields", _.map(bindVars, 0) ]);
                 return query.extras.push([ "Values", _.map(bindVars, 1) ]);
@@ -200,7 +205,7 @@
             where = this._applyWithArgs("Boolean", filter);
             (function() {
                 query.select = _.map(bindVars, function(bindVar) {
-                    return [ "ReferencedField", resource.tableName, bindVar[0] ];
+                    return [ "ReferencedField", resource.tableAlias, bindVar[0] ];
                 });
                 query.from.push([ [ "SelectQuery", [ "Select", _.map($elf.clientModel.resources[resource.resourceName].fields, function(field) {
                     var cast, alias = field.fieldName, bindVar = _.find(bindVars, {
@@ -208,7 +213,7 @@
                     });
                     cast = bindVar ? [ "Cast", bindVar[1], field.dataType ] : "Null";
                     return [ cast, alias ];
-                }) ] ], resource.tableName ]);
+                }) ] ], resource.tableAlias ]);
                 return query.where.push(where);
             }).call(this);
             return query;
@@ -220,7 +225,7 @@
             where = this._applyWithArgs("Boolean", filter);
             (function() {
                 query.select.push(referencedIdField);
-                query.from.push(resource.tableName);
+                query.fromResource(resource);
                 return query.where.push(where);
             }).call(this);
             return query;
@@ -278,46 +283,63 @@
         },
         ResolveResourceAlias: function(aliasName) {
             var $elf = this, _fromIdx = this.input.idx;
-            return this.resourceAliases[aliasName] || aliasName;
+            this._pred(this.resourceAliases[aliasName]);
+            return this.resourceAliases[aliasName];
         },
-        Resource: function(resourceName) {
-            var $elf = this, _fromIdx = this.input.idx, resource, resourceMapping, resourceName;
+        Resource: function(resourceName, parentResource) {
+            var $elf = this, _fromIdx = this.input.idx, resource, resourceMapping, tableAlias;
             return this._or(function() {
-                resourceName = this._applyWithArgs("ResolveResourceAlias", resourceName);
+                return this._applyWithArgs("ResolveResourceAlias", resourceName);
+            }, function() {
                 resource = this.clientModel.resources[resourceName];
                 this._pred(resource);
+                resource = _.clone(resource);
                 this._or(function() {
                     return this._pred(resource.tableName);
                 }, function() {
-                    resourceMapping = this._applyWithArgs("ResourceMapping", resourceName);
+                    resourceMapping = this._applyWithArgs("ResourceMapping", resource);
                     return resource.tableName = resourceMapping._name;
                 });
+                tableAlias = this._or(function() {
+                    this._pred(parentResource);
+                    return parentResource.tableAlias + "." + resource.tableName;
+                }, function() {
+                    return resource.tableName;
+                });
+                resource.tableAlias = tableAlias;
                 return resource;
             }, function() {
                 return function() {
-                    throw "Unknown resource: " + resourceName;
+                    throw new Error("Unknown resource: " + resourceName);
                 }.call(this);
             });
         },
-        FieldContainedIn: function(resourceName, table) {
+        FieldContainedIn: function(fieldName, resource) {
             var $elf = this, _fromIdx = this.input.idx, mappedField, mapping;
-            mapping = this._applyWithArgs("ResourceMapping", table.resourceName);
-            mappedField = mapping[resourceName];
+            mapping = this._applyWithArgs("ResourceMapping", resource);
+            mappedField = mapping[fieldName];
             this._pred(mappedField);
-            this._pred(mappedField[0] == table.tableName);
-            return this._pred(_.some(table.fields, {
+            this._pred(mappedField[0] == resource.tableAlias);
+            return this._pred(_.some(resource.fields, {
                 fieldName: mappedField[1]
             }));
         },
-        ResourceMapping: function(resourceName) {
-            var $elf = this, _fromIdx = this.input.idx, resourceName;
+        ResourceMapping: function(resource) {
+            var $elf = this, _fromIdx = this.input.idx, resourceMapping;
             return this._or(function() {
-                resourceName = this._applyWithArgs("ResolveResourceAlias", resourceName);
-                this._pred(this.clientModel.resourceToSQLMappings[resourceName]);
-                return this.clientModel.resourceToSQLMappings[resourceName];
+                this._pred(this.clientModel.resourceToSQLMappings[resource.resourceName]);
+                resourceMapping = this.clientModel.resourceToSQLMappings[resource.resourceName];
+                this._opt(function() {
+                    this._pred(resource.tableAlias);
+                    this._pred(resource.tableAlias != resourceMapping._name);
+                    return resourceMapping = _.mapValues(resourceMapping, function(mapping) {
+                        return _.isArray(mapping) ? [ resource.tableAlias, mapping[1] ] : resource.tableAlias;
+                    });
+                });
+                return resourceMapping;
             }, function() {
                 return function() {
-                    throw "Unknown resource: " + resourceName;
+                    throw new Error("Unknown resource: " + resource.resourceName);
                 }.call(this);
             });
         },
@@ -336,18 +358,18 @@
                     return $elf.AliasSelectField(field.resource, field.name);
                 }).value();
             }, function() {
-                resourceMapping = this._applyWithArgs("ResourceMapping", resource.resourceName);
+                resourceMapping = this._applyWithArgs("ResourceMapping", resource);
                 return _(resourceMapping).keys().reject(function(fieldName) {
                     return "_name" === fieldName || _.some(query.select, function(existingField) {
                         return _.last(existingField) == fieldName;
                     });
-                }).map(_.bind(this.AliasSelectField, this, resource.resourceName)).value();
+                }).map(_.bind(this.AliasSelectField, this, resource)).value();
             });
             return query.select = query.select.concat(fields);
         },
-        AliasSelectField: function(resourceName, fieldName) {
+        AliasSelectField: function(resource, fieldName) {
             var $elf = this, _fromIdx = this.input.idx, referencedField;
-            referencedField = this._applyWithArgs("ReferencedField", resourceName, fieldName);
+            referencedField = this._applyWithArgs("ReferencedField", resource, fieldName);
             return this._or(function() {
                 this._pred(referencedField[2] === fieldName);
                 return referencedField;
@@ -355,16 +377,16 @@
                 return [ referencedField, fieldName ];
             });
         },
-        ReferencedField: function(resourceTable, resourceField) {
+        ReferencedField: function(resource, resourceField) {
             var $elf = this, _fromIdx = this.input.idx, mapping;
-            mapping = this._applyWithArgs("ResourceMapping", resourceTable);
+            mapping = this._applyWithArgs("ResourceMapping", resource);
             return this._or(function() {
                 this._pred(mapping[resourceField]);
                 return [ "ReferencedField" ].concat(mapping[resourceField]);
             }, function() {
                 console.error("Unknown mapping: ", mapping, resourceTable, resourceField);
                 return function() {
-                    throw "Unknown mapping: " + resourceTable + " : " + resourceField;
+                    throw new Error("Unknown mapping: " + resourceTable + " : " + resourceField);
                 }.call(this);
             });
         },
@@ -598,14 +620,15 @@
         Lambda: function(resource, lambda) {
             var $elf = this, _fromIdx = this.input.idx, defaultResource, filter, query, resourceAliases, result;
             resourceAliases = this.resourceAliases;
+            defaultResource = this.defaultResource;
             (function() {
                 this.resourceAliases = _.clone(this.resourceAliases);
-                return this.resourceAliases[lambda.identifier] = resource.resourceName;
+                return this.resourceAliases[lambda.identifier] = resource;
             }).call(this);
             this._or(function() {
                 query = new Query();
-                defaultResource = this._applyWithArgs("Resource", this.defaultResource);
-                this._applyWithArgs("AddNavigation", query, defaultResource, resource);
+                this._applyWithArgs("AddNavigation", query, this.defaultResource, resource);
+                this.defaultResource = resource;
                 this._applyWithArgs("AddExtraFroms", lambda.expression, query, resource);
                 filter = this._applyWithArgs("Boolean", lambda.expression);
                 query.where.push(filter);
@@ -619,9 +642,11 @@
                         return "Where" == queryPart[0] ? [ queryPart[0], [ "Not", queryPart[1] ] ] : queryPart;
                     }) ] ];
                 });
-                return this.resourceAliases = resourceAliases;
+                this.resourceAliases = resourceAliases;
+                return this.defaultResource = defaultResource;
             }, function() {
                 this.resourceAliases = resourceAliases;
+                this.defaultResource = defaultResource;
                 return this._pred(!1);
             });
             return result;
@@ -646,21 +671,35 @@
             });
         },
         Property: function() {
-            var $elf = this, _fromIdx = this.input.idx, defaultResource, prop, resource, result;
+            var $elf = this, _fromIdx = this.input.idx, defaultResource, prop, propResource, resource, result;
             prop = this.anything();
             this._pred(prop.name);
             return this._or(function() {
                 this._pred(prop.property);
                 defaultResource = this.defaultResource;
-                this.defaultResource = prop.name;
-                result = this._applyWithArgs("Property", prop.property);
-                this.defaultResource = defaultResource;
-                return result;
+                return this._or(function() {
+                    propResource = function() {
+                        try {
+                            return $elf.Resource(prop.name, this.defaultResource);
+                        } catch (e) {} finally {}
+                    }.call(this);
+                    this._pred(propResource);
+                    this.defaultResource = propResource;
+                    result = this._applyWithArgs("Property", prop.property);
+                    this.defaultResource = defaultResource;
+                    return result;
+                }, function() {
+                    this.defaultResource = defaultResource;
+                    return this._applyWithArgs("Property", prop.property);
+                });
             }, function() {
+                this._pred(!prop.property);
                 this._pred(prop.lambda);
-                resource = this._applyWithArgs("Resource", prop.name);
+                resource = this._applyWithArgs("Resource", prop.name, this.defaultResource);
                 return this._applyWithArgs("Lambda", resource, prop.lambda);
             }, function() {
+                this._pred(!prop.property);
+                this._pred(!prop.lambda);
                 return {
                     resource: this.defaultResource,
                     name: prop.name
@@ -715,7 +754,8 @@
             return this._form(function() {
                 return this._many1(function() {
                     expand = this.anything();
-                    expandResource = this._applyWithArgs("Resource", expand.name);
+                    expandResource = this._applyWithArgs("Resource", expand.name, defaultResource);
+                    this.defaultResource = expandResource;
                     nestedExpandQuery = new Query();
                     this._or(function() {
                         return this._pred(!expand.property);
@@ -729,8 +769,7 @@
                     }, function() {
                         return this._applyWithArgs("Expands", expandResource, nestedExpandQuery, expand.options.$expand.properties);
                     });
-                    nestedExpandQuery.from.push(expandResource.tableName);
-                    this.defaultResource = expand.name;
+                    nestedExpandQuery.fromResource(expandResource);
                     this._applyWithArgs("AddSelectFields", expand, nestedExpandQuery, expandResource);
                     this._or(function() {
                         return this._pred(!expand.options);
@@ -762,8 +801,8 @@
                     navigationWhere = this._applyWithArgs("NavigateResources", resource, expandResource);
                     nestedExpandQuery.where.push(navigationWhere);
                     expandQuery = new Query();
-                    expandQuery.select.push([ [ "AggregateJSON", [ expandResource.tableName, "*" ] ], expandResource.resourceName ]);
-                    expandQuery.from.push([ nestedExpandQuery.compile("SelectQuery"), expandResource.tableName ]);
+                    expandQuery.select.push([ [ "AggregateJSON", [ expandResource.tableAlias, "*" ] ], expandResource.resourceName ]);
+                    expandQuery.from.push([ nestedExpandQuery.compile("SelectQuery"), expandResource.tableAlias ]);
                     return query.select.push([ expandQuery.compile("SelectQuery"), expandResource.resourceName ]);
                 });
             });
@@ -772,35 +811,31 @@
             var $elf = this, _fromIdx = this.input.idx, fkField;
             return this._or(function() {
                 this._applyWithArgs("FieldContainedIn", resource1.resourceName, resource2);
-                fkField = this._applyWithArgs("ReferencedField", resource2.resourceName, resource1.resourceName);
-                return [ "Equals", [ "ReferencedField", resource1.tableName, resource1.idField ], fkField ];
+                fkField = this._applyWithArgs("ReferencedField", resource2, resource1.resourceName);
+                return [ "Equals", [ "ReferencedField", resource1.tableAlias, resource1.idField ], fkField ];
             }, function() {
                 this._applyWithArgs("FieldContainedIn", resource2.resourceName, resource1);
-                fkField = this._applyWithArgs("ReferencedField", resource1.resourceName, resource2.resourceName);
-                return [ "Equals", [ "ReferencedField", resource2.tableName, resource2.idField ], fkField ];
+                fkField = this._applyWithArgs("ReferencedField", resource1, resource2.resourceName);
+                return [ "Equals", [ "ReferencedField", resource2.tableAlias, resource2.idField ], fkField ];
             }, function() {
                 return function() {
-                    throw "Cannot navigate resources " + resource1.tableName + " and " + resource2.tableName;
+                    throw new Error("Cannot navigate resources " + resource1.tableName + " and " + resource2.tableName);
                 }.call(this);
             });
         },
         AddExtraFroms: function(searchPoint, query, resource) {
             var $elf = this, _fromIdx = this.input.idx, extraFroms;
             extraFroms = this._applyWithArgs("ExtraFroms", searchPoint);
-            return _.each(extraFroms, function(resourceName) {
+            return _.each(extraFroms, function(extraResource) {
                 var currentResource = resource;
-                if (_.isArray(resourceName)) _.each(resourceName, function(resourceName) {
-                    var extraResource = $elf.Resource(resourceName);
+                _.isArray(extraResource) ? _.each(extraResource, function(extraResource) {
                     $elf.AddNavigation(query, currentResource, extraResource);
                     currentResource = extraResource;
-                }); else {
-                    var extraResource = $elf.Resource(resourceName);
-                    $elf.AddNavigation(query, currentResource, extraResource);
-                }
+                }) : $elf.AddNavigation(query, currentResource, extraResource);
             });
         },
         ExtraFroms: function() {
-            var $elf = this, _fromIdx = this.input.idx, extraFroms, froms, nextProp, prop;
+            var $elf = this, _fromIdx = this.input.idx, extraFroms, froms, nextProp, parentResource, prop;
             froms = [];
             this._or(function() {
                 this._pred(_.isArray(this.input.hd));
@@ -812,6 +847,7 @@
                 });
             }, function() {
                 nextProp = this.anything();
+                parentResource = this.defaultResource;
                 extraFroms = this._many1(function() {
                     prop = nextProp;
                     this._pred(prop);
@@ -819,7 +855,7 @@
                     this._pred(prop.property);
                     this._pred(prop.property.name);
                     nextProp = prop.property;
-                    return this._applyWithArgs("ResolveResourceAlias", prop.name);
+                    return parentResource = this._applyWithArgs("Resource", prop.name, parentResource);
                 });
                 return this._or(function() {
                     this._pred(1 == extraFroms.length);
@@ -835,14 +871,20 @@
         AddNavigation: function(query, resource, extraResource) {
             var $elf = this, _fromIdx = this.input.idx, nagivationWhere;
             return this._opt(function() {
-                this._pred(!_.includes(query.from, extraResource.tableName));
+                this._pred(!_.some(query.from, function(from) {
+                    return from === extraResource.tableAlias || _.isArray(from) && from[1] === extraResource.tableAlias;
+                }));
                 nagivationWhere = this._applyWithArgs("NavigateResources", resource, extraResource);
-                query.from.push(extraResource.tableName);
+                query.fromResource(extraResource);
                 return query.where.push(nagivationWhere);
             });
         }
     });
     OData2AbstractSQL.initialize = function() {
+        this.reset();
+    };
+    OData2AbstractSQL.reset = function() {
         this.resourceAliases = {};
+        this.defaultResource = null;
     };
 });
