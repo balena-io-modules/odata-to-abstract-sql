@@ -686,19 +686,15 @@ lambdaTest = (methodName) ->
 			it 'should select from pilot where ...', ->
 				expect(result).to.be.a.query.that.
 					selects(pilotFields).
-					from(
-						'pilot',
-						['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
-						where(where)
+					from('pilot', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
+					where(where)
 
 		test '/pilot/$count?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
 			it 'should select count(*) from pilot where ...', ->
 				expect(result).to.be.a.query.that.
 					selects([[['Count', '*'], '$count']]).
-					from(
-						'pilot',
-						['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
-						where(where)
+					from('pilot', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
+					where(where)
 
 lambdaTest('any')
 lambdaTest('all')
