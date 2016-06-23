@@ -1,6 +1,7 @@
 expect = require('chai').expect
 { operandToAbstractSQL, aliasFields, pilotFields } = require('./chai-sql')
 test = require('./test')
+_ = require 'lodash'
 
 pilotName = _.filter(pilotFields, 2: 'name')[0]
 pilotAge = _.filter(pilotFields, 2: 'age')[0]

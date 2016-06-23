@@ -1,5 +1,7 @@
 chai = require('chai')
 chai.use(require('chai-things'))
+_ = require 'lodash'
+
 chai.use((chai, utils) ->
 	expect = chai.expect
 	assertionPrototype = chai.Assertion.prototype
