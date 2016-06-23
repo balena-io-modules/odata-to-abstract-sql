@@ -71,7 +71,7 @@
             });
         },
         PathSegment: function(method, body, path) {
-            var $elf = this, _fromIdx = this.input.idx, aliasedField, bindVars, childQuery, limit, linkResource, navigationWhere, offset, propertyResource, query, referencedField, referencedIdField, resource, resourceMapping, subQuery, valuesIndex;
+            var $elf = this, _fromIdx = this.input.idx, aliasedField, bindVars, childQuery, linkResource, navigationWhere, propertyResource, query, referencedField, referencedIdField, resource, resourceMapping, subQuery, valuesIndex;
             this._pred(path.resource);
             resource = this._applyWithArgs("Resource", path.resource, this.defaultResource);
             this.defaultResource = resource;
@@ -136,6 +136,8 @@
                 query.extras.push([ "Fields", _.map(bindVars, 0) ]);
                 return query.extras.push([ "Values", _.map(bindVars, 1) ]);
             }, function() {
+                return this._applyWithArgs("AddCountField", path, query, resource);
+            }, function() {
                 return this._applyWithArgs("AddSelectFields", path, query, resource);
             });
             this._or(function() {
@@ -157,23 +159,7 @@
                 }, function() {
                     return this._applyWithArgs("SelectFilter", path.options.$filter, query, resource);
                 });
-                this._or(function() {
-                    return this._pred(!path.options.$orderby);
-                }, function() {
-                    return this._applyWithArgs("OrderBy", path.options.$orderby, query, resource);
-                });
-                this._or(function() {
-                    return this._pred(!path.options.$top);
-                }, function() {
-                    limit = this._applyWithArgs("Number", path.options.$top);
-                    return query.extras.push([ "Limit", limit ]);
-                });
-                return this._or(function() {
-                    return this._pred(!path.options.$skip);
-                }, function() {
-                    offset = this._applyWithArgs("Number", path.options.$skip);
-                    return query.extras.push([ "Offset", offset ]);
-                });
+                return this._applyWithArgs("AddExtraQueryOptions", resource, path, query);
             });
             return query;
         },
@@ -343,6 +329,11 @@
                 }.call(this);
             });
         },
+        AddCountField: function(path, query, resource) {
+            var $elf = this, _fromIdx = this.input.idx;
+            this._pred(path.count);
+            return query.select.push([ [ "Count", "*" ], "$count" ]);
+        },
         AddSelectFields: function(path, query, resource) {
             var $elf = this, _fromIdx = this.input.idx, fields, resourceMapping;
             fields = this._or(function() {
@@ -384,9 +375,9 @@
                 this._pred(mapping[resourceField]);
                 return [ "ReferencedField" ].concat(mapping[resourceField]);
             }, function() {
-                console.error("Unknown mapping: ", mapping, resourceTable, resourceField);
+                console.error("Unknown mapping: ", mapping, resource.resourceName, resourceField);
                 return function() {
-                    throw new Error("Unknown mapping: " + resourceTable + " : " + resourceField);
+                    throw new Error("Unknown mapping: " + resource.resourceName + " : " + resourceField);
                 }.call(this);
             });
         },
@@ -749,7 +740,7 @@
             return [ "Duration", duration ];
         },
         Expands: function(resource, query) {
-            var $elf = this, _fromIdx = this.input.idx, defaultResource, expand, expandQuery, expandResource, limit, navigationWhere, nestedExpandQuery, offset;
+            var $elf = this, _fromIdx = this.input.idx, defaultResource, expand, expandQuery, expandResource, navigationWhere, nestedExpandQuery;
             defaultResource = this.defaultResource;
             return this._form(function() {
                 return this._many1(function() {
@@ -770,7 +761,11 @@
                         return this._applyWithArgs("Expands", expandResource, nestedExpandQuery, expand.options.$expand.properties);
                     });
                     nestedExpandQuery.fromResource(expandResource);
-                    this._applyWithArgs("AddSelectFields", expand, nestedExpandQuery, expandResource);
+                    this._or(function() {
+                        return this._applyWithArgs("AddCountField", expand, nestedExpandQuery, expandResource);
+                    }, function() {
+                        return this._applyWithArgs("AddSelectFields", expand, nestedExpandQuery, expandResource);
+                    });
                     this._or(function() {
                         return this._pred(!expand.options);
                     }, function() {
@@ -779,23 +774,7 @@
                         }, function() {
                             return this._applyWithArgs("SelectFilter", expand.options.$filter, nestedExpandQuery, expandResource);
                         });
-                        this._or(function() {
-                            return this._pred(!expand.options.$orderby);
-                        }, function() {
-                            return this._applyWithArgs("OrderBy", expand.options.$orderby, nestedExpandQuery, expandResource);
-                        });
-                        this._or(function() {
-                            return this._pred(!expand.options.$top);
-                        }, function() {
-                            limit = this._applyWithArgs("Number", expand.options.$top);
-                            return nestedExpandQuery.extras.push([ "Limit", limit ]);
-                        });
-                        return this._or(function() {
-                            return this._pred(!expand.options.$skip);
-                        }, function() {
-                            offset = this._applyWithArgs("Number", expand.options.$skip);
-                            return nestedExpandQuery.extras.push([ "Offset", offset ]);
-                        });
+                        return this._applyWithArgs("AddExtraQueryOptions", expandResource, expand, nestedExpandQuery);
                     });
                     this.defaultResource = defaultResource;
                     navigationWhere = this._applyWithArgs("NavigateResources", resource, expandResource);
@@ -804,6 +783,30 @@
                     expandQuery.select.push([ [ "AggregateJSON", [ expandResource.tableAlias, "*" ] ], expandResource.resourceName ]);
                     expandQuery.from.push([ nestedExpandQuery.compile("SelectQuery"), expandResource.tableAlias ]);
                     return query.select.push([ expandQuery.compile("SelectQuery"), expandResource.resourceName ]);
+                });
+            });
+        },
+        AddExtraQueryOptions: function(resource, path, query) {
+            var $elf = this, _fromIdx = this.input.idx, limit, offset;
+            return this._or(function() {
+                return this._pred(path.count);
+            }, function() {
+                this._or(function() {
+                    return this._pred(!path.options.$orderby);
+                }, function() {
+                    return this._applyWithArgs("OrderBy", path.options.$orderby, query, resource);
+                });
+                this._or(function() {
+                    return this._pred(!path.options.$top);
+                }, function() {
+                    limit = this._applyWithArgs("Number", path.options.$top);
+                    return query.extras.push([ "Limit", limit ]);
+                });
+                return this._or(function() {
+                    return this._pred(!path.options.$skip);
+                }, function() {
+                    offset = this._applyWithArgs("Number", path.options.$skip);
+                    return query.extras.push([ "Offset", offset ]);
                 });
             });
         },
