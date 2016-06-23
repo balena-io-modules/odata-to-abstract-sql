@@ -1,5 +1,6 @@
 v0.3.5
 
+* Fixed an undefined variable issue on an unknown mapping.
 * Added support for /$count
 * Added tests for count
 

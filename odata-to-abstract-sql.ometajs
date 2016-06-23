@@ -332,8 +332,8 @@ export ometa OData2AbstractSQL {
 		ResourceMapping(resource):mapping
 		(	?mapping[resourceField]
 			-> ['ReferencedField'].concat(mapping[resourceField])
-		|	{console.error('Unknown mapping: ', mapping, resourceTable, resourceField)}
-			{throw new Error('Unknown mapping: ' + resourceTable + ' : ' + resourceField)}
+		|	{console.error('Unknown mapping: ', mapping, resource.resourceName, resourceField)}
+			{throw new Error('Unknown mapping: ' + resource.resourceName + ' : ' + resourceField)}
 		)
 	,
 
