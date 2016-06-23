@@ -59,6 +59,12 @@ operandTest = (lhs, op, rhs) ->
 				selects(pilotFields).
 				from('pilot').
 				where(abstractsql)
+	test '/pilot/$count?$filter=' + odata, (result) ->
+		it 'should count(*) from pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.
+			selects([[['Count', '*'], '$count']]).
+			from('pilot').
+			where(abstractsql)
 
 methodTest = (args...) ->
 	{ odata, abstractsql } = createMethodCall.apply(null, args)
@@ -68,6 +74,12 @@ methodTest = (args...) ->
 				selects(pilotFields).
 				from('pilot').
 				where(abstractsql)
+	test '/pilot/$count?$filter=' + odata, (result) ->
+		it 'should count(*) from pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.
+			selects([[['Count', '*'], '$count']]).
+			from('pilot').
+			where(abstractsql)
 
 operandTest(2, 'eq', 'name')
 operandTest(2, 'ne', 'name')
@@ -75,6 +87,7 @@ operandTest(2, 'gt', 'name')
 operandTest(2, 'ge', 'name')
 operandTest(2, 'lt', 'name')
 operandTest(2, 'le', 'name')
+
 
 # Test each combination of operands
 do ->
@@ -549,6 +562,7 @@ do ->
 methodTest('contains', 'name', "'et'")
 methodTest('endswith', 'name', "'ete'")
 methodTest('startswith', 'name', "'P'")
+
 operandTest(createMethodCall('length', 'name'), 'eq', 4)
 operandTest(createMethodCall('indexof', 'name', "'Pe'"), 'eq', 0)
 operandTest(createMethodCall('substring', 'name', 1), 'eq', "'ete'")
@@ -560,6 +574,7 @@ do ->
 	concat = createMethodCall('concat', 'name', "'%20'")
 	operandTest(createMethodCall('trim', concat), 'eq', "'Pete'")
 	operandTest(concat, 'eq', "'Pete%20'")
+
 operandTest(createMethodCall('year', 'hire_date'), 'eq', 2011)
 operandTest(createMethodCall('month', 'hire_date'), 'eq', 10)
 operandTest(createMethodCall('day', 'hire_date'), 'eq', 3)
@@ -581,90 +596,105 @@ operandTest(createMethodCall('ceiling', 'age'), 'eq', 25)
 methodTest('substringof', "'Pete'", 'name')
 operandTest(createMethodCall('replace', 'name', "'ete'", "'at'"), 'eq', "'Pat'")
 
-
 lambdaTest = (methodName) ->
-	test '/pilot?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
-		it 'should select from pilot where ...', ->
-			subWhere =
-				[	'And'
-					[	'Equals'
-						['ReferencedField', 'pilot', 'id']
-						['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
-					]
-					[	'Equals'
-						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
-						['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
-					]
-					[	'Equals'
-						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
-						['Text', 'Concorde']
-					]
+	do ->
+		subWhere =
+			[	'And'
+				[	'Equals'
+					['ReferencedField', 'pilot', 'id']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
 				]
-			# All is implemented as where none fail
-			if methodName is 'all'
-				subWhere = ['Not', subWhere]
-
-			where =
-				[	'Exists'
-					[	'SelectQuery'
-						['Select', []]
-						['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
-						['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
-						['Where', subWhere]
-					]
+				[	'Equals'
+					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 				]
-			# All is implemented as where none fail
-			if methodName is 'all'
-				where = ['Not', where]
-
-			expect(result).to.be.a.query.that.
-				selects(pilotFields).
-				from('pilot').
-				where(where)
-
-	test '/pilot?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
-		it 'should select from pilot where ...', ->
-			subWhere =
-				[	'And'
-					[	'Equals'
-						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
-						['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
-					]
-					[	'Equals'
-						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
-						['Text', 'Concorde']
-					]
+				[	'Equals'
+					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
+					['Text', 'Concorde']
 				]
-			# All is implemented as where none fail
-			if methodName is 'all'
-				subWhere = ['Not', subWhere]
+			]
+		# All is implemented as where none fail
+		if methodName is 'all'
+			subWhere = ['Not', subWhere]
 
-			where =
-				[	'Exists'
-					[	'SelectQuery'
-						['Select', []]
-						['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
-						['Where', subWhere]
-					]
+		where =
+			[	'Exists'
+				[ 'SelectQuery'
+					['Select', []]
+					['From', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']]
+					['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
+					['Where', subWhere]
 				]
-			# All is implemented as where none fail
-			if methodName is 'all'
-				where = ['Not', where]
+			]
+		# All is implemented as where none fail
+		if methodName is 'all'
+			where = ['Not', where]
 
-			expect(result).to.be.a.query.that.
-				selects(pilotFields).
-				from(
-					'pilot'
-					['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
-				).
-				where([
-					'And'
-					[	'Equals'
-						['ReferencedField', 'pilot', 'id']
-						['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
-					]
-					where
-				])
+		test '/pilot?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
+			it 'should select from pilot where ...', ->
+				expect(result).to.be.a.query.that.
+					selects(pilotFields).
+					from('pilot').
+					where(where)
+
+		test '/pilot/$count?$filter=pilot__can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
+			it 'should select count(*) from pilot where ...', ->
+				expect(result).to.be.a.query.that.
+					selects([[['Count', '*'], '$count']]).
+					from('pilot').
+					where(where)
+
+	do ->
+		subWhere =
+			[	'And'
+				[	'Equals'
+					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
+				]
+				[	'Equals'
+					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
+					['Text', 'Concorde']
+				]
+			]
+		# All is implemented as where none fail
+		if methodName is 'all'
+			subWhere = ['Not', subWhere]
+
+		innerWhere =
+			[ 'Exists'
+				[ 'SelectQuery'
+					['Select', []]
+					['From', ['plane', 'pilot.pilot-can_fly-plane.plane']]
+					['Where', subWhere]
+				]
+			]
+
+		# All is implemented as where none fail
+		if methodName is 'all'
+			innerWhere = ['Not', innerWhere]
+
+		where =
+			[ 'And'
+				[ 'Equals'
+					['ReferencedField', 'pilot', 'id']
+					['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']
+				]
+				innerWhere
+			]
+
+		test '/pilot?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
+			it 'should select from pilot where ...', ->
+				expect(result).to.be.a.query.that.
+					selects(pilotFields).
+					from('pilot', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
+					where(where)
+
+		test '/pilot/$count?$filter=pilot__can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
+			it 'should select count(*) from pilot where ...', ->
+				expect(result).to.be.a.query.that.
+					selects([[['Count', '*'], '$count']]).
+					from('pilot', ['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']).
+					where(where)
 
 lambdaTest('any')
 lambdaTest('all')
@@ -719,7 +749,7 @@ do ->
 				).
 				where([
 					'And',
-					[	'Equals'
+					[ 'Equals'
 						['ReferencedField', 'team', 'favourite colour']
 						['ReferencedField', 'team.pilot', 'team']
 					]

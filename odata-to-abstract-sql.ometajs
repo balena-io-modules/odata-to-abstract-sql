@@ -116,6 +116,7 @@ export ometa OData2AbstractSQL {
 			BindVars(method, body, resource.resourceName, _.toPairs(resourceMapping)):bindVars
 			{query.extras.push(['Fields', _.map(bindVars, 0)])}
 			{query.extras.push(['Values', _.map(bindVars, 1)])}
+		|	AddCountField(path, query, resource)
 		|	AddSelectFields(path, query, resource)
 		)
 
@@ -131,17 +132,7 @@ export ometa OData2AbstractSQL {
 				-> query.where.push(['In', referencedIdField, subQuery.compile('SelectQuery')])
 			|	SelectFilter(path.options.$filter, query, resource)
 			)
-			(	?(!path.options.$orderby)
-			|	OrderBy(path.options.$orderby, query, resource)
-			)
-			(	?(!path.options.$top)
-			|	Number(path.options.$top):limit
-				-> query.extras.push(['Limit', limit])
-			)
-			(	?(!path.options.$skip)
-			|	Number(path.options.$skip):offset
-				-> query.extras.push(['Offset', offset])
-			)
+			AddExtraQueryOptions(resource, path, query)
 		)
 
 		-> query
@@ -298,6 +289,11 @@ export ometa OData2AbstractSQL {
 			)?
 			-> resourceMapping
 		|	{throw new Error('Unknown resource: ' + resource.resourceName)}
+	,
+
+	AddCountField :path :query :resource =
+		?path.count
+		-> (query.select.push([['Count', '*'], '$count']))
 	,
 
 	AddSelectFields :path :query :resource =
@@ -614,24 +610,16 @@ export ometa OData2AbstractSQL {
 					)
 				)
 				{nestedExpandQuery.fromResource(expandResource)}
-
-				AddSelectFields(expand, nestedExpandQuery, expandResource)
+				(	AddCountField(expand, nestedExpandQuery, expandResource)
+				|	AddSelectFields(expand, nestedExpandQuery, expandResource)
+				)
 				(	?(!expand.options)
 				|	(	?(!expand.options.$filter)
 					|	SelectFilter(expand.options.$filter, nestedExpandQuery, expandResource)
 					)
-					(	?(!expand.options.$orderby)
-					|	OrderBy(expand.options.$orderby, nestedExpandQuery, expandResource)
-					)
-					(	?(!expand.options.$top)
-					|	Number(expand.options.$top):limit
-						-> nestedExpandQuery.extras.push(['Limit', limit])
-					)
-					(	?(!expand.options.$skip)
-					|	Number(expand.options.$skip):offset
-						-> nestedExpandQuery.extras.push(['Offset', offset])
-					)
+					AddExtraQueryOptions(expandResource, expand, nestedExpandQuery)
 				)
+
 				{this.defaultResource = defaultResource}
 
 				NavigateResources(resource, expandResource):navigationWhere
@@ -643,6 +631,22 @@ export ometa OData2AbstractSQL {
 				{query.select.push([expandQuery.compile('SelectQuery'), expandResource.resourceName])}
 			)+
 		]
+	,
+
+	AddExtraQueryOptions :resource :path :query =
+		// When querying /$count, $orderby/$top/$skip must be ignored
+		?path.count
+		|	(	?(!path.options.$orderby)
+			|	OrderBy(path.options.$orderby, query, resource)
+			)
+			(	?(!path.options.$top)
+			|	Number(path.options.$top):limit
+				-> query.extras.push(['Limit', limit])
+			)
+			(	?(!path.options.$skip)
+			|	Number(path.options.$skip):offset
+				-> query.extras.push(['Offset', offset])
+			)
 	,
 
 	NavigateResources :resource1 :resource2 =

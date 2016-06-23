@@ -324,3 +324,107 @@ test '/pilot?$expand=pilot', (result) ->
 				aggregateJSON.pilot
 			].concat(_.reject(pilotFields, 2: 'pilot'))).
 			from('pilot')
+
+# Tests for /$count
+aggregateJSONCount =
+	pilot: createAggregate(
+		parentResource: 'pilot'
+		resourceName: 'pilot'
+		attributeOfParent: false
+		fields: [[['Count', '*'], '$count']]
+	)
+	licence: createAggregate(
+		parentResource: 'pilot'
+		resourceName: 'licence'
+		attributeOfParent: true
+		fields: [[['Count', '*'], '$count']]
+	)
+	pilotCanFlyPlane:
+		plane: createAggregate(
+			parentResource: 'pilot'
+			resourceName: 'pilot-can_fly-plane'
+			attributeOfParent: false
+			fields: [
+				createAggregate(
+					parentResource: 'pilot.pilot-can_fly-plane'
+					resourceName: 'plane'
+					attributeOfParent: true
+					fields: [[['Count', '*'], '$count']]
+				)
+				_.reject(pilotCanFlyPlaneFields, 2: 'plane')...
+			]
+		)
+
+test '/pilot?$expand=licence/$count', (result) ->
+	it 'should select from pilot.*, count(*) licence', ->
+		expect(result).to.be.a.query.that.
+			selects([aggregateJSONCount.licence].concat(_.reject(pilotFields, 2: 'licence'))).
+			from('pilot')
+
+test '/pilot?$filter=id eq 5&$expand=licence/$count', (result) ->
+	it 'should select from pilot.*, count(*) licence, for pilot/id eq 5', ->
+		expect(result).to.be.a.query.that.
+			selects([aggregateJSONCount.licence].concat(_.reject(pilotFields, 2: 'licence'))).
+			from('pilot').
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 5]])
+
+test '/pilot?$orderby=id asc&$expand=licence/$count', (result) ->
+	it 'should select from pilot.*, count(*) licence, ordered by pilot id', ->
+		expect(result).to.be.a.query.that.
+			selects([aggregateJSONCount.licence].concat(_.reject(pilotFields, 2: 'licence'))).
+			from('pilot').
+			orderby(
+				['ASC', operandToAbstractSQL('id')]
+			)
+
+
+test '/pilot?$expand=licence/$count($filter=id gt 5)', (result) ->
+	agg = _.cloneDeep(aggregateJSONCount.licence)
+	_.chain(agg)
+	.find(0: 'SelectQuery')
+	.find(0: 'From')
+	.find(1: 'pilot.licence')
+	.find(0: 'SelectQuery')
+	.find(0: 'Where')
+	.tap (aggWhere) ->
+		currentWhere = aggWhere.splice(1, Infinity)
+		aggWhere.push(
+			[ 'And',
+				[	'GreaterThan'
+					[	'ReferencedField'
+						'pilot.licence'
+						'id'
+					]
+					[	'Number'
+						5
+					]
+				]
+			].concat(currentWhere)
+		)
+	.value()
+	it 'should select from pilot.*, count(*) licence for id gt 5', ->
+		expect(result).to.be.a.query.that.
+			selects([
+				agg
+				_.reject(pilotFields, 2: 'licence')...
+			]).
+			from('pilot')
+
+
+test '/pilot?$expand=licence/$count($orderby=id asc)', (result) ->
+	it 'should select from pilot.*, count(*) and ignore orderby', ->
+		expect(result).to.be.a.query.that.
+			selects([aggregateJSONCount.licence].concat(_.reject(pilotFields, 2: 'licence'))).
+			from('pilot')
+
+test '/pilot?$expand=licence/$count($skip=5)', (result) ->
+	it 'should select from pilot.*, count(*) and ignore skip', ->
+		expect(result).to.be.a.query.that.
+			selects([aggregateJSONCount.licence].concat(_.reject(pilotFields, 2: 'licence'))).
+			from('pilot')
+
+test '/pilot?$expand=licence/$count($top=5)', (result) ->
+	it 'should select from pilot.*, count(*) and ignore top', ->
+		expect(result).to.be.a.query.that.
+			selects([aggregateJSONCount.licence].concat(_.reject(pilotFields, 2: 'licence'))).
+			from('pilot')
