@@ -9,7 +9,7 @@
     "test": "mocha",
     "prepublish": "ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
   },
-  "repository": "git@bitbucket.org:rulemotion/odata-to-abstract-sql.git",
+  "repository": "https://github.com/resin-io-modules/odata-to-abstract-sql.git",
   "author": "",
   "license": "BSD",
   "dependencies": {
