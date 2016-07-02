@@ -1,4 +1,5 @@
-_ = require('lodash');
+var _ = require('lodash');
+var memoize = require('memoizee');
 
 var Query = function() {
 	_.extend(this, {
@@ -15,7 +16,7 @@ Query.prototype.merge = function(otherQuery) {
 	this.extras = this.extras.concat(otherQuery.extras);
 };
 Query.prototype.fromResource = function(resource) {
-	if(resource.tableName !== resource.tableAlias) {
+	if (resource.tableName !== resource.tableAlias) {
 		this.from.push([resource.tableName, resource.tableAlias]);
 	}
 	else {
@@ -25,14 +26,14 @@ Query.prototype.fromResource = function(resource) {
 Query.prototype.compile = function(queryType) {
 	var compiled = [queryType],
 		where = this.where;
-	if(queryType === 'SelectQuery') {
+	if (queryType === 'SelectQuery') {
 		compiled.push(['Select', this.select]);
 	}
 	_.each(this.from, function(tableName) {
 		compiled.push(['From', tableName]);
 	});
-	if(where.length > 0) {
-		if(where.length > 1) {
+	if (where.length > 0) {
+		if (where.length > 1) {
 			where = [['And'].concat(where)];
 		}
 		compiled.push(['Where'].concat(where));
@@ -173,7 +174,7 @@ export ometa OData2AbstractSQL {
 							var cast,
 								alias = field.fieldName,
 								bindVar = _.find(bindVars, { 0: alias });
-							if(bindVar) {
+							if (bindVar) {
 								cast = ['Cast', bindVar[1], field.dataType];
 							}
 							else {
@@ -260,7 +261,7 @@ export ometa OData2AbstractSQL {
 				-> (parentResource.tableAlias + '.' + resource.tableName)
 			|	-> resource.tableName
 			):tableAlias
-			{resource.tableAlias = tableAlias}
+			{resource.tableAlias = this.checkAlias(tableAlias)}
 			-> resource
 		|	{throw new Error('Unknown resource: ' + resourceName)}
 	,
@@ -279,7 +280,7 @@ export ometa OData2AbstractSQL {
 			(	?resource.tableAlias
 				?(resource.tableAlias != resourceMapping._name)
 				{_.mapValues(resourceMapping, function(mapping) {
-					if(_.isArray(mapping)) {
+					if (_.isArray(mapping)) {
 						return [resource.tableAlias, mapping[1]];
 					}
 					else {
@@ -497,7 +498,7 @@ export ometa OData2AbstractSQL {
 					['Exists',
 						// Where not..
 						_.map(query, function(queryPart) {
-							if(queryPart[0] == 'Where') {
+							if (queryPart[0] == 'Where') {
 								return [queryPart[0], ['Not', queryPart[1]]];
 							}
 							return queryPart;
@@ -670,7 +671,7 @@ export ometa OData2AbstractSQL {
 		ExtraFroms(searchPoint):extraFroms
 		{	_.each(extraFroms, function(extraResource) {
 				var currentResource = resource;
-				if(_.isArray(extraResource)) {
+				if (_.isArray(extraResource)) {
 					_.each(extraResource, function(extraResource) {
 						$elf.AddNavigation(query, currentResource, extraResource);
 						currentResource = extraResource;
@@ -728,4 +729,91 @@ OData2AbstractSQL.initialize = function() {
 OData2AbstractSQL.reset = function() {
 	this.resourceAliases = {};
 	this.defaultResource = null;
+};
+
+OData2AbstractSQL.checkAlias = _.identity;
+
+var generateShortAliases = function(clientModel) {
+	var trie = {};
+	var resourceNames = _.map(clientModel.resources, 'resourceName');
+	
+	// Build up a trie of just the terms (no `__`)
+	_(resourceNames).reject(function(part) {
+		return _.includes(part, '__');
+	}).invokeMap('toLowerCase').sort().each(function(resourceName) {
+		var node = trie;
+		_.each(resourceName, function(c, i) {
+			if (node.$suffix) {
+				node[node.$suffix[0]] = {
+					$suffix: node.$suffix.slice(1)
+				};
+				delete node.$suffix;
+			}
+			if (node[c]) {
+				node = node[c];
+			}
+			else {
+				node[c] = {
+					$suffix: resourceName.slice(i + 1)
+				};
+				return false;
+			}
+		});
+	});
+
+	// Find the shortest unique alias for each term, using the trie.
+	var shortAliases = {};
+	var traverseNodes = function(str, node) {
+		_.each(node, function(value, key) {
+			if (key === '$suffix') {
+				var lowerCaseResourceName = str + value;
+				var origResourceName = _.find(resourceNames, function(resourceName) {
+					return resourceName.toLowerCase() === lowerCaseResourceName;
+				});
+				shortAliases[origResourceName] = origResourceName.slice(0, str.length);
+			} else {
+				traverseNodes(str + key, value);
+			}
+		});
+	};
+	traverseNodes('', trie);
+
+	// Add short forms of fact types by replacing their terms with their short forms
+	_(resourceNames).invokeMap('split', '__').filter(function(resource) {
+		return resource.length > 1;
+	}).each(function(factType) {
+		shortAliases[factType.join('__')] = _.map(factType, function(part) {
+			if (shortAliases[part]) {
+				return shortAliases[part];
+			}
+			return part;
+		}).join('__');
+	});
+
+	return shortAliases;
+};
+
+OData2AbstractSQL.setClientModel = function(clientModel) {
+	this.clientModel = clientModel;
+
+	var shortAliases = generateShortAliases(clientModel);
+	this.checkAlias = memoize(function(alias) {
+		var aliasLength = alias.length;
+		if (aliasLength < 64) {
+			return alias;
+		}
+		return _(alias).split('.').map(function(part) {
+			if (aliasLength < 64) {
+				return part;
+			}
+			aliasLength -= part.length;
+			var shortPart = shortAliases[part];
+			if (shortPart) {
+				aliasLength += shortPart.length;
+				return shortPart;
+			}
+			aliasLength += 1;
+			return part[0];
+		}).join('.');
+	});
 };
