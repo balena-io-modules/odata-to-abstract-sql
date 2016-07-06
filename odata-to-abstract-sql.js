@@ -1,10 +1,9 @@
 !function(root, factory) {
-    "function" == typeof define && define.amd ? define([ "require", "exports", "ometa-core", "lodash" ], factory) : "object" == typeof exports ? factory(require, exports, require("ometa-js").core) : factory(function(moduleName) {
+    "function" == typeof define && define.amd ? define([ "require", "exports", "ometa-core", "lodash", "memoizee" ], factory) : "object" == typeof exports ? factory(require, exports, require("ometa-js").core) : factory(function(moduleName) {
         return root[moduleName];
     }, root, root.OMeta);
 }(this, function(require, exports, OMeta) {
-    _ = require("lodash");
-    var Query = function() {
+    var _ = require("lodash"), memoize = require("memoizee"), Query = function() {
         _.extend(this, {
             select: [],
             from: [],
@@ -292,7 +291,7 @@
                 }, function() {
                     return resource.tableName;
                 });
-                resource.tableAlias = tableAlias;
+                resource.tableAlias = this.checkAlias(tableAlias);
                 return resource;
             }, function() {
                 return function() {
@@ -889,5 +888,66 @@
     OData2AbstractSQL.reset = function() {
         this.resourceAliases = {};
         this.defaultResource = null;
+    };
+    OData2AbstractSQL.checkAlias = _.identity;
+    var generateShortAliases = function(clientModel) {
+        var trie = {}, resourceNames = _.map(clientModel.resources, "resourceName");
+        _(resourceNames).reject(function(part) {
+            return _.includes(part, "__");
+        }).invokeMap("toLowerCase").sort().each(function(resourceName) {
+            var node = trie;
+            _.each(resourceName, function(c, i) {
+                if (node.$suffix) {
+                    node[node.$suffix[0]] = {
+                        $suffix: node.$suffix.slice(1)
+                    };
+                    delete node.$suffix;
+                }
+                if (!node[c]) {
+                    node[c] = {
+                        $suffix: resourceName.slice(i + 1)
+                    };
+                    return !1;
+                }
+                node = node[c];
+            });
+        });
+        var shortAliases = {}, traverseNodes = function(str, node) {
+            _.each(node, function(value, key) {
+                if ("$suffix" === key) {
+                    var lowerCaseResourceName = str + value, origResourceName = _.find(resourceNames, function(resourceName) {
+                        return resourceName.toLowerCase() === lowerCaseResourceName;
+                    });
+                    shortAliases[origResourceName] = origResourceName.slice(0, str.length);
+                } else traverseNodes(str + key, value);
+            });
+        };
+        traverseNodes("", trie);
+        _(resourceNames).invokeMap("split", "__").filter(function(resource) {
+            return resource.length > 1;
+        }).each(function(factType) {
+            shortAliases[factType.join("__")] = _.map(factType, function(part) {
+                return shortAliases[part] ? shortAliases[part] : part;
+            }).join("__");
+        });
+        return shortAliases;
+    };
+    OData2AbstractSQL.setClientModel = function(clientModel) {
+        this.clientModel = clientModel;
+        var shortAliases = generateShortAliases(clientModel);
+        this.checkAlias = memoize(function(alias) {
+            var aliasLength = alias.length;
+            return 64 > aliasLength ? alias : _(alias).split(".").map(function(part) {
+                if (64 > aliasLength) return part;
+                aliasLength -= part.length;
+                var shortPart = shortAliases[part];
+                if (shortPart) {
+                    aliasLength += shortPart.length;
+                    return shortPart;
+                }
+                aliasLength += 1;
+                return part[0];
+            }).join(".");
+        });
     };
 });

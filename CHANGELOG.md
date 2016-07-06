@@ -1,3 +1,5 @@
+v0.3.6
+
 * Added functionality to sensibly shorten table aliases (requires using the new `setClientModel` function), to handle cases where aliases can grow too large for the database.
 
 v0.3.5
