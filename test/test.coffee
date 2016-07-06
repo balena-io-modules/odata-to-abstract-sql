@@ -1,7 +1,7 @@
 require('ometa-js')
 ODataParser = require('@resin/odata-parser').ODataParser.createInstance()
 OData2AbstractSQL = require('../odata-to-abstract-sql').OData2AbstractSQL.createInstance()
-OData2AbstractSQL.clientModel = require('./client-model.json')
+OData2AbstractSQL.setClientModel(require('./client-model.json'))
 
 runExpectation = (describe, input, method, body, expectation) ->
 	if !expectation?

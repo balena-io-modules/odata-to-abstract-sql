@@ -120,10 +120,15 @@ exports.operandToOData = operandToOData = (operand) ->
 		return "duration'#{duration.join('')}'"
 	return operand
 
+exports.shortenAlias = shortenAlias = (alias) ->
+	if alias.length >= 64
+		return alias.replace(/pilot/, 'pi')
+	return alias
+
 exports.aliasFields = do ->
 	aliasField = (resourceAlias, field) ->
 		if field[0] is 'ReferencedField'
-			return [field[0], "#{resourceAlias}.#{field[1]}", field[2]]
+			return [field[0], shortenAlias("#{resourceAlias}.#{field[1]}"), field[2]]
 		if field.length is 2 and field[0][0] is 'ReferencedField'
 			return [
 				aliasField(resourceAlias, field[0])

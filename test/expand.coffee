@@ -1,21 +1,20 @@
 _ = require 'lodash'
 expect = require('chai').expect
 chaiSql = require './chai-sql'
-{ operandToAbstractSQL, aliasFields, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
+{ shortenAlias, operandToAbstractSQL, aliasFields, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
 test = require './test'
 
-createAggregate = ({ parentResource, resourceName, attributeOfParent, fields }) ->
-	resourceAlias = "#{parentResource}.#{resourceName}"
+createAggregate = ({ parentResource, parentResourceAlias = parentResource, resourceName, resourceAlias = "#{parentResourceAlias}.#{resourceName}", attributeOfParent, fields }) ->
 	odataName = resourceName.replace(/-/g, '__')
 	whereClause =
 		if attributeOfParent
 			[	'Equals'
 				['ReferencedField', resourceAlias, 'id']
-				['ReferencedField', parentResource, resourceName]
+				['ReferencedField', parentResourceAlias, resourceName]
 			]
 		else
 			[	'Equals'
-				['ReferencedField', parentResource, 'id']
+				['ReferencedField', parentResourceAlias, 'id']
 				['ReferencedField', resourceAlias, parentResource]
 			]
 	[
@@ -29,7 +28,7 @@ createAggregate = ({ parentResource, resourceName, attributeOfParent, fields }) 
 			[	'From'
 				[	[	'SelectQuery'
 						[	'Select'
-							aliasFields(parentResource, fields)
+							aliasFields(parentResourceAlias, fields)
 						]
 						[	'From'
 							[	resourceName
@@ -427,4 +426,48 @@ test '/pilot?$expand=licence/$count($top=5)', (result) ->
 	it 'should select from pilot.*, count(*) and ignore top', ->
 		expect(result).to.be.a.query.that.
 			selects([aggregateJSONCount.licence].concat(_.reject(pilotFields, 2: 'licence'))).
+			from('pilot')
+
+
+# Alias tests
+do ->
+	remainingPilotFields = _.reject pilotFields, (field) ->
+		if field.length is 2
+			field = field[1]
+		return field[2] is 'pilot'
+	recursions = 9
+
+	expandString = do ->
+		recurse = (i) ->
+			if i <= 0
+				return '$expand=pilot'
+			child = recurse(i - 1)
+			return "$expand=pilot(#{child})"
+		recurse(recursions)
+
+	url = '/pilot?' + expandString
+	test url, (result) ->
+		recurse = (i, parentAlias) ->
+			alias = shortenAlias("#{parentAlias}.pilot")
+			if i <= 0
+				aliasedFields = pilotFields
+			else
+				aliasedFields = [
+					recurse(i - 1, alias)
+					remainingPilotFields...
+				]
+			return createAggregate(
+				parentResource: 'pilot'
+				parentResourceAlias: parentAlias
+				resourceName: 'pilot'
+				resourceAlias: alias
+				attributeOfParent: false
+				fields: aliasedFields
+			)
+		it 'should select from pilot.*, aggregated pilot', ->
+			expect(result).to.be.a.query.that.
+			selects([
+				recurse(recursions, 'pilot')
+				remainingPilotFields...
+			]).
 			from('pilot')
