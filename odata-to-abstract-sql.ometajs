@@ -82,7 +82,7 @@ export ometa OData2AbstractSQL {
 		// We can't use the ReferencedField rule as resource.idField is the model name (using spaces),
 		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
 		{['ReferencedField', resource.tableAlias, resource.idField]}:referencedIdField
-		PathKey(path, query, resource, referencedIdField, body)?
+		PathKey(path, query, resource, referencedIdField, body)
 
 		(	?(!path.options)
 		|	?(!path.options.$expand)
@@ -110,7 +110,7 @@ export ometa OData2AbstractSQL {
 				-> [referencedField, resource.resourceName]
 			|	{throw new Error('Cannot navigate links')}
 			):aliasedField
-			PathKey(path.link, query, linkResource, referencedField, body)?
+			PathKey(path.link, query, linkResource, referencedField, body)
 			-> query.select.push(aliasedField)
 		|	?(method == 'PUT' || method == 'PUT-INSERT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource):resourceMapping
@@ -140,16 +140,17 @@ export ometa OData2AbstractSQL {
 	,
 
 	PathKey :path :query :resource :referencedField :body =
-		?path.key
-		// Add the id field value to the body if it doesn't already exist.
-		{resource.resourceName + '.' + resource.idField}:qualifiedIDField
-		(	?(!body[qualifiedIDField] && !body[resource.idField])
-			{body[qualifiedIDField] = path.key}
-		)?
-		(	Number(path.key)
-		|	Text(path.key)
-		):key
-		-> {query.where.push(['Equals', referencedField, key])}
+		(	?(path.key == null)
+		|	// Add the id field value to the body if it doesn't already exist.
+			{resource.resourceName + '.' + resource.idField}:qualifiedIDField
+			(	?(!body[qualifiedIDField] && !body[resource.idField])
+				{body[qualifiedIDField] = path.key}
+			)?
+			(	Number(path.key)
+			|	Text(path.key)
+			):key
+			-> {query.where.push(['Equals', referencedField, key])}
+		)
 	,
 
 	SelectFilter :filter :query :resource =
