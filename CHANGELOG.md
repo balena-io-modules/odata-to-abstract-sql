@@ -1,3 +1,5 @@
+* Made sure parsing fails if the path.key is invalid.
+
 v0.3.6
 
 * Added functionality to sensibly shorten table aliases (requires using the new `setClientModel` function), to handle cases where aliases can grow too large for the database.
