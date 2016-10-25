@@ -1,7 +1,23 @@
 expect = require('chai').expect
-{ operandToAbstractSQL, operandToOData, aliasFields, pilotFields, pilotCanFlyPlaneFields, teamFields } = require('./chai-sql')
+{ operandToAbstractSQLFactory, operandToOData, aliasFields, pilotFields, pilotCanFlyPlaneFields, teamFields } = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
+
+operandToAbstractSQL = null
+
+run = do ->
+	running = false
+	(keyBinds, fn) ->
+		if !fn?
+			fn = keyBinds
+			keyBinds = []
+		if not running
+			running = true
+			operandToAbstractSQL = operandToAbstractSQLFactory(keyBinds)
+			fn()
+			running = false
+		else
+			fn()
 
 sqlOps =
 	eq: 'Equals'
@@ -45,41 +61,45 @@ createMethodCall = (method, args...) ->
 				method = methodMaps[method]
 			else
 				method = _.capitalize(method)
+			result = [method].concat(operandToAbstractSQL(arg) for arg in args)
 			switch method
 				when 'Substring'
-					args[1]++
-			[method].concat(operandToAbstractSQL(arg) for arg in args)
+					result[2] = ['Add', result[2], ['Number', 1]]
+			return result
 	}
 
 operandTest = (lhs, op, rhs) ->
-	{ odata, abstractsql } = createExpression(lhs, op, rhs)
-	test '/pilot?$filter=' + odata, (result) ->
-		it 'should select from pilot where "' + odata + '"', ->
-			expect(result).to.be.a.query.that.
-				selects(pilotFields).
+	run ->
+		{ odata, abstractsql } = createExpression(lhs, op, rhs)
+		test '/pilot?$filter=' + odata, (result) ->
+			it 'should select from pilot where "' + odata + '"', ->
+				expect(result).to.be.a.query.that.
+					selects(pilotFields).
+					from('pilot').
+					where(abstractsql)
+
+		test '/pilot/$count?$filter=' + odata, (result) ->
+			it 'should count(*) from pilot where "' + odata + '"', ->
+				expect(result).to.be.a.query.that.
+				selects([[['Count', '*'], '$count']]).
 				from('pilot').
 				where(abstractsql)
-	test '/pilot/$count?$filter=' + odata, (result) ->
-		it 'should count(*) from pilot where "' + odata + '"', ->
-			expect(result).to.be.a.query.that.
-			selects([[['Count', '*'], '$count']]).
-			from('pilot').
-			where(abstractsql)
 
 methodTest = (args...) ->
-	{ odata, abstractsql } = createMethodCall.apply(null, args)
-	test '/pilot?$filter=' + odata, (result) ->
-		it 'should select from pilot where "' + odata + '"', ->
-			expect(result).to.be.a.query.that.
-				selects(pilotFields).
+	run ->
+		{ odata, abstractsql } = createMethodCall.apply(null, args)
+		test '/pilot?$filter=' + odata, (result) ->
+			it 'should select from pilot where "' + odata + '"', ->
+				expect(result).to.be.a.query.that.
+					selects(pilotFields).
+					from('pilot').
+					where(abstractsql)
+		test '/pilot/$count?$filter=' + odata, (result) ->
+			it 'should count(*) from pilot where "' + odata + '"', ->
+				expect(result).to.be.a.query.that.
+				selects([[['Count', '*'], '$count']]).
 				from('pilot').
 				where(abstractsql)
-	test '/pilot/$count?$filter=' + odata, (result) ->
-		it 'should count(*) from pilot where "' + odata + '"', ->
-			expect(result).to.be.a.query.that.
-			selects([[['Count', '*'], '$count']]).
-			from('pilot').
-			where(abstractsql)
 
 operandTest(2, 'eq', 'name')
 operandTest(2, 'ne', 'name')
@@ -126,10 +146,11 @@ do ->
 		'div'
 	]
 	for mathOp in mathOps
-		mathOp = createExpression('age', mathOp, 2)
-		operandTest(mathOp, 'gt', 10)
+		run ->
+			mathOp = createExpression('age', mathOp, 2)
+			operandTest(mathOp, 'gt', 10)
 
-do ->
+run ->
 	{ odata, abstractsql } = createExpression('pilot__can_fly__plane/id', 'eq', 10)
 	test '/pilot?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
@@ -141,7 +162,7 @@ do ->
 					abstractsql
 				])
 
-do ->
+run [['Number', 1]], ->
 	{ odata, abstractsql } = createExpression(['plane/id', null, 'pilot.pilot-can_fly-plane'], 'eq', 10)
 	test '/pilot(1)/pilot__can_fly__plane?$filter=' + odata, (result) ->
 		it 'should select from pilot where "' + odata + '"', ->
@@ -155,7 +176,7 @@ do ->
 				where(['And'
 					['Equals'
 						['ReferencedField', 'pilot', 'id']
-						['Number', 1]
+						['Bind', 0]
 					]
 					['Equals'
 						['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
@@ -168,7 +189,7 @@ do ->
 					]
 				])
 
-do ->
+run ->
 	{ odata, abstractsql } = createExpression('pilot__can_fly__plane/plane/id', 'eq', 10)
 
 	filterWhere = ['And'
@@ -328,16 +349,13 @@ do ->
 									['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
 									['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 								]
-								['Equals'
-									['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
-									['Number', 10]
-								]
+								abstractsql
 							]
 						]
 					]
 				])
 
-do ->
+run [['Number', 1]], ->
 	name = 'Peter'
 	{ odata, abstractsql } = createExpression('name', 'eq', "'#{name}'")
 	insertTest = (result) ->
@@ -385,7 +403,7 @@ do ->
 			'And'
 			[	'Equals'
 				['ReferencedField', 'pilot', 'id']
-				['Number', 1]
+				['Bind', 0]
 			]
 			[	'In'
 				['ReferencedField', 'pilot', 'id']
@@ -458,7 +476,7 @@ do ->
 				from('pilot').
 				where(updateWhere)
 
-do ->
+run ->
 	licence = 1
 	{ odata, abstractsql } = createExpression('licence/id', 'eq', licence)
 	test '/pilot?$filter=' + odata, 'POST', { licence }, (result) ->
@@ -509,7 +527,7 @@ do ->
 				).
 				from('pilot')
 
-do ->
+run ->
 	licence = 1
 	name = 'Licence-1'
 	{ odata, abstractsql } = createExpression('licence/name', 'eq', "'#{name}'")
@@ -563,41 +581,46 @@ methodTest('contains', 'name', "'et'")
 methodTest('endswith', 'name', "'ete'")
 methodTest('startswith', 'name', "'P'")
 
-operandTest(createMethodCall('length', 'name'), 'eq', 4)
-operandTest(createMethodCall('indexof', 'name', "'Pe'"), 'eq', 0)
-operandTest(createMethodCall('substring', 'name', 1), 'eq', "'ete'")
-operandTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'")
-operandTest(createMethodCall('tolower', 'name'), 'eq', "'pete'")
-operandTest(createMethodCall('tolower', 'licence/name'), 'eq', "'pete'")
-operandTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'")
-do ->
+run -> operandTest(createMethodCall('length', 'name'), 'eq', 4)
+run -> operandTest(createMethodCall('indexof', 'name', "'Pe'"), 'eq', 0)
+# x = test
+# test = test.only
+run -> operandTest(createMethodCall('substring', 'name', 1), 'eq', "'ete'")
+# test = x
+run -> operandTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'")
+run -> operandTest(createMethodCall('tolower', 'name'), 'eq', "'pete'")
+run -> operandTest(createMethodCall('tolower', 'licence/name'), 'eq', "'pete'")
+run -> operandTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'")
+run ->
 	concat = createMethodCall('concat', 'name', "'%20'")
 	operandTest(createMethodCall('trim', concat), 'eq', "'Pete'")
+run ->
+	concat = createMethodCall('concat', 'name', "'%20'")
 	operandTest(concat, 'eq', "'Pete%20'")
 
-operandTest(createMethodCall('year', 'hire_date'), 'eq', 2011)
-operandTest(createMethodCall('month', 'hire_date'), 'eq', 10)
-operandTest(createMethodCall('day', 'hire_date'), 'eq', 3)
-operandTest(createMethodCall('hour', 'hire_date'), 'eq', 12)
-operandTest(createMethodCall('minute', 'hire_date'), 'eq', 10)
-operandTest(createMethodCall('second', 'hire_date'), 'eq', 25)
-operandTest(createMethodCall('fractionalseconds', 'hire_date'), 'eq', .222)
-operandTest(createMethodCall('date', 'hire_date'), 'eq', "'2011-10-03'")
-operandTest(createMethodCall('time', 'hire_date'), 'eq', "'12:10:25.222'")
-operandTest(createMethodCall('totaloffsetminutes', 'hire_date'), 'eq', 60)
-operandTest(createMethodCall('now'), 'eq', new Date('2012-12-03T07:16:23Z'))
-operandTest(createMethodCall('maxdatetime'), 'eq', new Date('9999-12-31T11:59:59Z'))
-operandTest(createMethodCall('mindatetime'), 'eq', new Date('1970-01-01T00:00:00Z'))
-operandTest(createMethodCall('totalseconds', { negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }), 'eq', -273906.7)
-operandTest(createMethodCall('round', 'age'), 'eq', 25)
-operandTest(createMethodCall('floor', 'age'), 'eq', 25)
-operandTest(createMethodCall('ceiling', 'age'), 'eq', 25)
+run -> operandTest(createMethodCall('month', 'hire_date'), 'eq', 10)
+run -> operandTest(createMethodCall('year', 'hire_date'), 'eq', 2011)
+run -> operandTest(createMethodCall('day', 'hire_date'), 'eq', 3)
+run -> operandTest(createMethodCall('hour', 'hire_date'), 'eq', 12)
+run -> operandTest(createMethodCall('minute', 'hire_date'), 'eq', 10)
+run -> operandTest(createMethodCall('second', 'hire_date'), 'eq', 25)
+run -> operandTest(createMethodCall('fractionalseconds', 'hire_date'), 'eq', .222)
+run -> operandTest(createMethodCall('date', 'hire_date'), 'eq', "'2011-10-03'")
+run -> operandTest(createMethodCall('time', 'hire_date'), 'eq', "'12:10:25.222'")
+run -> operandTest(createMethodCall('totaloffsetminutes', 'hire_date'), 'eq', 60)
+run -> operandTest(createMethodCall('now'), 'eq', new Date('2012-12-03T07:16:23Z'))
+run -> operandTest(createMethodCall('maxdatetime'), 'eq', new Date('9999-12-31T11:59:59Z'))
+run -> operandTest(createMethodCall('mindatetime'), 'eq', new Date('1970-01-01T00:00:00Z'))
+run -> operandTest(createMethodCall('totalseconds', { negative: true, day: 3, hour: 4, minute: 5, second: 6.7 }), 'eq', -273906.7)
+run -> operandTest(createMethodCall('round', 'age'), 'eq', 25)
+run -> operandTest(createMethodCall('floor', 'age'), 'eq', 25)
+run -> operandTest(createMethodCall('ceiling', 'age'), 'eq', 25)
 
-methodTest('substringof', "'Pete'", 'name')
-operandTest(createMethodCall('replace', 'name', "'ete'", "'at'"), 'eq', "'Pat'")
+run -> methodTest('substringof', "'Pete'", 'name')
+run -> operandTest(createMethodCall('replace', 'name', "'ete'", "'at'"), 'eq', "'Pat'")
 
 lambdaTest = (methodName) ->
-	do ->
+	run ->
 		subWhere =
 			[	'And'
 				[	'Equals'
@@ -610,7 +633,7 @@ lambdaTest = (methodName) ->
 				]
 				[	'Equals'
 					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
-					['Text', 'Concorde']
+					['Bind', 0]
 				]
 			]
 		# All is implemented as where none fail
@@ -644,7 +667,7 @@ lambdaTest = (methodName) ->
 					from('pilot').
 					where(where)
 
-	do ->
+	run ->
 		subWhere =
 			[	'And'
 				[	'Equals'
@@ -653,7 +676,7 @@ lambdaTest = (methodName) ->
 				]
 				[	'Equals'
 					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
-					['Text', 'Concorde']
+					['Bind', 0]
 				]
 			]
 		# All is implemented as where none fail
@@ -699,10 +722,10 @@ lambdaTest = (methodName) ->
 lambdaTest('any')
 lambdaTest('all')
 
-# Switch operandToAbstractSQL permanently to using 'team' as the resource,
+# Switch operandToAbstractSQLFactory permanently to using 'team' as the resource,
 # as we are switch to using that as our base resource from here on.
-operandToAbstractSQL = _.partialRight(operandToAbstractSQL, 'team')
-do ->
+operandToAbstractSQLFactory = _.partialRight(operandToAbstractSQLFactory, 'team')
+run ->
 	favouriteColour = 'purple'
 	{ odata, abstractsql } = createExpression('favourite_colour', 'eq', "'#{favouriteColour}'")
 	test '/team?$filter=' + odata, 'POST', { favourite_colour: favouriteColour }, (result) ->
@@ -734,7 +757,7 @@ do ->
 				).
 				from('team')
 
-do ->
+run ->
 	planeName = 'Concorde'
 	{ odata, abstractsql } = createExpression('pilot/pilot__can_fly__plane/plane/name', 'eq', "'#{planeName}'")
 	test '/team?$filter=' + odata, (result) ->

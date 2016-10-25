@@ -146,11 +146,19 @@ export ometa OData2AbstractSQL {
 			(	?(!body[qualifiedIDField] && !body[resource.idField])
 				{body[qualifiedIDField] = path.key}
 			)?
-			(	Number(path.key)
+			(	Bind(path.key)
+			|	Number(path.key)
 			|	Text(path.key)
 			):key
 			-> {query.where.push(['Equals', referencedField, key])}
 		)
+	,
+
+	Bind =
+		:bind
+		?(bind != null)
+		?(bind.bind != null)
+		-> ['Bind', bind.bind]
 	,
 
 	SelectFilter :filter :query :resource =
@@ -416,7 +424,7 @@ export ometa OData2AbstractSQL {
 	TextFunction =
 			Function('substring'):fn
 			// First parameter needs to be increased by 1.
-			{fn[2][1]++}
+			{fn[2] = ['Add', fn[2], ['Number', 1]]}
 			-> fn
 		|	Function('tolower')
 		|	Function('toupper')
@@ -454,7 +462,8 @@ export ometa OData2AbstractSQL {
 	,
 
 	Operand =
-			Null
+			Bind
+		|	Null
 		|	Boolean
 		|	Number
 		|	Text

@@ -14,8 +14,8 @@ runExpectation = (describe, input, method, body, expectation) ->
 
 	describe 'Parsing ' + method + ' ' + input + ' ' + JSON.stringify(body), ->
 		try
-			input = ODataParser.matchAll(input, 'OData')
-			result = OData2AbstractSQL.match(input, 'Process', [method, body])
+			input = ODataParser.matchAll(input, 'Process')
+			result = OData2AbstractSQL.match(input.tree, 'Process', [method, body])
 		catch e
 			expectation(e)
 			return

@@ -1,5 +1,6 @@
 expect = require('chai').expect
-{ operandToAbstractSQL, aliasFields, pilotFields } = require('./chai-sql')
+{ operandToAbstractSQLFactory, aliasFields, pilotFields } = require('./chai-sql')
+operandToAbstractSQL = operandToAbstractSQLFactory()
 test = require('./test')
 _ = require 'lodash'
 
@@ -28,7 +29,7 @@ test '/pilot(1)?$select=favourite_colour', (result) ->
 				_.filter(pilotFields, 1: 'favourite_colour')
 			).
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 test "/pilot('TextKey')?$select=favourite_colour", (result) ->
 	it 'should select from pilot with id', ->
@@ -37,7 +38,7 @@ test "/pilot('TextKey')?$select=favourite_colour", (result) ->
 				_.filter(pilotFields, 1: 'favourite_colour')
 			).
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Text', 'TextKey']])
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test '/pilot?$select=pilot/name', (result) ->
