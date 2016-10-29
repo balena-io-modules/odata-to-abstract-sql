@@ -1,3 +1,5 @@
+v0.3.7
+
 * Added support for parsing binds in the odata tree.
 * Made sure parsing fails if the path.key is invalid.
 

@@ -77,9 +77,7 @@
             query = new Query();
             query.fromResource(resource);
             referencedIdField = [ "ReferencedField", resource.tableAlias, resource.idField ];
-            this._opt(function() {
-                return this._applyWithArgs("PathKey", path, query, resource, referencedIdField, body);
-            });
+            this._applyWithArgs("PathKey", path, query, resource, referencedIdField, body);
             this._or(function() {
                 return this._pred(!path.options);
             }, function() {
@@ -124,9 +122,7 @@
                         throw new Error("Cannot navigate links");
                     }.call(this);
                 });
-                this._opt(function() {
-                    return this._applyWithArgs("PathKey", path.link, query, linkResource, referencedField, body);
-                });
+                this._applyWithArgs("PathKey", path.link, query, linkResource, referencedField, body);
                 return query.select.push(aliasedField);
             }, function() {
                 this._pred("PUT" == method || "PUT-INSERT" == method || "POST" == method || "PATCH" == method || "MERGE" == method);
@@ -164,18 +160,30 @@
         },
         PathKey: function(path, query, resource, referencedField, body) {
             var $elf = this, _fromIdx = this.input.idx, key, qualifiedIDField;
-            this._pred(path.key);
-            qualifiedIDField = resource.resourceName + "." + resource.idField;
-            this._opt(function() {
-                this._pred(!body[qualifiedIDField] && !body[resource.idField]);
-                return body[qualifiedIDField] = path.key;
-            });
-            key = this._or(function() {
-                return this._applyWithArgs("Number", path.key);
+            return this._or(function() {
+                return this._pred(null == path.key);
             }, function() {
-                return this._applyWithArgs("Text", path.key);
+                qualifiedIDField = resource.resourceName + "." + resource.idField;
+                this._opt(function() {
+                    this._pred(!body[qualifiedIDField] && !body[resource.idField]);
+                    return body[qualifiedIDField] = path.key;
+                });
+                key = this._or(function() {
+                    return this._applyWithArgs("Bind", path.key);
+                }, function() {
+                    return this._applyWithArgs("Number", path.key);
+                }, function() {
+                    return this._applyWithArgs("Text", path.key);
+                });
+                return query.where.push([ "Equals", referencedField, key ]);
             });
-            return query.where.push([ "Equals", referencedField, key ]);
+        },
+        Bind: function() {
+            var $elf = this, _fromIdx = this.input.idx, bind;
+            bind = this.anything();
+            this._pred(null != bind);
+            this._pred(null != bind.bind);
+            return [ "Bind", bind.bind ];
         },
         SelectFilter: function(filter, query, resource) {
             var $elf = this, _fromIdx = this.input.idx, filter;
@@ -511,7 +519,7 @@
             var $elf = this, _fromIdx = this.input.idx, fn;
             return this._or(function() {
                 fn = this._applyWithArgs("Function", "substring");
-                fn[2][1]++;
+                fn[2] = [ "Add", fn[2], [ "Number", 1 ] ];
                 return fn;
             }, function() {
                 return this._applyWithArgs("Function", "tolower");
@@ -566,6 +574,8 @@
         Operand: function() {
             var $elf = this, _fromIdx = this.input.idx;
             return this._or(function() {
+                return this._apply("Bind");
+            }, function() {
                 return this._apply("Null");
             }, function() {
                 return this._apply("Boolean");
@@ -937,8 +947,8 @@
         var shortAliases = generateShortAliases(clientModel);
         this.checkAlias = memoize(function(alias) {
             var aliasLength = alias.length;
-            return 64 > aliasLength ? alias : _(alias).split(".").map(function(part) {
-                if (64 > aliasLength) return part;
+            return aliasLength < 64 ? alias : _(alias).split(".").map(function(part) {
+                if (aliasLength < 64) return part;
                 aliasLength -= part.length;
                 var shortPart = shortAliases[part];
                 if (shortPart) {
