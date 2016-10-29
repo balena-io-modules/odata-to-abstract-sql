@@ -57,35 +57,40 @@ chai.use((chai, utils) ->
 )
 
 clientModel = require('./client-model.json')
-exports.operandToAbstractSQL = operandToAbstractSQL = (operand, resource = 'pilot', parentAlias = resource) ->
-	if operand.abstractsql?
-		return operand.abstractsql
-	if _.isBoolean(operand)
-		return ['Boolean', operand]
-	if _.isNumber(operand)
-		return ['Number', operand]
-	if _.isDate(operand)
-		return ['Date', operand]
-	if _.isString(operand)
-		if operand is 'null'
-			return 'Null'
-		if operand.charAt(0) is "'"
-			return ['Text', decodeURIComponent(operand[1...(operand.length - 1)])]
-		fieldParts = operand.split('/')
-		if fieldParts.length > 1
-			alias = parentAlias
-			for fieldPart in fieldParts[...-2]
-				alias = "#{alias}.#{fieldPart.replace(/__/g, '-')}"
-			mapping = clientModel.resourceToSQLMappings[fieldParts[fieldParts.length - 2]][fieldParts[fieldParts.length - 1]]
-			mapping = ["#{alias}.#{mapping[0]}", mapping[1...]...]
-		else
-			mapping = clientModel.resourceToSQLMappings[resource][operand]
-		return ['ReferencedField'].concat(mapping)
-	if _.isArray(operand)
-		return operandToAbstractSQL(operand...)
-	if _.isObject(operand)
-		return [ 'Duration', operand ]
-	throw new Error('Unknown operand type: ' + operand)
+exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', defaultParentAlias = defaultResource) ->
+	return operandToAbstractSQL = (operand, resource = defaultResource, parentAlias = defaultParentAlias) ->
+		if operand.abstractsql?
+			return operand.abstractsql
+		if _.isBoolean(operand)
+			binds.push(['Boolean', operand])
+			return ['Bind', binds.length - 1]
+		if _.isNumber(operand)
+			binds.push(['Number', operand])
+			return ['Bind', binds.length - 1]
+		if _.isDate(operand)
+			binds.push(['Date', operand])
+			return ['Bind', binds.length - 1]
+		if _.isString(operand)
+			if operand is 'null'
+				return 'Null'
+			if operand.charAt(0) is "'"
+				binds.push(['Text', decodeURIComponent(operand[1...(operand.length - 1)])])
+				return ['Bind', binds.length - 1]
+			fieldParts = operand.split('/')
+			if fieldParts.length > 1
+				alias = parentAlias
+				for fieldPart in fieldParts[...-2]
+					alias = "#{alias}.#{fieldPart.replace(/__/g, '-')}"
+				mapping = clientModel.resourceToSQLMappings[fieldParts[fieldParts.length - 2]][fieldParts[fieldParts.length - 1]]
+				mapping = ["#{alias}.#{mapping[0]}", mapping[1...]...]
+			else
+				mapping = clientModel.resourceToSQLMappings[resource][operand]
+			return ['ReferencedField'].concat(mapping)
+		if _.isArray(operand)
+			return operandToAbstractSQL(operand...)
+		if _.isObject(operand)
+			return [ 'Duration', operand ]
+		throw new Error('Unknown operand type: ' + operand)
 
 exports.operandToOData = operandToOData = (operand) ->
 	if operand.odata?

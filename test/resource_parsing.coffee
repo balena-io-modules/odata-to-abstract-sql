@@ -20,17 +20,17 @@ test '/pilot', (result) ->
 
 test '/pilot(1)', (result) ->
 	it 'should select from pilot with id', ->
-		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test '/pilot(0)', (result) ->
 	it 'should select from pilot with id', ->
-		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 0]])
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test "/pilot('TextKey')", (result) ->
 	it 'should select from pilot with id', ->
-		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Text', 'TextKey']])
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test '/pilot(1)/licence', (result) ->
@@ -42,7 +42,7 @@ test '/pilot(1)/licence', (result) ->
 				['licence', 'pilot.licence']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot.licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 			])
 
@@ -56,7 +56,7 @@ test '/licence(1)/pilot', (result) ->
 				['pilot', 'licence.pilot']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'licence', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'licence', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'licence.pilot', 'licence']]
 			])
 
@@ -71,7 +71,7 @@ test '/pilot(1)/pilot__can_fly__plane/plane', (result) ->
 				['plane', 'pilot.pilot-can_fly-plane.plane']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']]
 			])
@@ -87,7 +87,7 @@ test '/plane(1)/pilot__can_fly__plane/pilot', (result) ->
 				['pilot', 'plane.pilot-can_fly-plane.pilot']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'plane', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'plane', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'plane.pilot-can_fly-plane.pilot', 'id'], ['ReferencedField', 'plane.pilot-can_fly-plane', 'pilot']]
 				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'plane.pilot-can_fly-plane', 'plane']]
 			])
@@ -97,11 +97,11 @@ test '/pilot(1)', 'DELETE', (result) ->
 	it 'should delete the pilot with id 1', ->
 		expect(result).to.be.a.query.that.deletes.
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 test '/pilot(1)', 'PUT', (result) ->
 	describe 'should upsert the pilot with id 1', ->
-		whereClause = ['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+		whereClause = ['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 		it 'should be an upsert', ->
 			expect(result).to.be.a.query.that.upserts
 		it 'that inserts', ->
@@ -152,7 +152,7 @@ do ->
 				fields('id').
 				values(['Bind', 'pilot', 'id']).
 				from('pilot').
-				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 	test '/pilot(1)', 'PATCH', testFunc
 	test '/pilot(1)', 'MERGE', testFunc
 
@@ -171,7 +171,7 @@ do ->
 					['Bind', 'pilot', 'favourite_colour']
 				).
 				from('pilot').
-				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 	test '/pilot(1)', 'PATCH', { is_experienced: true, favourite_colour: null }, testFunc
 	test '/pilot(1)', 'MERGE', { is_experienced: true, favourite_colour: null }, testFunc
 
@@ -187,11 +187,11 @@ test '/pilot__can_fly__plane(1)', 'DELETE', (result) ->
 	it 'should delete the pilot__can_fly__plane with id 1', ->
 		expect(result).to.be.a.query.that.deletes.
 			from('pilot-can_fly-plane').
-			where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
+			where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Bind', 0]])
 
 test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 	describe 'should upsert the pilot__can_fly__plane with id 1', ->
-		whereClause = ['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]]
+		whereClause = ['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Bind', 0]]
 		it 'should be an upsert', ->
 			expect(result).to.be.a.query.that.upserts
 		it 'that inserts', ->
@@ -231,7 +231,7 @@ do ->
 					['Bind', 'pilot__can_fly__plane', 'id']
 				).
 				from('pilot-can_fly-plane').
-				where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Number', 1]])
+				where(['Equals', ['ReferencedField', 'pilot-can_fly-plane', 'id'], ['Bind', 0]])
 	test '/pilot__can_fly__plane(1)', 'PATCH', { pilot: 2 }, testFunc
 	test '/pilot__can_fly__plane(1)', 'MERGE', { pilot: 2 }, testFunc
 
@@ -254,7 +254,7 @@ test '/pilot(1)/$links/licence', (result) ->
 		expect(result).to.be.a.query.that.
 			selects([[['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]])
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test '/pilot(1)/$links/licence(2)', (result) ->
@@ -263,8 +263,8 @@ test '/pilot(1)/$links/licence(2)', (result) ->
 			selects([[['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['And'
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
-				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Number', 2]]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Bind', 1]]
 			])
 
 
@@ -274,8 +274,8 @@ test "/pilot('Peter')/$links/licence('X')", (result) ->
 			selects([[['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['And'
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Text', 'Peter']]
-				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Text', 'X']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Bind', 1]]
 			])
 
 
@@ -288,7 +288,7 @@ test '/pilot(1)/pilot__can_fly__plane/$links/plane', (result) ->
 				['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 1]]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']]
 			])
 
@@ -308,7 +308,7 @@ test "/team('purple')", (result) ->
 			selects(teamFields).
 			from('team').
 			where(
-				['Equals', ['ReferencedField', 'team', 'favourite colour'], ['Text', 'purple']]
+				['Equals', ['ReferencedField', 'team', 'favourite colour'], ['Bind', 0]]
 			)
 
 test '/team', 'POST', { favourite_colour: 'purple' }, (result) ->
@@ -342,7 +342,7 @@ test '/pilot/$count?$filter=id gt 5', (result) ->
 			selects([[['Count', '*'], '$count']]).
 			from('pilot').
 			where(
-				['GreaterThan', ['ReferencedField', 'pilot', 'id'], ['Number', 5]]
+				['GreaterThan', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			)
 
 test '/pilot/$count?$filter=id eq 5 or id eq 10', (result) ->
@@ -352,8 +352,8 @@ test '/pilot/$count?$filter=id eq 5 or id eq 10', (result) ->
 			from('pilot').
 			where(
 				['Or',
-					['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 5]],
-					['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 10]]
+					['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]],
+					['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 1]]
 				])
 
 test '/pilot(5)/licence/$count', (result) ->
@@ -365,7 +365,7 @@ test '/pilot(5)/licence/$count', (result) ->
 				['licence', 'pilot.licence']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 5]]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot.licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
 			])
 

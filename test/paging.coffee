@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{ operandToAbstractSQL, pilotFields } = require('./chai-sql')
+{ pilotFields } = require('./chai-sql')
 test = require('./test')
 
 
@@ -8,7 +8,7 @@ test '/pilot?$top=5', (result) ->
 		expect(result).to.be.a.query.that.
 			selects(pilotFields).
 			from('pilot').
-			limit(operandToAbstractSQL(5))
+			limit(['Number', 5])
 
 
 test '/pilot?$skip=100', (result) ->
@@ -16,7 +16,7 @@ test '/pilot?$skip=100', (result) ->
 		expect(result).to.be.a.query.that.
 			selects(pilotFields).
 			from('pilot').
-			offset(operandToAbstractSQL(100))
+			offset(['Number', 100])
 
 
 test '/pilot?$top=5&$skip=100', (result) ->
@@ -24,5 +24,5 @@ test '/pilot?$top=5&$skip=100', (result) ->
 		expect(result).to.be.a.query.that.
 			selects(pilotFields).
 			from('pilot').
-			limit(operandToAbstractSQL(5)).
-			offset(operandToAbstractSQL(100))
+			limit(['Number', 5]).
+			offset(['Number', 100])

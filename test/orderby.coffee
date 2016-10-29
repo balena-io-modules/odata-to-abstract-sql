@@ -1,5 +1,6 @@
 expect = require('chai').expect
-{ operandToAbstractSQL, pilotFields } = require('./chai-sql')
+{ operandToAbstractSQLFactory, pilotFields } = require('./chai-sql')
+operandToAbstractSQL = operandToAbstractSQLFactory()
 test = require('./test')
 
 test '/pilot?$orderby=name', (result) ->

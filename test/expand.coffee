@@ -1,7 +1,8 @@
 _ = require 'lodash'
 expect = require('chai').expect
 chaiSql = require './chai-sql'
-{ shortenAlias, operandToAbstractSQL, aliasFields, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
+{ shortenAlias, operandToAbstractSQLFactory, aliasFields, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
+operandToAbstractSQL = operandToAbstractSQLFactory()
 test = require './test'
 
 createAggregate = ({ parentResource, parentResourceAlias = parentResource, resourceName, resourceAlias = "#{parentResourceAlias}.#{resourceName}", attributeOfParent, fields }) ->
@@ -170,8 +171,8 @@ test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
 						'pilot.licence'
 						'id'
 					]
-					[	'Number'
-						1
+					[	'Bind'
+						0
 					]
 				]
 			].concat(currentWhere)
@@ -221,8 +222,8 @@ test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
 						'pilot.licence.pilot'
 						'id'
 					]
-					[	'Number'
-						1
+					[	'Bind'
+						0
 					]
 				]
 			].concat(currentWhere)
@@ -266,7 +267,7 @@ test '/pilot?$expand=licence($top=10)', (result) ->
 	.value()
 	.push([
 		'Limit'
-		operandToAbstractSQL(10)
+		['Number', 10]
 	])
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
@@ -286,7 +287,7 @@ test '/pilot?$expand=licence($skip=10)', (result) ->
 	.value()
 	.push([
 		'Offset'
-		operandToAbstractSQL(10)
+		['Number', 10]
 	])
 	it 'should select from pilot.*, licence.*', ->
 		expect(result).to.be.a.query.that.
@@ -365,7 +366,7 @@ test '/pilot?$filter=id eq 5&$expand=licence/$count', (result) ->
 		expect(result).to.be.a.query.that.
 			selects([aggregateJSONCount.licence].concat(_.reject(pilotFields, 2: 'licence'))).
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Number', 5]])
+			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 test '/pilot?$orderby=id asc&$expand=licence/$count', (result) ->
 	it 'should select from pilot.*, count(*) licence, ordered by pilot id', ->
@@ -394,8 +395,8 @@ test '/pilot?$expand=licence/$count($filter=id gt 5)', (result) ->
 						'pilot.licence'
 						'id'
 					]
-					[	'Number'
-						5
+					[	'Bind'
+						0
 					]
 				]
 			].concat(currentWhere)
