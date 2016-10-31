@@ -1,3 +1,6 @@
+* Changed to requiring an array of body keys rather than an object of key/value pairs. This makes the cache hit rate on memoisation reasonable.
+* Changed to return an object containing the tree and an object of key/value pairs that should be added to the body.
+
 v0.3.7
 
 * Added support for parsing binds in the odata tree.

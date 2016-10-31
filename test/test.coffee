@@ -1,3 +1,4 @@
+_ = require 'lodash'
 require('ometa-js')
 ODataParser = require('@resin/odata-parser').ODataParser.createInstance()
 OData2AbstractSQL = require('../odata-to-abstract-sql').OData2AbstractSQL.createInstance()
@@ -15,11 +16,12 @@ runExpectation = (describe, input, method, body, expectation) ->
 	describe 'Parsing ' + method + ' ' + input + ' ' + JSON.stringify(body), ->
 		try
 			input = ODataParser.matchAll(input, 'Process')
-			result = OData2AbstractSQL.match(input.tree, 'Process', [method, body])
+			{ tree, extraBodyVars } = OData2AbstractSQL.match(input.tree, 'Process', [method, _.keys(body)])
+			_.assign(body, extraBodyVars)
 		catch e
 			expectation(e)
 			return
-		expectation(result)
+		expectation(tree)
 
 module.exports = runExpectation.bind(null, describe)
 module.exports.skip = runExpectation.bind(null, describe.skip)
