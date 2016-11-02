@@ -43,7 +43,7 @@ Query.prototype.compile = function(queryType) {
 
 export ometa OData2AbstractSQL {
 
-	Process :method :body =
+	Process :method :bodyKeys =
 		:path
 		end
 		(	?_.isEmpty(path)
@@ -51,13 +51,13 @@ export ometa OData2AbstractSQL {
 		|	?_.includes(['$metadata', '$serviceroot'], path.resource)
 			-> [path.resource]
 		|	{this.reset()}
-			PathSegment(method, body, path):query
+			PathSegment(method, bodyKeys, path):query
 			(	?(method == 'PUT')
 				// For PUT the initial pass generates the update query,
 				// so we run it through the parser a second time to get the insert query,
 				// for a full upsert query
 				{this.reset()}
-				PathSegment('PUT-INSERT', body, path):insertQuery
+				PathSegment('PUT-INSERT', bodyKeys, path):insertQuery
 				-> ['UpsertQuery', insertQuery.compile('InsertQuery'), query.compile('UpdateQuery')]
 			|	(	?(method == 'GET')
 					-> 'SelectQuery'
@@ -70,9 +70,10 @@ export ometa OData2AbstractSQL {
 				):queryType
 				-> query.compile(queryType)
 			)
-		)
+		):tree
+		-> { tree: tree, extraBodyVars: this.extraBodyVars }
 	,
-	PathSegment :method :body :path =
+	PathSegment :method :bodyKeys :path =
 		?path.resource
 		Resource(path.resource, this.defaultResource):resource
 		{this.defaultResource = resource}
@@ -82,14 +83,14 @@ export ometa OData2AbstractSQL {
 		// We can't use the ReferencedField rule as resource.idField is the model name (using spaces),
 		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
 		{['ReferencedField', resource.tableAlias, resource.idField]}:referencedIdField
-		PathKey(path, query, resource, referencedIdField, body)
+		PathKey(path, query, resource, referencedIdField, bodyKeys)
 
 		(	?(!path.options)
 		|	?(!path.options.$expand)
 		|	Expands(resource, query, path.options.$expand.properties)
 		)
 		(	?path.property
-			PathSegment(method, body, path.property):childQuery
+			PathSegment(method, bodyKeys, path.property):childQuery
 			{query.merge(childQuery)}
 			(	?path.property.resource
 			|	{throw new Error('PathSegment has a property without a resource?')}
@@ -110,11 +111,11 @@ export ometa OData2AbstractSQL {
 				-> [referencedField, resource.resourceName]
 			|	{throw new Error('Cannot navigate links')}
 			):aliasedField
-			PathKey(path.link, query, linkResource, referencedField, body)
+			PathKey(path.link, query, linkResource, referencedField, bodyKeys)
 			-> query.select.push(aliasedField)
 		|	?(method == 'PUT' || method == 'PUT-INSERT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource):resourceMapping
-			BindVars(method, body, resource.resourceName, _.toPairs(resourceMapping)):bindVars
+			BindVars(method, bodyKeys, resource.resourceName, _.toPairs(resourceMapping)):bindVars
 			{query.extras.push(['Fields', _.map(bindVars, 0)])}
 			{query.extras.push(['Values', _.map(bindVars, 1)])}
 		|	AddCountField(path, query, resource)
@@ -139,12 +140,13 @@ export ometa OData2AbstractSQL {
 		-> query
 	,
 
-	PathKey :path :query :resource :referencedField :body =
+	PathKey :path :query :resource :referencedField :bodyKeys =
 		(	?(path.key == null)
 		|	// Add the id field value to the body if it doesn't already exist.
 			{resource.resourceName + '.' + resource.idField}:qualifiedIDField
-			(	?(!body[qualifiedIDField] && !body[resource.idField])
-				{body[qualifiedIDField] = path.key}
+			(	?(!_.includes(bodyKeys, qualifiedIDField) && !_.includes(bodyKeys, resource.idField))
+				{bodyKeys.push(qualifiedIDField)}
+				{this.extraBodyVars[qualifiedIDField] = path.key}
 			)?
 			(	Bind(path.key)
 			|	Number(path.key)
@@ -228,7 +230,7 @@ export ometa OData2AbstractSQL {
 		-> orderby
 	,
 
-	BindVars :method :body :resourceName =
+	BindVars :method :bodyKeys :resourceName =
 		[	(	[	'_name'
 					anything
 				]
@@ -238,7 +240,7 @@ export ometa OData2AbstractSQL {
 						:mappedFieldName
 					]
 				]
-				(	?(!body || (!body.hasOwnProperty(fieldName) && !body.hasOwnProperty(resourceName + "." + fieldName)))
+				(	?(!_.includes(bodyKeys, fieldName) && !_.includes(bodyKeys, resourceName + "." + fieldName))
 					// The body doesn't contain a bind var for this field.
 					(	?(method === 'PUT')
 						-> [mappedFieldName, 'Default']
@@ -739,6 +741,7 @@ OData2AbstractSQL.initialize = function() {
 OData2AbstractSQL.reset = function() {
 	this.resourceAliases = {};
 	this.defaultResource = null;
+	this.extraBodyVars = {};
 };
 
 OData2AbstractSQL.checkAlias = _.identity;
