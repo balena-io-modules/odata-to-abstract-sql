@@ -33,11 +33,11 @@
         return compiled.concat(this.extras);
     };
     var OData2AbstractSQL = exports.OData2AbstractSQL = OMeta._extend({
-        Process: function(method, body) {
-            var $elf = this, _fromIdx = this.input.idx, insertQuery, path, query, queryType;
+        Process: function(method, bodyKeys) {
+            var $elf = this, _fromIdx = this.input.idx, insertQuery, path, query, queryType, tree;
             path = this.anything();
             this._apply("end");
-            return this._or(function() {
+            tree = this._or(function() {
                 this._pred(_.isEmpty(path));
                 return [ "$serviceroot" ];
             }, function() {
@@ -45,11 +45,11 @@
                 return [ path.resource ];
             }, function() {
                 this.reset();
-                query = this._applyWithArgs("PathSegment", method, body, path);
+                query = this._applyWithArgs("PathSegment", method, bodyKeys, path);
                 return this._or(function() {
                     this._pred("PUT" == method);
                     this.reset();
-                    insertQuery = this._applyWithArgs("PathSegment", "PUT-INSERT", body, path);
+                    insertQuery = this._applyWithArgs("PathSegment", "PUT-INSERT", bodyKeys, path);
                     return [ "UpsertQuery", insertQuery.compile("InsertQuery"), query.compile("UpdateQuery") ];
                 }, function() {
                     queryType = this._or(function() {
@@ -68,8 +68,12 @@
                     return query.compile(queryType);
                 });
             });
+            return {
+                tree: tree,
+                extraBodyVars: this.extraBodyVars
+            };
         },
-        PathSegment: function(method, body, path) {
+        PathSegment: function(method, bodyKeys, path) {
             var $elf = this, _fromIdx = this.input.idx, aliasedField, bindVars, childQuery, linkResource, navigationWhere, propertyResource, query, referencedField, referencedIdField, resource, resourceMapping, subQuery, valuesIndex;
             this._pred(path.resource);
             resource = this._applyWithArgs("Resource", path.resource, this.defaultResource);
@@ -77,7 +81,7 @@
             query = new Query();
             query.fromResource(resource);
             referencedIdField = [ "ReferencedField", resource.tableAlias, resource.idField ];
-            this._applyWithArgs("PathKey", path, query, resource, referencedIdField, body);
+            this._applyWithArgs("PathKey", path, query, resource, referencedIdField, bodyKeys);
             this._or(function() {
                 return this._pred(!path.options);
             }, function() {
@@ -87,7 +91,7 @@
             });
             this._or(function() {
                 this._pred(path.property);
-                childQuery = this._applyWithArgs("PathSegment", method, body, path.property);
+                childQuery = this._applyWithArgs("PathSegment", method, bodyKeys, path.property);
                 query.merge(childQuery);
                 this._or(function() {
                     return this._pred(path.property.resource);
@@ -122,12 +126,12 @@
                         throw new Error("Cannot navigate links");
                     }.call(this);
                 });
-                this._applyWithArgs("PathKey", path.link, query, linkResource, referencedField, body);
+                this._applyWithArgs("PathKey", path.link, query, linkResource, referencedField, bodyKeys);
                 return query.select.push(aliasedField);
             }, function() {
                 this._pred("PUT" == method || "PUT-INSERT" == method || "POST" == method || "PATCH" == method || "MERGE" == method);
                 resourceMapping = this._applyWithArgs("ResourceMapping", resource);
-                bindVars = this._applyWithArgs("BindVars", method, body, resource.resourceName, _.toPairs(resourceMapping));
+                bindVars = this._applyWithArgs("BindVars", method, bodyKeys, resource.resourceName, _.toPairs(resourceMapping));
                 query.extras.push([ "Fields", _.map(bindVars, 0) ]);
                 return query.extras.push([ "Values", _.map(bindVars, 1) ]);
             }, function() {
@@ -158,15 +162,16 @@
             });
             return query;
         },
-        PathKey: function(path, query, resource, referencedField, body) {
+        PathKey: function(path, query, resource, referencedField, bodyKeys) {
             var $elf = this, _fromIdx = this.input.idx, key, qualifiedIDField;
             return this._or(function() {
                 return this._pred(null == path.key);
             }, function() {
                 qualifiedIDField = resource.resourceName + "." + resource.idField;
                 this._opt(function() {
-                    this._pred(!body[qualifiedIDField] && !body[resource.idField]);
-                    return body[qualifiedIDField] = path.key;
+                    this._pred(!_.includes(bodyKeys, qualifiedIDField) && !_.includes(bodyKeys, resource.idField));
+                    bodyKeys.push(qualifiedIDField);
+                    return this.extraBodyVars[qualifiedIDField] = path.key;
                 });
                 key = this._or(function() {
                     return this._applyWithArgs("Bind", path.key);
@@ -240,7 +245,7 @@
             });
             return orderby;
         },
-        BindVars: function(method, body, resourceName) {
+        BindVars: function(method, bodyKeys, resourceName) {
             var $elf = this, _fromIdx = this.input.idx, fieldName, fields, mappedFieldName, mappedTableName;
             this._form(function() {
                 return fields = this._many(function() {
@@ -259,7 +264,7 @@
                             });
                         });
                         return this._or(function() {
-                            this._pred(!body || !body.hasOwnProperty(fieldName) && !body.hasOwnProperty(resourceName + "." + fieldName));
+                            this._pred(!_.includes(bodyKeys, fieldName) && !_.includes(bodyKeys, resourceName + "." + fieldName));
                             return this._or(function() {
                                 this._pred("PUT" === method);
                                 return [ mappedFieldName, "Default" ];
@@ -898,6 +903,7 @@
     OData2AbstractSQL.reset = function() {
         this.resourceAliases = {};
         this.defaultResource = null;
+        this.extraBodyVars = {};
     };
     OData2AbstractSQL.checkAlias = _.identity;
     var generateShortAliases = function(clientModel) {
