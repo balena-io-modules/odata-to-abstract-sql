@@ -181,7 +181,7 @@ export ometa OData2AbstractSQL {
 			query.from.push([
 				[	'SelectQuery',
 					[	'Select',
-						_.map($elf.clientModel.resources[resource.resourceName].fields, function(field) {
+						_.map(resource.fields, function(field) {
 							var cast,
 								alias = field.fieldName,
 								bindVar = _.find(bindVars, { 0: alias });
