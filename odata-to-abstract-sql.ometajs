@@ -676,15 +676,10 @@ export ometa OData2AbstractSQL {
 		ExtraFroms(searchPoint):extraFroms
 		{	_.each(extraFroms, function(extraResource) {
 				var currentResource = resource;
-				if (_.isArray(extraResource)) {
-					_.each(extraResource, function(extraResource) {
-						$elf.AddNavigation(query, currentResource, extraResource);
-						currentResource = extraResource;
-					});
-				}
-				else {
+				_.each(extraResource, function(extraResource) {
 					$elf.AddNavigation(query, currentResource, extraResource);
-				}
+					currentResource = extraResource;
+				});
 			});
 		}
 	,
@@ -707,10 +702,7 @@ export ometa OData2AbstractSQL {
 				{prop.property}:nextProp
 				Resource(prop.name, parentResource):parentResource
 			)+:extraFroms
-			(	?(extraFroms.length == 1)
-				-> froms.push(extraFroms[0])
-			|	-> froms.push(extraFroms)
-			)
+			-> froms.push(extraFroms)
 		| anything
 		)
 		-> froms
