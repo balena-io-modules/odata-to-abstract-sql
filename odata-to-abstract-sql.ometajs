@@ -673,39 +673,28 @@ export ometa OData2AbstractSQL {
 	,
 
 	AddExtraFroms :searchPoint :query :resource =
-		ExtraFroms(searchPoint):extraFroms
-		{	_.each(extraFroms, function(extraResource) {
-				var currentResource = resource;
-				_.each(extraResource, function(extraResource) {
-					$elf.AddNavigation(query, currentResource, extraResource);
-					currentResource = extraResource;
-				});
-			});
-		}
+		ExtraFroms(query, resource, searchPoint)
 	,
 
 	// Returns the resource names.
-	ExtraFroms =
-		{[]}:froms
+	ExtraFroms :query :parentResource =
 		(	?(_.isArray(this.input.hd))
-			[	(	ExtraFroms:extraFroms
-					{froms.concat(extraFroms)}:froms
+			[	(	ExtraFroms(query, parentResource)
 				)*
 			]
 		|	:nextProp
-			{this.defaultResource}:parentResource
 			(	{nextProp}:prop
 				?prop
 				?prop.name
 				?prop.property
 				?prop.property.name
 				{prop.property}:nextProp
-				Resource(prop.name, parentResource):parentResource
-			)+:extraFroms
-			-> froms.push(extraFroms)
+				Resource(prop.name, parentResource):nextResource
+				AddNavigation(query, parentResource, nextResource)
+				{nextResource}:parentResource
+			)+
 		| anything
 		)
-		-> froms
 	,
 
 	AddNavigation :query :resource :extraResource =
