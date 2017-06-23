@@ -164,7 +164,7 @@ export ometa OData2AbstractSQL {
 	,
 
 	SelectFilter :filter :query :resource =
-		AddExtraFroms(filter, query, resource)
+		AddExtraFroms(query, resource, filter)
 		Boolean(filter):filter
 		-> query.where.push(filter)
 	,
@@ -172,7 +172,7 @@ export ometa OData2AbstractSQL {
 	InsertFilter :filter :resource :bindVars =
 		// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
 		{new Query()}:query
-		AddExtraFroms(filter, query, resource)
+		AddExtraFroms(query, resource, filter)
 		Boolean(filter):where
 		{
 			query.select = _.map(bindVars, function(bindVar) {
@@ -205,7 +205,7 @@ export ometa OData2AbstractSQL {
 	UpdateFilter :filter :resource :referencedIdField =
 		// For update statements we need to use a WHERE id IN (SELECT...) style query
 		{new Query()}:query
-		AddExtraFroms(filter, query, resource)
+		AddExtraFroms(query, resource, filter)
 		Boolean(filter):where
 		{
 			query.select.push(referencedIdField)
@@ -216,7 +216,7 @@ export ometa OData2AbstractSQL {
 	,
 
 	OrderBy :orderby :query :resource =
-		AddExtraFroms(orderby.properties, query, resource)
+		AddExtraFroms(query, resource, orderby.properties)
 		OrderByProperties(orderby.properties):orderby
 		-> query.extras.push(['OrderBy'].concat(orderby))
 	,
@@ -311,7 +311,7 @@ export ometa OData2AbstractSQL {
 	AddSelectFields :path :query :resource =
 		(	?path.options
 			?path.options.$select
-			AddExtraFroms(path.options.$select.properties, query, resource)
+			AddExtraFroms(query, resource, path.options.$select.properties)
 			Properties(path.options.$select.properties):fields
 			-> _(fields).reject(function(field) {
 					return _.some(query.select, function(existingField) {
@@ -499,7 +499,7 @@ export ometa OData2AbstractSQL {
 		(	{new Query()}:query
 			AddNavigation(query, this.defaultResource, resource)
 			{this.defaultResource = resource}
-			AddExtraFroms(lambda.expression, query, resource)
+			AddExtraFroms(query, resource, lambda.expression)
 			Boolean(lambda.expression):filter
 			(	?(lambda.method == 'any')
 				{query.where.push(filter)}
@@ -672,14 +672,9 @@ export ometa OData2AbstractSQL {
 		)
 	,
 
-	AddExtraFroms :searchPoint :query :resource =
-		ExtraFroms(query, resource, searchPoint)
-	,
-
-	// Returns the resource names.
-	ExtraFroms :query :parentResource =
+	AddExtraFroms :query :parentResource =
 		(	?(_.isArray(this.input.hd))
-			[	(	ExtraFroms(query, parentResource)
+			[	(	AddExtraFroms(query, parentResource)
 				)*
 			]
 		|	:nextProp
