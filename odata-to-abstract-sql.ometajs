@@ -778,14 +778,15 @@ var generateShortAliases = function(clientModel) {
 OData2AbstractSQL.setClientModel = function(clientModel) {
 	this.clientModel = clientModel;
 
+	var MAX_ALIAS_LENGTH = 64;
 	var shortAliases = generateShortAliases(clientModel);
 	this.checkAlias = memoize(function(alias) {
 		var aliasLength = alias.length;
-		if (aliasLength < 64) {
+		if (aliasLength < MAX_ALIAS_LENGTH) {
 			return alias;
 		}
 		return _(alias).split('.').map(function(part) {
-			if (aliasLength < 64) {
+			if (aliasLength < MAX_ALIAS_LENGTH) {
 				return part;
 			}
 			aliasLength -= part.length;
