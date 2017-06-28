@@ -16,11 +16,11 @@ Query.prototype.merge = function(otherQuery) {
 	this.extras = this.extras.concat(otherQuery.extras);
 };
 Query.prototype.fromResource = function(resource) {
-	if (resource.tableName !== resource.tableAlias) {
-		this.from.push([resource.tableName, resource.tableAlias]);
+	if (resource.name !== resource.tableAlias) {
+		this.from.push([resource.name, resource.tableAlias]);
 	}
 	else {
-		this.from.push(resource.tableName);
+		this.from.push(resource.name);
 	}
 };
 Query.prototype.compile = function(queryType) {
@@ -39,6 +39,13 @@ Query.prototype.compile = function(queryType) {
 		compiled.push(['Where'].concat(where));
 	}
 	return compiled.concat(this.extras);
+};
+
+var sqlNameToODataName = function(sqlName) {
+	return sqlName.replace(/-/g, '__').replace(/ /g, '_')
+};
+var odataNameToSqlName = function(odataName) {
+	return odataName.replace(/__/g, '-').replace(/_/g, ' ')
 };
 
 export ometa OData2AbstractSQL {
@@ -95,9 +102,8 @@ export ometa OData2AbstractSQL {
 			(	?path.property.resource
 			|	{throw new Error('PathSegment has a property without a resource?')}
 			)
-			Resource(path.property.resource, resource):propertyResource
-			NavigateResources(resource, propertyResource):navigationWhere
-			-> query.where.push(navigationWhere)
+			NavigateResources(resource, path.property.resource):navigation
+			-> query.where.push(navigation.where)
 		|	?path.link
 			(	?path.link.resource
 			|	{throw new Error('PathSegment has a link without a resource?')}
@@ -231,11 +237,7 @@ export ometa OData2AbstractSQL {
 	,
 
 	BindVars :method :bodyKeys :resourceName =
-		[	(	[	'_name'
-					anything
-				]
-				-> null
-			|	[	:fieldName
+		[	(	[	:fieldName
 					[	:mappedTableName
 						:mappedFieldName
 					]
@@ -260,17 +262,24 @@ export ometa OData2AbstractSQL {
 
 	Resource :resourceName :parentResource =
 			ResolveResourceAlias(resourceName)
-		|	{this.clientModel.resources[resourceName]}:resource
+		|	(	?parentResource
+				ResolveRelationship(parentResource, resourceName):relationshipMapping
+				-> this.clientModel.tables[relationshipMapping[1][0]]
+			|	-> this.clientModel.tables[odataNameToSqlName(resourceName)]
+			):resource
 			?resource
 			{_.clone(resource)}:resource
-			(	?resource.tableName
-			|	ResourceMapping(resource):resourceMapping
-				{resource.tableName = resourceMapping._name}
-			)
 
 			(	?parentResource
-				-> (parentResource.tableAlias + '.' + resource.tableName)
-			|	-> resource.tableName
+				(	?(_.includes(resourceName, '__') && !_.includes(resource.name, '-'))
+					// If we have a __ in the resource name to navigate then we used a verb for navigation,
+					// and no dash in the resulting resource name means we don't have the verb in the alias, so we need to add it
+					{odataNameToSqlName(resourceName).split('-')[0]}:verb
+					-> (verb + '-' + resource.name)
+				|	-> resource.name
+				):resourceAlias
+				-> (parentResource.tableAlias + '.' + resourceAlias)
+			|	-> resource.name
 			):tableAlias
 			{resource.tableAlias = this.checkAlias(tableAlias)}
 			-> resource
@@ -278,29 +287,34 @@ export ometa OData2AbstractSQL {
 	,
 
 	FieldContainedIn :fieldName :resource =
-		ResourceMapping(resource):mapping
-		{mapping[fieldName]}:mappedField
-		?mappedField
-		?(mappedField[0] == resource.tableAlias)
-		?_.some(resource.fields, {fieldName: mappedField[1]})
+		ResolveRelationship(resource, fieldName)
 	,
 
 	ResourceMapping :resource =
-			?this.clientModel.resourceToSQLMappings[resource.resourceName]
-			{this.clientModel.resourceToSQLMappings[resource.resourceName]}:resourceMapping
-			(	?resource.tableAlias
-				?(resource.tableAlias != resourceMapping._name)
-				{_.mapValues(resourceMapping, function(mapping) {
-					if (_.isArray(mapping)) {
-						return [resource.tableAlias, mapping[1]];
-					}
-					else {
- 						return resource.tableAlias;
-					}
-				})}:resourceMapping
-			)?
-			-> resourceMapping
-		|	{throw new Error('Unknown resource: ' + resource.resourceName)}
+		(	?resource.tableAlias
+			-> resource.tableAlias
+		|	-> resource.name
+		):tableAlias
+		-> _(resource.fields).map(function(field) {
+			return [ tableAlias, field.fieldName ]
+		}).keyBy(function(mapping) {
+			return sqlNameToODataName(mapping[1])
+		}).value()
+	,
+	ResolveRelationship :resource :relationship =
+		(	?_.isObject(resource)
+			-> resource.resourceName
+		|	?this.resourceAliases[resourceName]
+			-> this.resourceAliases[resourceName].resourceName
+		|	-> resource
+		):resourceName
+		{this.clientModel.relationships[resourceName]}:resourceRelations
+		?resourceRelations
+		{_(relationship).split('__').map(odataNameToSqlName).join('.')}:relationshipPath
+		{_.get(resourceRelations, relationshipPath)}:relationshipMapping
+		?relationshipMapping
+		?relationshipMapping.$
+		-> relationshipMapping.$
 	,
 
 	AddCountField :path :query :resource =
@@ -324,7 +338,7 @@ export ometa OData2AbstractSQL {
 				.value()
 		|	ResourceMapping(resource):resourceMapping
 			-> _(resourceMapping).keys().reject(function(fieldName) {
-				return fieldName === '_name' || _.some(query.select, function(existingField) {
+				return _.some(query.select, function(existingField) {
 					return _.last(existingField) == fieldName;
 				});
 			}).map(_.bind(this.AliasSelectField, this, resource)).value()
@@ -344,6 +358,12 @@ export ometa OData2AbstractSQL {
 		ResourceMapping(resource):mapping
 		(	?mapping[resourceField]
 			-> ['ReferencedField'].concat(mapping[resourceField])
+		|	ResolveRelationship(resource, resourceField):relationshipMapping
+			(	?resource.tableAlias
+				-> resource.tableAlias
+			|	-> resource.name
+			):tableAlias
+			-> ['ReferencedField', tableAlias, relationshipMapping[0]]
 		|	{console.error('Unknown mapping: ', mapping, resource.resourceName, resourceField)}
 			{throw new Error('Unknown mapping: ' + resource.resourceName + ' : ' + resourceField)}
 		)
@@ -490,14 +510,14 @@ export ometa OData2AbstractSQL {
 		-> [operation, op1, op2]
 	,
 
-	Lambda :resource :lambda =
+	Lambda :resourceName :lambda =
 		{this.resourceAliases}:resourceAliases
 		{this.defaultResource}:defaultResource
-		{	this.resourceAliases = _.clone(this.resourceAliases);
-			this.resourceAliases[lambda.identifier] = resource;
-		}
 		(	{new Query()}:query
-			AddNavigation(query, this.defaultResource, resource)
+			AddNavigation(query, this.defaultResource, resourceName):resource
+			{	this.resourceAliases = _.clone(this.resourceAliases);
+				this.resourceAliases[lambda.identifier] = resource;
+			}
 			{this.defaultResource = resource}
 			AddExtraFroms(query, resource, lambda.expression)
 			Boolean(lambda.expression):filter
@@ -555,8 +575,7 @@ export ometa OData2AbstractSQL {
 			)
 		|	?(!prop.property)
 			?prop.lambda
-			Resource(prop.name, this.defaultResource):resource
-			Lambda(resource, prop.lambda)
+			Lambda(prop.name, prop.lambda)
 		|	?(!prop.property)
 			?(!prop.lambda)
 			-> {resource: this.defaultResource, name: prop.name}
@@ -603,7 +622,8 @@ export ometa OData2AbstractSQL {
 	Expands :resource :query =
 		{this.defaultResource}:defaultResource
 		[	(	:expand
-				Resource(expand.name, defaultResource):expandResource
+				NavigateResources(resource, expand.name):navigation
+				{navigation.resource}:expandResource
 				{this.defaultResource = expandResource}
 				// We need to nest the expand query in order to be able to alias column names to match the OData version.
 				{new Query()}:nestedExpandQuery
@@ -628,13 +648,12 @@ export ometa OData2AbstractSQL {
 
 				{this.defaultResource = defaultResource}
 
-				NavigateResources(resource, expandResource):navigationWhere
-				{nestedExpandQuery.where.push(navigationWhere)}
+				{nestedExpandQuery.where.push(navigation.where)}
 
 				{new Query()}:expandQuery
-				{expandQuery.select.push([['AggregateJSON', [expandResource.tableAlias, '*']], expandResource.resourceName])}
+				{expandQuery.select.push([['AggregateJSON', [expandResource.tableAlias, '*']], expand.name])}
 				{expandQuery.from.push([nestedExpandQuery.compile('SelectQuery'), expandResource.tableAlias])}
-				{query.select.push([expandQuery.compile('SelectQuery'), expandResource.resourceName])}
+				{query.select.push([expandQuery.compile('SelectQuery'), expand.name])}
 			)+
 		]
 	,
@@ -655,21 +674,25 @@ export ometa OData2AbstractSQL {
 			)
 	,
 
-	NavigateResources :resource1 :resource2 =
-		(	FieldContainedIn(resource1.resourceName, resource2)
-			ReferencedField(resource2, resource1.resourceName):fkField
-			-> ['Equals',
-				['ReferencedField', resource1.tableAlias, resource1.idField],
-				fkField
-			]
-		|	FieldContainedIn(resource2.resourceName, resource1)
-			ReferencedField(resource1, resource2.resourceName):fkField
-			-> ['Equals',
-				['ReferencedField', resource2.tableAlias, resource2.idField],
-				fkField
-			]
-		|	{throw new Error('Cannot navigate resources ' + resource1.tableName + ' and ' + resource2.tableName)}
-		)
+	NavigateResources :resource :navigation =
+			ResolveRelationship(resource, navigation):relationshipMapping
+			Resource(navigation, resource):linkedResource
+			(	?resource.tableAlias
+				-> resource.tableAlias
+			|	-> resource.name
+			):tableAlias
+			(	?linkedResource.tableAlias
+				-> linkedResource.tableAlias
+			|	-> linkedResource.name
+			):linkedTableAlias
+			-> {
+				resource: linkedResource,
+				where: ['Equals',
+					['ReferencedField', tableAlias, relationshipMapping[0]],
+					['ReferencedField', linkedTableAlias, relationshipMapping[1][1]]
+				]
+			}
+		|	{throw new Error('Cannot navigate resources ' + resource.resourceName + ' and ' + navigation)}
 	,
 
 	AddExtraFroms :query :parentResource =
@@ -684,22 +707,23 @@ export ometa OData2AbstractSQL {
 				?prop.property
 				?prop.property.name
 				{prop.property}:nextProp
-				Resource(prop.name, parentResource):nextResource
-				AddNavigation(query, parentResource, nextResource)
-				{nextResource}:parentResource
+				(	ResolveResourceAlias(prop.name)
+				|	AddNavigation(query, parentResource, prop.name)
+				):parentResource
 			)+
 		| anything
 		)
 	,
 
 	AddNavigation :query :resource :extraResource =
-		(	?(!_.some(query.from, function(from) {
-				return from === extraResource.tableAlias ||
-					(_.isArray(from) && from[1] === extraResource.tableAlias);
+		(	NavigateResources(resource, extraResource):navigation
+			?(!_.some(query.from, function(from) {
+				return from === navigation.resource.tableAlias ||
+					(_.isArray(from) && from[1] === navigation.resource.tableAlias);
 			}))
-			NavigateResources(resource, extraResource):nagivationWhere
-			{query.fromResource(extraResource)}
-			{query.where.push(nagivationWhere)}
+			{query.fromResource(navigation.resource)}
+			{query.where.push(navigation.where)}
+			-> navigation.resource
 		)?
 }
 
@@ -717,14 +741,25 @@ OData2AbstractSQL.checkAlias = _.identity;
 
 var generateShortAliases = function(clientModel) {
 	var trie = {};
-	var resourceNames = _.map(clientModel.resources, 'resourceName');
+	var getRelationships = function(relationships) {
+		if (_.isArray(relationships)) {
+			return [];
+		} else {
+			return _(relationships).keys().reject(function(key) {
+				return _.includes(key, '-')
+			}).concat(
+				_.flatMap(relationships, getRelationships)
+			).uniq().value();
+		}
+	}
+	var aliasParts = getRelationships(clientModel.relationships)
 
-	// Build up a trie of just the terms (no `__`)
-	_(resourceNames).reject(function(part) {
-		return _.includes(part, '__');
-	}).invokeMap('toLowerCase').sort().each(function(resourceName) {
+	// Build up a trie of just the parts (no `-`)
+	_(aliasParts).reject(function(part) {
+		return _.includes(part, '-');
+	}).invokeMap('toLowerCase').sort().each(function(aliasPart) {
 		var node = trie;
-		_.each(resourceName, function(c, i) {
+		_.each(aliasPart, function(c, i) {
 			if (node.$suffix) {
 				node[node.$suffix[0]] = {
 					$suffix: node.$suffix.slice(1)
@@ -736,7 +771,7 @@ var generateShortAliases = function(clientModel) {
 			}
 			else {
 				node[c] = {
-					$suffix: resourceName.slice(i + 1)
+					$suffix: aliasPart.slice(i + 1)
 				};
 				return false;
 			}
@@ -748,29 +783,22 @@ var generateShortAliases = function(clientModel) {
 	var traverseNodes = function(str, node) {
 		_.each(node, function(value, key) {
 			if (key === '$suffix') {
-				var lowerCaseResourceName = str + value;
-				var origResourceName = _.find(resourceNames, function(resourceName) {
-					return resourceName.toLowerCase() === lowerCaseResourceName;
+				var lowerCaseAliasPart = str + value;
+				var origAliasPart = _.find(aliasParts, function(aliasPart) {
+					return aliasPart.toLowerCase() === lowerCaseAliasPart;
 				});
-				shortAliases[origResourceName] = origResourceName.slice(0, str.length);
+				var length = str.length;
+				if (str[length - 1] === ' ') {
+					// Add an extra character so we don't end on a space
+					length += 1;
+				}
+				shortAliases[origAliasPart] = origAliasPart.slice(0, length);
 			} else {
 				traverseNodes(str + key, value);
 			}
 		});
 	};
 	traverseNodes('', trie);
-
-	// Add short forms of fact types by replacing their terms with their short forms
-	_(resourceNames).invokeMap('split', '__').filter(function(resource) {
-		return resource.length > 1;
-	}).each(function(factType) {
-		shortAliases[factType.join('__')] = _.map(factType, function(part) {
-			if (shortAliases[part]) {
-				return shortAliases[part];
-			}
-			return part;
-		}).join('__');
-	});
 
 	return shortAliases;
 };
@@ -790,13 +818,15 @@ OData2AbstractSQL.setClientModel = function(clientModel) {
 				return part;
 			}
 			aliasLength -= part.length;
-			var shortPart = shortAliases[part];
-			if (shortPart) {
-				aliasLength += shortPart.length;
-				return shortPart;
-			}
-			aliasLength += 1;
-			return part[0];
+			var shortAlias = _(part).split('-').map(function(part) {
+				var shortPart = shortAliases[part];
+				if (shortPart) {
+					return shortPart;
+				}
+				return part;
+			}).join('-');
+			aliasLength += shortAlias.length;
+			return shortAlias;
 		}).join('.');
 	});
 };

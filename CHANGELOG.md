@@ -1,3 +1,5 @@
+* Switched to using the abstract sql model directly as the client model, this adds support for
+	* Synonymous form navigation, meaning we can navigate both `pilot trained pilot` and `pilot was trained by pilot` to specify a direction.
 * Switched to generating the client model in the tests, rather than committing it.
 
 v0.4.1

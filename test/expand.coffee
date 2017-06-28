@@ -1,22 +1,39 @@
 _ = require 'lodash'
 expect = require('chai').expect
 chaiSql = require './chai-sql'
-{ shortenAlias, operandToAbstractSQLFactory, aliasFields, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
+{ sqlNameToOdataName, shortenAlias, operandToAbstractSQLFactory, aliasFields, pilotFields, licenceFields, pilotCanFlyPlaneFields, planeFields } = chaiSql
 operandToAbstractSQL = operandToAbstractSQLFactory()
 test = require './test'
 
-createAggregate = ({ parentResource, parentResourceAlias = parentResource, resourceName, resourceAlias = "#{parentResourceAlias}.#{resourceName}", attributeOfParent, fields }) ->
-	odataName = resourceName.replace(/-/g, '__')
+createAggregate = ({
+	parentResource
+	parentResourceField = parentResource
+	parentResourceAlias = parentResource
+	sqlName
+	resourceAlias
+	resourceField
+	attributeOfParent
+	fields
+	verb
+	odataName = sqlNameToOdataName(sqlName)
+}) ->
+	tableAlias =
+		if verb?
+			verb + '-' + sqlName
+		else
+			sqlName
+	resourceAlias ?= "#{parentResourceAlias}.#{tableAlias}"
+	resourceField ?= tableAlias
 	whereClause =
 		if attributeOfParent
 			[	'Equals'
+				['ReferencedField', parentResourceAlias, resourceField]
 				['ReferencedField', resourceAlias, 'id']
-				['ReferencedField', parentResourceAlias, resourceName]
 			]
 		else
 			[	'Equals'
 				['ReferencedField', parentResourceAlias, 'id']
-				['ReferencedField', resourceAlias, parentResource]
+				['ReferencedField', resourceAlias, parentResourceField]
 			]
 	[
 		[	'SelectQuery'
@@ -29,10 +46,10 @@ createAggregate = ({ parentResource, parentResourceAlias = parentResource, resou
 			[	'From'
 				[	[	'SelectQuery'
 						[	'Select'
-							aliasFields(parentResourceAlias, fields)
+							aliasFields(parentResourceAlias, fields, verb)
 						]
 						[	'From'
-							[	resourceName
+							[	sqlName
 								resourceAlias
 							]
 						]
@@ -50,25 +67,30 @@ createAggregate = ({ parentResource, parentResourceAlias = parentResource, resou
 aggregateJSON =
 	pilot: createAggregate(
 		parentResource: 'pilot'
-		resourceName: 'pilot'
+		parentResourceField: 'was trained by-pilot'
+		odataName: 'trained__pilot'
+		verb: 'trained'
+		sqlName: 'pilot'
 		attributeOfParent: false
 		fields: pilotFields
 	)
 	licence: createAggregate(
 		parentResource: 'pilot'
-		resourceName: 'licence'
+		sqlName: 'licence'
 		attributeOfParent: true
 		fields: licenceFields
 	)
 	pilotCanFlyPlane:
 		plane: createAggregate(
 			parentResource: 'pilot'
-			resourceName: 'pilot-can_fly-plane'
+			odataName: 'can_fly__plane'
+			sqlName: 'pilot-can fly-plane'
 			attributeOfParent: false
 			fields: [
 				createAggregate(
-					parentResource: 'pilot.pilot-can_fly-plane'
-					resourceName: 'plane'
+					parentResource: 'pilot.pilot-can fly-plane'
+					resourceField: 'can fly-plane'
+					sqlName: 'plane'
 					attributeOfParent: true
 					fields: planeFields
 				)
@@ -92,8 +114,8 @@ nestedExpandTest = (result) ->
 				aggregateJSON.pilotCanFlyPlane.plane
 			].concat(pilotFields)).
 			from('pilot')
-test '/pilot?$expand=pilot__can_fly__plane/plane', nestedExpandTest
-test '/pilot?$expand=pilot__can_fly__plane($expand=plane)', nestedExpandTest
+test '/pilot?$expand=can_fly__plane/plane', nestedExpandTest
+test '/pilot?$expand=can_fly__plane($expand=plane)', nestedExpandTest
 
 
 nestedExpandTest = (result) ->
@@ -104,8 +126,8 @@ nestedExpandTest = (result) ->
 				aggregateJSON.licence
 			].concat(_.reject(pilotFields, 2: 'licence'))).
 			from('pilot')
-test '/pilot?$expand=pilot__can_fly__plane/plane,licence', nestedExpandTest
-test '/pilot?$expand=pilot__can_fly__plane($expand=plane),licence', nestedExpandTest
+test '/pilot?$expand=can_fly__plane/plane,licence', nestedExpandTest
+test '/pilot?$expand=can_fly__plane($expand=plane),licence', nestedExpandTest
 
 
 test '/pilot?$select=licence&$expand=licence', (result) ->
@@ -124,8 +146,8 @@ nestedExpandTest = (result) ->
 				aggregateJSON.pilotCanFlyPlane.plane
 			].concat(_.filter(pilotFields, 2: 'id'))).
 			from('pilot')
-test '/pilot?$select=id&$expand=pilot__can_fly__plane/plane', nestedExpandTest
-test '/pilot?$select=id&$expand=pilot__can_fly__plane($expand=plane)', nestedExpandTest
+test '/pilot?$select=id&$expand=can_fly__plane/plane', nestedExpandTest
+test '/pilot?$select=id&$expand=can_fly__plane($expand=plane)', nestedExpandTest
 
 
 nestedExpandTest = (result) ->
@@ -136,17 +158,18 @@ nestedExpandTest = (result) ->
 				aggregateJSON.licence
 			].concat(_.filter(pilotFields, 2: 'id'))).
 			from('pilot')
-test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane/plane,licence', nestedExpandTest
-test '/pilot?$select=id,licence&$expand=pilot__can_fly__plane($expand=plane),licence', nestedExpandTest
+test '/pilot?$select=id,licence&$expand=can_fly__plane/plane,licence', nestedExpandTest
+test '/pilot?$select=id,licence&$expand=can_fly__plane($expand=plane),licence', nestedExpandTest
 
 
-test '/pilot?$expand=pilot__can_fly__plane($select=id)', (result) ->
+test '/pilot?$expand=can_fly__plane($select=id)', (result) ->
 	it 'should only select id and the expanded fields', ->
 		expect(result).to.be.a.query.that.
 			selects([
 				createAggregate(
 					parentResource: 'pilot'
-					resourceName: 'pilot-can_fly-plane'
+					odataName: 'can_fly__plane'
+					sqlName: 'pilot-can fly-plane'
 					attributeOfParent: false
 					fields: _.filter(pilotCanFlyPlaneFields, 2: 'id')
 				)
@@ -186,7 +209,7 @@ test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
 			]).
 			from('pilot')
 
-test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
+test '/pilot?$expand=licence($filter=is_of__pilot/id eq 1)', (result) ->
 	agg = _.cloneDeep(aggregateJSON.licence)
 	_.chain(agg)
 	.find(0: 'SelectQuery')
@@ -197,7 +220,7 @@ test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
 		aggSelect.splice(aggSelect.length - 1, 0,
 			[	'From'
 				[	'pilot'
-					'pilot.licence.pilot'
+					'pilot.licence.is of-pilot'
 				]
 			]
 		)
@@ -212,14 +235,14 @@ test '/pilot?$expand=licence($filter=pilot/id eq 1)', (result) ->
 						'id'
 					]
 					[	'ReferencedField'
-						'pilot.licence.pilot'
+						'pilot.licence.is of-pilot'
 						'licence'
 					]
 				]
 				[
 					'Equals'
 					[	'ReferencedField'
-						'pilot.licence.pilot'
+						'pilot.licence.is of-pilot'
 						'id'
 					]
 					[	'Bind'
@@ -317,7 +340,7 @@ test '/pilot?$expand=licence($select=id)', (result) ->
 			]).
 			from('pilot')
 
-test '/pilot?$expand=pilot', (result) ->
+test '/pilot?$expand=trained__pilot', (result) ->
 	it 'should select from pilot.*, aggregated pilot.*', ->
 		expect(result).to.be.a.query.that.
 			selects([
@@ -329,25 +352,25 @@ test '/pilot?$expand=pilot', (result) ->
 aggregateJSONCount =
 	pilot: createAggregate(
 		parentResource: 'pilot'
-		resourceName: 'pilot'
+		sqlName: 'pilot'
 		attributeOfParent: false
 		fields: [[['Count', '*'], '$count']]
 	)
 	licence: createAggregate(
 		parentResource: 'pilot'
-		resourceName: 'licence'
+		sqlName: 'licence'
 		attributeOfParent: true
 		fields: [[['Count', '*'], '$count']]
 	)
 	pilotCanFlyPlane:
 		plane: createAggregate(
 			parentResource: 'pilot'
-			resourceName: 'pilot-can_fly-plane'
+			sqlName: 'pilot-can fly-plane'
 			attributeOfParent: false
 			fields: [
 				createAggregate(
-					parentResource: 'pilot.pilot-can_fly-plane'
-					resourceName: 'plane'
+					parentResource: 'pilot.pilot-can fly-plane'
+					sqlName: 'plane'
 					attributeOfParent: true
 					fields: [[['Count', '*'], '$count']]
 				)
@@ -441,15 +464,15 @@ do ->
 	expandString = do ->
 		recurse = (i) ->
 			if i <= 0
-				return '$expand=pilot'
+				return '$expand=trained__pilot'
 			child = recurse(i - 1)
-			return "$expand=pilot(#{child})"
+			return "$expand=trained__pilot(#{child})"
 		recurse(recursions)
 
 	url = '/pilot?' + expandString
 	test url, (result) ->
 		recurse = (i, parentAlias) ->
-			alias = shortenAlias("#{parentAlias}.pilot")
+			alias = shortenAlias("#{parentAlias}.trained-pilot")
 			if i <= 0
 				aliasedFields = pilotFields
 			else
@@ -460,7 +483,10 @@ do ->
 			return createAggregate(
 				parentResource: 'pilot'
 				parentResourceAlias: parentAlias
-				resourceName: 'pilot'
+				parentResourceField: 'was trained by-pilot'
+				odataName: 'trained__pilot'
+				verb: 'trained'
+				sqlName: 'pilot'
 				resourceAlias: alias
 				attributeOfParent: false
 				fields: aliasedFields
