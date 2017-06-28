@@ -1,3 +1,5 @@
+* Switched to generating the client model in the tests, rather than committing it.
+
 v0.4.1
 
 * Fixed the `all` lambda for cases where there are more than one of the parent resource

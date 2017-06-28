@@ -1,8 +1,11 @@
 _ = require 'lodash'
 require('ometa-js')
+
+{ clientModel } = require './chai-sql'
+
 ODataParser = require('@resin/odata-parser').ODataParser.createInstance()
 OData2AbstractSQL = require('../odata-to-abstract-sql').OData2AbstractSQL.createInstance()
-OData2AbstractSQL.setClientModel(require('./client-model.json'))
+OData2AbstractSQL.setClientModel(clientModel)
 
 { skip } = describe
 runExpectation = (describe, input, method, body, expectation) ->

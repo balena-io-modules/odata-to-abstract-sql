@@ -56,7 +56,29 @@ chai.use((chai, utils) ->
 	utils.addMethod(assertionPrototype, 'offset', bodyClause('Offset'))
 )
 
-clientModel = require('./client-model.json')
+fs = require('fs')
+generateClientModel = (input) ->
+	sbvrTypes = require '@resin/sbvr-types'
+	typeVocab = fs.readFileSync(require.resolve('@resin/sbvr-types/Type.sbvr'), 'utf8')
+
+	SBVRParser = require('@resin/sbvr-parser').SBVRParser.createInstance()
+	SBVRParser.enableReusingMemoizations(SBVRParser._sideEffectingRules)
+	SBVRParser.AddCustomAttribute('Database ID Field:')
+	SBVRParser.AddCustomAttribute('Database Table Name:')
+	SBVRParser.AddBuiltInVocab(typeVocab)
+
+	LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
+	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
+
+	AbstractSQL2ODataSchema = require '@resin/abstract-sql-to-odata-schema'
+
+	lf = SBVRParser.matchAll(input, 'Process')
+	abstractSql = LF2AbstractSQLTranslator(lf, 'Process')
+	return AbstractSQL2ODataSchema(abstractSql)
+
+sbvrModel = fs.readFileSync(require.resolve('./model.sbvr'), 'utf8')
+exports.clientModel = clientModel = generateClientModel(sbvrModel)
+
 exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', defaultParentAlias = defaultResource) ->
 	return operandToAbstractSQL = (operand, resource = defaultResource, parentAlias = defaultParentAlias) ->
 		if operand.abstractsql?
