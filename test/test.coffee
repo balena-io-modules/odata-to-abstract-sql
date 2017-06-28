@@ -4,6 +4,7 @@ ODataParser = require('@resin/odata-parser').ODataParser.createInstance()
 OData2AbstractSQL = require('../odata-to-abstract-sql').OData2AbstractSQL.createInstance()
 OData2AbstractSQL.setClientModel(require('./client-model.json'))
 
+{ skip } = describe
 runExpectation = (describe, input, method, body, expectation) ->
 	if !expectation?
 		if !body?
@@ -14,6 +15,8 @@ runExpectation = (describe, input, method, body, expectation) ->
 		body = {}
 
 	describe 'Parsing ' + method + ' ' + input + ' ' + JSON.stringify(body), ->
+		if describe is skip
+			return expectation()
 		try
 			input = ODataParser.matchAll(input, 'Process')
 			{ tree, extraBodyVars } = OData2AbstractSQL.match(input.tree, 'Process', [method, _.keys(body)])
