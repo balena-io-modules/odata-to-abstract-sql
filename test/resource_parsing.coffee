@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{ aliasFields, pilotFields, licenceFields, planeFields, teamFields } = require('./chai-sql')
+{ aliasFields, pilotFields, licenceFields, planeFields, teamFields, pilotCanFlyPlaneFields } = require('./chai-sql')
 test = require('./test')
 
 test '/', (result) ->
@@ -16,6 +16,16 @@ test '/$metadata', (result) ->
 test '/pilot', (result) ->
 	it 'should select from pilot', ->
 		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot')
+
+
+test '/aircraft', (result) ->
+	it 'should select from aircraft (plane)', ->
+		expect(result).to.be.a.query.that.selects(planeFields).from('plane')
+
+
+test '/pilot__can_fly__aircraft', (result) ->
+	it 'should select from pilot can fly aircraft (pilot can fly plane)', ->
+		expect(result).to.be.a.query.that.selects(pilotCanFlyPlaneFields).from('pilot-can fly-plane')
 
 
 test '/pilot(1)', (result) ->

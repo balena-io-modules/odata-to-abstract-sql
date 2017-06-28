@@ -265,7 +265,9 @@ export ometa OData2AbstractSQL {
 		|	(	?parentResource
 				ResolveRelationship(parentResource, resourceName):relationshipMapping
 				-> this.clientModel.tables[relationshipMapping[1][0]]
-			|	-> this.clientModel.tables[odataNameToSqlName(resourceName)]
+			|	{odataNameToSqlName(resourceName)}:sqlName
+				Synonym(sqlName):sqlName
+				-> this.clientModel.tables[sqlName]
 			):resource
 			?resource
 			{_.clone(resource)}:resource
@@ -308,9 +310,16 @@ export ometa OData2AbstractSQL {
 			-> this.resourceAliases[resourceName].resourceName
 		|	-> resource
 		):resourceName
+		Synonym(resourceName):resourceName
 		{this.clientModel.relationships[resourceName]}:resourceRelations
 		?resourceRelations
-		{_(relationship).split('__').map(odataNameToSqlName).join('.')}:relationshipPath
+		{	_(relationship)
+			.split('__')
+			.map(odataNameToSqlName)
+			.flatMap(function(sqlName) {
+				return $elf.Synonym(sqlName).split('-')
+			}).join('.')
+		}:relationshipPath
 		{_.get(resourceRelations, relationshipPath)}:relationshipMapping
 		?relationshipMapping
 		?relationshipMapping.$
@@ -735,6 +744,17 @@ OData2AbstractSQL.reset = function() {
 	this.resourceAliases = {};
 	this.defaultResource = null;
 	this.extraBodyVars = {};
+};
+
+OData2AbstractSQL.Synonym = function(sqlName) {
+	var $elf = this;
+	return _(sqlName).split('-').map(function(namePart) {
+		var synonym = $elf.clientModel.synonyms[namePart];
+		if (synonym) {
+			return synonym;
+		}
+		return namePart;
+	}).join('-');
 };
 
 OData2AbstractSQL.checkAlias = _.identity;

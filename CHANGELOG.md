@@ -1,5 +1,6 @@
 * Switched to using the abstract sql model directly as the client model, this adds support for
 	* Synonymous form navigation, meaning we can navigate both `pilot trained pilot` and `pilot was trained by pilot` to specify a direction.
+	* Synonyms, meaning we can use both aircraft and plane interchangeably, eg `aircraft` instead of `plane`, `pilot__can_fly__aircraft` instead of `pilot__can_fly__plane`, etc
 * Switched to generating the client model in the tests, rather than committing it.
 
 v0.4.1

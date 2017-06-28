@@ -21,6 +21,7 @@ Fact type:  team has favourite colour
 	Necessity: each team has exactly one favourite colour
 
 Term:       plane
+	Synonym: aircraft
 
 Fact type:  plane has name
 	Necessity: each plane has exactly one name
