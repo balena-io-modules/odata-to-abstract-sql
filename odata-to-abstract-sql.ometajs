@@ -42,11 +42,13 @@ Query.prototype.compile = function(queryType) {
 };
 
 var sqlNameToODataName = function(sqlName) {
-	return sqlName.replace(/-/g, '__').replace(/ /g, '_')
+	return sqlName.replace(/-/g, '__').replace(/ /g, '_');
 };
+exports.sqlNameToODataName = sqlNameToODataName;
 var odataNameToSqlName = function(odataName) {
-	return odataName.replace(/__/g, '-').replace(/_/g, ' ')
+	return odataName.replace(/__/g, '-').replace(/_/g, ' ');
 };
+exports.odataNameToSqlName = odataNameToSqlName;
 
 export ometa OData2AbstractSQL {
 

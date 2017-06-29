@@ -1,3 +1,4 @@
+* Added `sqlNameToODataName` and `odataNameToSqlName` for converting between odata and abstract sql resource names.
 * Switched to using the abstract sql model directly as the client model, this adds support for
 	* Synonymous form navigation, meaning we can navigate both `pilot trained pilot` and `pilot was trained by pilot` to specify a direction.
 	* Synonyms, meaning we can use both aircraft and plane interchangeably, eg `aircraft` instead of `plane`, `pilot__can_fly__aircraft` instead of `pilot__can_fly__plane`, etc
