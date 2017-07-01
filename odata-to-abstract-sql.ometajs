@@ -266,7 +266,7 @@ export ometa OData2AbstractSQL {
 			ResolveResourceAlias(resourceName)
 		|	(	?parentResource
 				ResolveRelationship(parentResource, resourceName):relationshipMapping
-				-> this.clientModel.tables[relationshipMapping[1][0]]
+				-> _.find(this.clientModel.tables, { name: relationshipMapping[1][0] })
 			|	{odataNameToSqlName(resourceName)}:sqlName
 				Synonym(sqlName):sqlName
 				-> this.clientModel.tables[sqlName]
