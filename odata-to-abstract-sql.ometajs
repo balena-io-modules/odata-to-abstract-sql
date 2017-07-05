@@ -501,21 +501,14 @@ export ometa OData2AbstractSQL {
 			{this.defaultResource = resource}
 			AddExtraFroms(lambda.expression, query, resource)
 			Boolean(lambda.expression):filter
-			{query.where.push(filter)}
-			{query.compile('SelectQuery')}:query
 			(	?(lambda.method == 'any')
-				-> ['Exists', query]
+				{query.where.push(filter)}
+				-> ['Exists', query.compile('SelectQuery')]
 			|	?(lambda.method == 'all')
+				// We use `NOT EXISTS NOT ($filter)` to implement all, but we want to leave existing where components intact, as they are for joins
+				{query.where.push([ 'Not', filter ])}
 				-> ['Not',
-					['Exists',
-						// Where not..
-						_.map(query, function(queryPart) {
-							if (queryPart[0] == 'Where') {
-								return [queryPart[0], ['Not', queryPart[1]]];
-							}
-							return queryPart;
-						})
-					]
+					['Exists', query.compile('SelectQuery')]
 				]
 			):result
 			// Make sure resourceAliases/defaultResource are always reset at the end.
@@ -749,7 +742,7 @@ OData2AbstractSQL.checkAlias = _.identity;
 var generateShortAliases = function(clientModel) {
 	var trie = {};
 	var resourceNames = _.map(clientModel.resources, 'resourceName');
-	
+
 	// Build up a trie of just the terms (no `__`)
 	_(resourceNames).reject(function(part) {
 		return _.includes(part, '__');

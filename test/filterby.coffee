@@ -631,14 +631,17 @@ lambdaTest = (methodName) ->
 					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
 					['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 				]
-				[	'Equals'
-					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
-					['Bind', 0]
-				]
+			]
+		filterWhere =
+			[	'Equals'
+				['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
+				['Bind', 0]
 			]
 		# All is implemented as where none fail
 		if methodName is 'all'
-			subWhere = ['Not', subWhere]
+			subWhere.push(['Not', filterWhere])
+		else
+			subWhere.push(filterWhere)
 
 		where =
 			[	'Exists'
@@ -674,14 +677,17 @@ lambdaTest = (methodName) ->
 					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id']
 					['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']
 				]
-				[	'Equals'
-					['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
-					['Bind', 0]
-				]
+			]
+		filterWhere =
+			[	'Equals'
+				['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'name']
+				['Bind', 0]
 			]
 		# All is implemented as where none fail
 		if methodName is 'all'
-			subWhere = ['Not', subWhere]
+			subWhere.push(['Not', filterWhere])
+		else
+			subWhere.push(filterWhere)
 
 		innerWhere =
 			[ 'Exists'
