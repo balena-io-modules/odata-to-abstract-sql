@@ -1,3 +1,5 @@
+v0.4.1
+
 * Fixed the `all` lambda for cases where there are more than one of the parent resource
 
 v0.4.0

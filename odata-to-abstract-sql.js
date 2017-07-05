@@ -636,16 +636,14 @@
                 this.defaultResource = resource;
                 this._applyWithArgs("AddExtraFroms", lambda.expression, query, resource);
                 filter = this._applyWithArgs("Boolean", lambda.expression);
-                query.where.push(filter);
-                query = query.compile("SelectQuery");
                 result = this._or(function() {
                     this._pred("any" == lambda.method);
-                    return [ "Exists", query ];
+                    query.where.push(filter);
+                    return [ "Exists", query.compile("SelectQuery") ];
                 }, function() {
                     this._pred("all" == lambda.method);
-                    return [ "Not", [ "Exists", _.map(query, function(queryPart) {
-                        return "Where" == queryPart[0] ? [ queryPart[0], [ "Not", queryPart[1] ] ] : queryPart;
-                    }) ] ];
+                    query.where.push([ "Not", filter ]);
+                    return [ "Not", [ "Exists", query.compile("SelectQuery") ] ];
                 });
                 this.resourceAliases = resourceAliases;
                 return this.defaultResource = defaultResource;
