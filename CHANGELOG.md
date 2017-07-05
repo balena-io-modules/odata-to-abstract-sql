@@ -1,3 +1,5 @@
+* Fixed the `all` lambda for cases where there are more than one of the parent resource
+
 v0.4.0
 
 * Changed to requiring an array of body keys rather than an object of key/value pairs. This makes the cache hit rate on memoisation reasonable.
