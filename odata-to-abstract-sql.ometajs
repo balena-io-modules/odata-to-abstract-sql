@@ -762,65 +762,112 @@ OData2AbstractSQL.Synonym = function(sqlName) {
 OData2AbstractSQL.checkAlias = _.identity;
 
 var generateShortAliases = function(clientModel) {
-	var trie = {};
+	var shortAliases = {};
+	var addAliases = function(origAliasParts) {
+		var trie = {};
+		var buildTrie = function(aliasPart) {
+			var node = trie;
+			_.each(aliasPart, function(c, i) {
+				if (node.$suffix) {
+					node[node.$suffix[0]] = {
+						$suffix: node.$suffix.slice(1)
+					};
+					delete node.$suffix;
+				}
+				if (node[c]) {
+					node = node[c];
+				}
+				else {
+					node[c] = {
+						$suffix: aliasPart.slice(i + 1)
+					};
+					return false;
+				}
+			});
+		};
+		var traverseNodes = function(str, node) {
+			_.each(node, function(value, key) {
+				if (key === '$suffix') {
+					var lowerCaseAliasPart = str + value;
+					var origAliasPart = _.find(origAliasParts, function(aliasPart) {
+						return aliasPart.toLowerCase() === lowerCaseAliasPart;
+					});
+					shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
+				} else {
+					traverseNodes(str + key, value, origAliasParts);
+				}
+			});
+		};
+
+		_(origAliasParts)
+		.invokeMap('toLowerCase')
+		.sort()
+		.each(buildTrie);
+
+		// Find the shortest unique alias for each term, using the trie.
+		traverseNodes('', trie, origAliasParts);
+	}
+
+
 	var getRelationships = function(relationships) {
 		if (_.isArray(relationships)) {
 			return [];
 		} else {
 			return _(relationships).keys().reject(function(key) {
-				return _.includes(key, '-')
+				return key === '$';
 			}).concat(
 				_.flatMap(relationships, getRelationships)
 			).uniq().value();
 		}
 	}
-	var aliasParts = getRelationships(clientModel.relationships)
+	var aliasParts = getRelationships(clientModel.relationships).concat(_.keys(clientModel.synonyms));
 
-	// Build up a trie of just the parts (no `-`)
-	_(aliasParts).reject(function(part) {
-		return _.includes(part, '-');
-	}).invokeMap('toLowerCase').sort().each(function(aliasPart) {
-		var node = trie;
-		_.each(aliasPart, function(c, i) {
-			if (node.$suffix) {
-				node[node.$suffix[0]] = {
-					$suffix: node.$suffix.slice(1)
-				};
-				delete node.$suffix;
-			}
-			if (node[c]) {
-				node = node[c];
-			}
-			else {
-				node[c] = {
-					$suffix: aliasPart.slice(i + 1)
-				};
-				return false;
-			}
-		});
-	});
 
-	// Find the shortest unique alias for each term, using the trie.
-	var shortAliases = {};
-	var traverseNodes = function(str, node) {
-		_.each(node, function(value, key) {
-			if (key === '$suffix') {
-				var lowerCaseAliasPart = str + value;
-				var origAliasPart = _.find(aliasParts, function(aliasPart) {
-					return aliasPart.toLowerCase() === lowerCaseAliasPart;
-				});
-				var length = str.length;
-				if (str[length - 1] === ' ') {
-					// Add an extra character so we don't end on a space
-					length += 1;
-				}
-				shortAliases[origAliasPart] = origAliasPart.slice(0, length);
-			} else {
-				traverseNodes(str + key, value);
-			}
-		});
-	};
-	traverseNodes('', trie);
+
+	// Add the first level of aliases, of names split by `-` and ` `, for short aliases on a word by word basis
+	var origAliasParts = _(aliasParts).flatMap(function(aliasPart) {
+			return aliasPart.split(/-| /);
+		})
+		.uniq().value();
+	addAliases(origAliasParts);
+
+	// Add the second level of aliases, of names that include a ` `, split by `-`, for short aliases on a verb/term basis
+	trie = {};
+	origAliasParts = _(aliasParts).flatMap(function(aliasPart) {
+		return aliasPart.split('-');
+	})
+	.filter(function(aliasPart) {
+		return _.includes(aliasPart, ' ');
+	})
+	.map(function(aliasPart) {
+		return _(aliasPart)
+			.split(' ')
+			.map(function(part) {
+				return shortAliases[part];
+			})
+			.join(' ');
+	})
+	.uniq().value();
+
+	addAliases(origAliasParts);
+
+	// Add the third level of aliases, of names that include a `-`, for short aliases on a fact type basis
+	trie = {};
+	origAliasParts = _(aliasParts)
+	.filter(function(aliasPart) {
+		return _.includes(aliasPart, '-');
+	})
+	.map(function(aliasPart) {
+		return _(aliasPart)
+			.split('-')
+			.map(function(part) {
+				return shortAliases[part];
+			})
+			.join('-');
+	})
+	.uniq().value();
+
+	addAliases(origAliasParts);
 
 	return shortAliases;
 };
@@ -841,7 +888,14 @@ OData2AbstractSQL.setClientModel = function(clientModel) {
 			}
 			aliasLength -= part.length;
 			var shortAlias = _(part).split('-').map(function(part) {
-				var shortPart = shortAliases[part];
+				var part = _(part).split(' ').map(function(part) {
+					var shortPart = shortAliases[part];
+					if (shortPart) {
+						return shortPart;
+					}
+					return part;
+				}).join(' ');
+				shortPart = shortAliases[part];
 				if (shortPart) {
 					return shortPart;
 				}
