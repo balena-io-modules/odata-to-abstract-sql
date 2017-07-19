@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var memoize = require('memoizee');
+var randomstring = require('randomstring');
 
 var Query = function() {
 	_.extend(this, {
@@ -876,13 +877,14 @@ OData2AbstractSQL.setClientModel = function(clientModel) {
 	this.clientModel = clientModel;
 
 	var MAX_ALIAS_LENGTH = 64;
+	var RANDOM_ALIAS_LENGTH = 12;
 	var shortAliases = generateShortAliases(clientModel);
 	this.checkAlias = memoize(function(alias) {
 		var aliasLength = alias.length;
 		if (aliasLength < MAX_ALIAS_LENGTH) {
 			return alias;
 		}
-		return _(alias).split('.').map(function(part) {
+		alias = _(alias).split('.').map(function(part) {
 			if (aliasLength < MAX_ALIAS_LENGTH) {
 				return part;
 			}
@@ -904,5 +906,12 @@ OData2AbstractSQL.setClientModel = function(clientModel) {
 			aliasLength += shortAlias.length;
 			return shortAlias;
 		}).join('.');
+
+		if (aliasLength < MAX_ALIAS_LENGTH) {
+			return alias;
+		}
+
+		var randStr = randomstring.generate(RANDOM_ALIAS_LENGTH) + '$';
+		return randStr + alias.slice(randStr.length + alias.length - MAX_ALIAS_LENGTH);
 	});
 };

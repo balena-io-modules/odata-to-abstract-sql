@@ -15,7 +15,8 @@
   "dependencies": {
     "lodash": "^4.0.0",
     "memoizee": "^0.3.10",
-    "ometa-js": "^1.4.1"
+    "ometa-js": "^1.4.1",
+    "randomstring": "^1.1.5"
   },
   "devDependencies": {
     "@resin/lf-to-abstract-sql": "^1.0.0",
