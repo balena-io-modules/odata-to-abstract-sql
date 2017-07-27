@@ -1,3 +1,11 @@
+* As a last resort use a random string to shorten the alias if the other methods were unable to shorten it enough
+* Add more levels of alias shortening in order to be able to more aggressively shortern aliases whilst still maintaining some readability (as aliases quickly get a lot longer now the verb is included)
+* Added `sqlNameToODataName` and `odataNameToSqlName` for converting between odata and abstract sql resource names.
+* Switched to using the abstract sql model directly as the client model, this adds support for
+	* Synonymous form navigation, meaning we can navigate both `pilot trained pilot` and `pilot was trained by pilot` to specify a direction.
+	* Synonyms, meaning we can use both aircraft and plane interchangeably, eg `aircraft` instead of `plane`, `pilot__can_fly__aircraft` instead of `pilot__can_fly__plane`, etc
+* Switched to generating the client model in the tests, rather than committing it.
+
 v0.4.1
 
 * Fixed the `all` lambda for cases where there are more than one of the parent resource

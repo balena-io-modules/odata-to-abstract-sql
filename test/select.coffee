@@ -41,37 +41,73 @@ test "/pilot('TextKey')?$select=favourite_colour", (result) ->
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
-test '/pilot?$select=pilot/name', (result) ->
+test '/pilot?$select=was_trained_by__pilot/name', (result) ->
 	it 'should select name from pilot', ->
 		expect(result).to.be.a.query.that.
 			selects(aliasFields('pilot', [
 				pilotName
-			])).
+			], 'was trained by')).
 			from(
 				'pilot'
-				['pilot', 'pilot.pilot']
+				['pilot', 'pilot.was trained by-pilot']
 			).
 			where(
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot', 'pilot']]
+				['Equals', ['ReferencedField', 'pilot', 'was trained by-pilot'], ['ReferencedField', 'pilot.was trained by-pilot', 'id']]
 			)
 
+test '/pilot?$select=trained__pilot/name', (result) ->
+	it 'should select name from pilot', ->
+		expect(result).to.be.a.query.that.
+			selects(aliasFields('pilot', [
+				pilotName
+			], 'trained')).
+			from(
+				'pilot'
+				['pilot', 'pilot.trained-pilot']
+			).
+			where(
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.trained-pilot', 'was trained by-pilot']]
+			)
 
-test '/pilot?$select=pilot/name,age', (result) ->
+test '/pilot?$select=was_trained_by__pilot/name,trained__pilot/name', (result) ->
+	it 'should select name from pilot', ->
+		expect(result).to.be.a.query.that.
+			selects(
+				aliasFields('pilot', [
+					pilotName
+				], 'was trained by')
+				.concat(
+					aliasFields('pilot', [
+						pilotName
+					], 'trained')
+				)
+			).
+			from(
+				'pilot'
+				['pilot', 'pilot.was trained by-pilot']
+				['pilot', 'pilot.trained-pilot']
+			).
+			where(['And'
+				['Equals', ['ReferencedField', 'pilot', 'was trained by-pilot'], ['ReferencedField', 'pilot.was trained by-pilot', 'id']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.trained-pilot', 'was trained by-pilot']]
+			])
+
+test '/pilot?$select=trained__pilot/name,age', (result) ->
 	it 'should select name, age from pilot', ->
 		expect(result).to.be.a.query.that.
 			selects(
 				aliasFields('pilot', [
 					pilotName
-				]).concat([
+				], 'trained').concat([
 					pilotAge
 				])
 			).
 			from(
 				'pilot'
-				['pilot', 'pilot.pilot']
+				['pilot', 'pilot.trained-pilot']
 			).
 			where(
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot', 'pilot']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.trained-pilot', 'was trained by-pilot']]
 			)
 
 
@@ -93,22 +129,22 @@ test '/pilot?$select=licence/id', (result) ->
 				['licence', 'pilot.licence']
 			).
 			where(
-				['Equals', ['ReferencedField', 'pilot.licence', 'id'], ['ReferencedField', 'pilot', 'licence']]
+				['Equals', ['ReferencedField', 'pilot', 'licence'], ['ReferencedField', 'pilot.licence', 'id']]
 			)
 
 
-test '/pilot?$select=pilot__can_fly__plane/plane/id', (result) ->
-	it 'should select pilot__can_fly__plane/plane/id for pilots', ->
+test '/pilot?$select=can_fly__plane/plane/id', (result) ->
+	it 'should select can_fly__plane/plane/id for pilots', ->
 		expect(result).to.be.a.query.that.
 			selects([
-				operandToAbstractSQL('pilot__can_fly__plane/plane/id')
+				operandToAbstractSQL('can_fly__plane/plane/id')
 			]).
 			from(
 				'pilot'
-				['pilot-can_fly-plane', 'pilot.pilot-can_fly-plane']
-				['plane', 'pilot.pilot-can_fly-plane.plane']
+				['pilot-can fly-plane', 'pilot.pilot-can fly-plane']
+				['plane', 'pilot.pilot-can fly-plane.plane']
 			).
 			where(['And'
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'pilot']]
-				['Equals', ['ReferencedField', 'pilot.pilot-can_fly-plane.plane', 'id'], ['ReferencedField', 'pilot.pilot-can_fly-plane', 'plane']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot']]
+				['Equals', ['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'], ['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id']]
 			])

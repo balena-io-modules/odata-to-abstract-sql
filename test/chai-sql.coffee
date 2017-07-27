@@ -56,7 +56,31 @@ chai.use((chai, utils) ->
 	utils.addMethod(assertionPrototype, 'offset', bodyClause('Offset'))
 )
 
-clientModel = require('./client-model.json')
+fs = require('fs')
+generateClientModel = (input) ->
+	sbvrTypes = require '@resin/sbvr-types'
+	typeVocab = fs.readFileSync(require.resolve('@resin/sbvr-types/Type.sbvr'), 'utf8')
+
+	SBVRParser = require('@resin/sbvr-parser').SBVRParser.createInstance()
+	SBVRParser.enableReusingMemoizations(SBVRParser._sideEffectingRules)
+	SBVRParser.AddCustomAttribute('Database ID Field:')
+	SBVRParser.AddCustomAttribute('Database Table Name:')
+	SBVRParser.AddBuiltInVocab(typeVocab)
+
+	LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
+	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
+
+	lf = SBVRParser.matchAll(input, 'Process')
+	return LF2AbstractSQLTranslator(lf, 'Process')
+
+sbvrModel = fs.readFileSync(require.resolve('./model.sbvr'), 'utf8')
+exports.clientModel = clientModel = generateClientModel(sbvrModel)
+
+odataNameToSqlName = (odataName) ->
+	odataName.replace(/__/g, '-').replace(/_/g, ' ')
+exports.sqlNameToOdataName = (sqlName) ->
+	sqlName.replace(/-/g, '__').replace(/ /g, '_')
+
 exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', defaultParentAlias = defaultResource) ->
 	return operandToAbstractSQL = (operand, resource = defaultResource, parentAlias = defaultParentAlias) ->
 		if operand.abstractsql?
@@ -79,12 +103,21 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 			fieldParts = operand.split('/')
 			if fieldParts.length > 1
 				alias = parentAlias
-				for fieldPart in fieldParts[...-2]
-					alias = "#{alias}.#{fieldPart.replace(/__/g, '-')}"
-				mapping = clientModel.resourceToSQLMappings[fieldParts[fieldParts.length - 2]][fieldParts[fieldParts.length - 1]]
-				mapping = ["#{alias}.#{mapping[0]}", mapping[1...]...]
+				previousResource = _(parentAlias).split('.').last()
+				for resourceName in fieldParts[...-1]
+					sqlName = odataNameToSqlName(resourceName)
+					sqlNameParts = sqlName.split('-')
+					mapping = _.get(clientModel.relationships[previousResource], sqlNameParts.join('.')).$
+					refTable = mapping[1][0]
+					if sqlNameParts.length > 1 and not _.includes(refTable, '-')
+						# Add the verb to tables that don't include the verb already
+						alias = "#{alias}.#{sqlNameParts[0]}-#{refTable}"
+					else
+						alias = "#{alias}.#{refTable}"
+					previousResource = refTable
+				mapping = [alias, _.last(fieldParts)]
 			else
-				mapping = clientModel.resourceToSQLMappings[resource][operand]
+				mapping = [resource, odataNameToSqlName(operand)]
 			return ['ReferencedField'].concat(mapping)
 		if _.isArray(operand)
 			return operandToAbstractSQL(operand...)
@@ -126,23 +159,27 @@ exports.operandToOData = operandToOData = (operand) ->
 	return operand
 
 exports.shortenAlias = shortenAlias = (alias) ->
-	if alias.length >= 64
-		return alias.replace(/pilot/, 'pi')
+	while alias.length >= 64
+		alias = alias.replace(/(^|[^-])pilot/, '$1pi').replace(/trained\-pilot/, 'tr-pi')
 	return alias
 
 exports.aliasFields = do ->
-	aliasField = (resourceAlias, field) ->
+	aliasField = (resourceAlias, verb, field) ->
 		if field[0] is 'ReferencedField'
-			return [field[0], shortenAlias("#{resourceAlias}.#{field[1]}"), field[2]]
+			return [field[0], shortenAlias("#{resourceAlias}.#{verb}#{field[1]}"), field[2]]
 		if field.length is 2 and field[0][0] is 'ReferencedField'
 			return [
-				aliasField(resourceAlias, field[0])
+				aliasField(resourceAlias, verb, field[0])
 				field[1]
 			]
 		else
 			return field
-	return (resourceAlias, fields) ->
-		_.map(fields, _.partial(aliasField, resourceAlias))
+	return (resourceAlias, fields, verb) ->
+		if verb?
+			verb = verb + '-'
+		else
+			verb = ''
+		_.map(fields, _.partial(aliasField, resourceAlias, verb))
 
 exports.pilotFields = [
 	[['ReferencedField', 'pilot', 'created at'], 'created_at']
@@ -152,10 +189,10 @@ exports.pilotFields = [
 	['ReferencedField', 'pilot', 'name']
 	['ReferencedField', 'pilot', 'age']
 	[['ReferencedField', 'pilot', 'favourite colour'], 'favourite_colour']
-	['ReferencedField', 'pilot', 'team']
+	[['ReferencedField', 'pilot', 'is on-team'], 'is_on__team'],
 	['ReferencedField', 'pilot', 'licence']
 	[['ReferencedField', 'pilot', 'hire date'], 'hire_date']
-	['ReferencedField', 'pilot', 'pilot']
+	[['ReferencedField', 'pilot', 'was trained by-pilot'], 'was_trained_by__pilot']
 ]
 
 exports.licenceFields = [
@@ -171,10 +208,10 @@ exports.planeFields = [
 ]
 
 exports.pilotCanFlyPlaneFields = [
-	[['ReferencedField', 'pilot-can_fly-plane', 'created at'], 'created_at']
-	['ReferencedField', 'pilot-can_fly-plane', 'pilot']
-	['ReferencedField', 'pilot-can_fly-plane', 'plane']
-	['ReferencedField', 'pilot-can_fly-plane', 'id']
+	[['ReferencedField', 'pilot-can fly-plane', 'created at'], 'created_at']
+	['ReferencedField', 'pilot-can fly-plane', 'pilot']
+	[['ReferencedField', 'pilot-can fly-plane', 'can fly-plane'], 'can_fly__plane']
+	['ReferencedField', 'pilot-can fly-plane', 'id']
 ]
 
 exports.teamFields = [

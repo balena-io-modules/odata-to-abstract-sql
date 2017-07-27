@@ -21,6 +21,7 @@ Fact type:  team has favourite colour
 	Necessity: each team has exactly one favourite colour
 
 Term:       plane
+	Synonym: aircraft
 
 Fact type:  plane has name
 	Necessity: each plane has exactly one name
@@ -42,8 +43,10 @@ Fact type:  pilot has favourite colour
 	Necessity: each pilot has exactly one favourite colour
 
 Fact type:  pilot can fly plane
+	Synonymous Form: plane can be flown by pilot
 
 Fact type:  pilot is on team
+	Synonymous Form: team includes pilot
 	Necessity: each pilot is on exactly one team
 
 Fact type:  pilot has licence
