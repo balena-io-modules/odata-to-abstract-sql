@@ -1,9 +1,9 @@
 !function(root, factory) {
-    "function" == typeof define && define.amd ? define([ "require", "exports", "ometa-core", "lodash", "memoizee" ], factory) : "object" == typeof exports ? factory(require, exports, require("ometa-js").core) : factory(function(moduleName) {
+    "function" == typeof define && define.amd ? define([ "require", "exports", "ometa-core", "lodash", "memoizee", "randomstring" ], factory) : "object" == typeof exports ? factory(require, exports, require("ometa-js").core) : factory(function(moduleName) {
         return root[moduleName];
     }, root, root.OMeta);
 }(this, function(require, exports, OMeta) {
-    var _ = require("lodash"), memoize = require("memoizee"), Query = function() {
+    var _ = require("lodash"), memoize = require("memoizee"), randomstring = require("randomstring"), Query = function() {
         _.extend(this, {
             select: [],
             from: [],
@@ -36,8 +36,8 @@
         return sqlName.replace(/-/g, "__").replace(/ /g, "_");
     };
     exports.sqlNameToODataName = sqlNameToODataName;
-    var odataNameToSqlName = function(resourceName) {
-        return resourceName.replace(/__/g, "-").replace(/_/g, " ");
+    var odataNameToSqlName = function(odataName) {
+        return odataName.replace(/__/g, "-").replace(/_/g, " ");
     };
     exports.odataNameToSqlName = odataNameToSqlName;
     var OData2AbstractSQL = exports.OData2AbstractSQL = OMeta._extend({
@@ -291,7 +291,9 @@
                 resource = this._or(function() {
                     this._pred(parentResource);
                     relationshipMapping = this._applyWithArgs("ResolveRelationship", parentResource, resourceName);
-                    return this.clientModel.tables[relationshipMapping[1][0]];
+                    return _.find(this.clientModel.tables, {
+                        name: relationshipMapping[1][0]
+                    });
                 }, function() {
                     sqlName = odataNameToSqlName(resourceName);
                     sqlName = this._applyWithArgs("Synonym", sqlName);
@@ -349,12 +351,16 @@
             }, function() {
                 return resource;
             });
+            resourceName = this._applyWithArgs("Synonym", resourceName);
             resourceRelations = this.clientModel.relationships[resourceName];
             this._pred(resourceRelations);
-            relationshipPath = _(relationship).split("__").map(odataNameToSqlName).map(_.bind($elf.Synonym, $elf)).join(".");
+            relationshipPath = _(relationship).split("__").map(odataNameToSqlName).flatMap(function(sqlName) {
+                return $elf.Synonym(sqlName).split("-");
+            }).join(".");
             relationshipMapping = _.get(resourceRelations, relationshipPath);
             this._pred(relationshipMapping);
-            return relationshipMapping;
+            this._pred(relationshipMapping.$);
+            return relationshipMapping.$;
         },
         AddCountField: function(path, query, resource) {
             var $elf = this, _fromIdx = this.input.idx;
@@ -930,60 +936,89 @@
     };
     OData2AbstractSQL.checkAlias = _.identity;
     var generateShortAliases = function(clientModel) {
-        var trie = {}, getRelationships = function(relationships) {
+        var shortAliases = {}, addAliases = function(origAliasParts) {
+            var trie = {}, buildTrie = function(aliasPart) {
+                var node = trie;
+                _.each(aliasPart, function(c, i) {
+                    if (node.$suffix) {
+                        node[node.$suffix[0]] = {
+                            $suffix: node.$suffix.slice(1)
+                        };
+                        delete node.$suffix;
+                    }
+                    if (!node[c]) {
+                        node[c] = {
+                            $suffix: aliasPart.slice(i + 1)
+                        };
+                        return !1;
+                    }
+                    node = node[c];
+                });
+            }, traverseNodes = function(str, node) {
+                _.each(node, function(value, key) {
+                    if ("$suffix" === key) {
+                        var lowerCaseAliasPart = str + value, origAliasPart = _.find(origAliasParts, function(aliasPart) {
+                            return aliasPart.toLowerCase() === lowerCaseAliasPart;
+                        });
+                        shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
+                    } else traverseNodes(str + key, value, origAliasParts);
+                });
+            };
+            _(origAliasParts).invokeMap("toLowerCase").sort().each(buildTrie);
+            traverseNodes("", trie, origAliasParts);
+        }, getRelationships = function(relationships) {
             return _.isArray(relationships) ? [] : _(relationships).keys().reject(function(key) {
-                return _.includes(key, "-");
+                return "$" === key;
             }).concat(_.flatMap(relationships, getRelationships)).uniq().value();
-        }, aliasParts = getRelationships(clientModel.relationships);
-        _(aliasParts).reject(function(part) {
-            return _.includes(part, "-");
-        }).invokeMap("toLowerCase").sort().each(function(aliasPart) {
-            var node = trie;
-            _.each(aliasPart, function(c, i) {
-                if (node.$suffix) {
-                    node[node.$suffix[0]] = {
-                        $suffix: node.$suffix.slice(1)
-                    };
-                    delete node.$suffix;
-                }
-                if (!node[c]) {
-                    node[c] = {
-                        $suffix: aliasPart.slice(i + 1)
-                    };
-                    return !1;
-                }
-                node = node[c];
-            });
-        });
-        var shortAliases = {}, traverseNodes = function(str, node) {
-            _.each(node, function(value, key) {
-                if ("$suffix" === key) {
-                    var lowerCaseAliasPart = str + value, origAliasPart = _.find(aliasParts, function(aliasPart) {
-                        return aliasPart.toLowerCase() === lowerCaseAliasPart;
-                    }), length = str.length;
-                    " " === str[length - 1] && (length += 1);
-                    shortAliases[origAliasPart] = origAliasPart.slice(0, length);
-                } else traverseNodes(str + key, value);
-            });
-        };
-        traverseNodes("", trie);
+        }, aliasParts = getRelationships(clientModel.relationships).concat(_.keys(clientModel.synonyms)), origAliasParts = _(aliasParts).flatMap(function(aliasPart) {
+            return aliasPart.split(/-| /);
+        }).uniq().value();
+        addAliases(origAliasParts);
+        trie = {};
+        origAliasParts = _(aliasParts).flatMap(function(aliasPart) {
+            return aliasPart.split("-");
+        }).filter(function(aliasPart) {
+            return _.includes(aliasPart, " ");
+        }).map(function(aliasPart) {
+            return _(aliasPart).split(" ").map(function(part) {
+                return shortAliases[part];
+            }).join(" ");
+        }).uniq().value();
+        addAliases(origAliasParts);
+        trie = {};
+        origAliasParts = _(aliasParts).filter(function(aliasPart) {
+            return _.includes(aliasPart, "-");
+        }).map(function(aliasPart) {
+            return _(aliasPart).split("-").map(function(part) {
+                return shortAliases[part];
+            }).join("-");
+        }).uniq().value();
+        addAliases(origAliasParts);
         return shortAliases;
     };
     OData2AbstractSQL.setClientModel = function(clientModel) {
         this.clientModel = clientModel;
-        var MAX_ALIAS_LENGTH = 64, shortAliases = generateShortAliases(clientModel);
+        var MAX_ALIAS_LENGTH = 64, RANDOM_ALIAS_LENGTH = 12, shortAliases = generateShortAliases(clientModel);
         this.checkAlias = memoize(function(alias) {
             var aliasLength = alias.length;
-            return aliasLength < MAX_ALIAS_LENGTH ? alias : _(alias).split(".").map(function(part) {
+            if (aliasLength < MAX_ALIAS_LENGTH) return alias;
+            alias = _(alias).split(".").map(function(part) {
                 if (aliasLength < MAX_ALIAS_LENGTH) return part;
                 aliasLength -= part.length;
                 var shortAlias = _(part).split("-").map(function(part) {
-                    var shortPart = shortAliases[part];
+                    var part = _(part).split(" ").map(function(part) {
+                        var shortPart = shortAliases[part];
+                        return shortPart ? shortPart : part;
+                    }).join(" ");
+                    shortPart = shortAliases[part];
                     return shortPart ? shortPart : part;
                 }).join("-");
                 aliasLength += shortAlias.length;
                 return shortAlias;
             }).join(".");
+            if (aliasLength < MAX_ALIAS_LENGTH) return alias;
+            var randStr = randomstring.generate(RANDOM_ALIAS_LENGTH) + "$";
+            return randStr + alias.slice(randStr.length + alias.length - MAX_ALIAS_LENGTH);
         });
     };
 });

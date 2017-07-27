@@ -1,3 +1,5 @@
+v1.0.0
+
 * As a last resort use a random string to shorten the alias if the other methods were unable to shorten it enough
 * Add more levels of alias shortening in order to be able to more aggressively shortern aliases whilst still maintaining some readability (as aliases quickly get a lot longer now the verb is included)
 * Added `sqlNameToODataName` and `odataNameToSqlName` for converting between odata and abstract sql resource names.
