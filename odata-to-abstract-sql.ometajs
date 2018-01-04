@@ -16,11 +16,14 @@ Query.prototype.merge = function(otherQuery) {
 	this.where = this.where.concat(otherQuery.where);
 	this.extras = this.extras.concat(otherQuery.extras);
 };
-Query.prototype.fromResource = function(resource) {
-	if (resource.name !== resource.tableAlias) {
+Query.prototype.fromResource = function(resource, args) {
+	if (resource.definition) {
+		definition = _.cloneDeep(resource.definition);
+		rewriteBinds(definition, args.extraBindVars, args.bindVarsLength);
+		this.from.push([definition.abstractSqlQuery, resource.tableAlias]);
+	} else if (resource.name !== resource.tableAlias) {
 		this.from.push([resource.name, resource.tableAlias]);
-	}
-	else {
+	} else {
 		this.from.push(resource.name);
 	}
 };
@@ -51,11 +54,32 @@ var odataNameToSqlName = function(odataName) {
 };
 exports.odataNameToSqlName = odataNameToSqlName;
 
+var incrementBinds = function(inc, abstractSql) {
+	if (_.isArray(abstractSql)) {
+		if (abstractSql[0] === 'Bind') {
+			if (_.isNumber(abstractSql[1])) {
+				abstractSql[1] += inc;
+			}
+		} else {
+			_.each(abstractSql, function(abstractSql) {
+				incrementBinds(inc, abstractSql);
+			});
+		}
+	}
+};
+var rewriteBinds = function(definition, existingBinds, inc) {
+	inc = inc || 0;
+	incrementBinds(existingBinds.length + inc, definition.abstractSqlQuery);
+	existingBinds.push.apply(existingBinds, definition.extraBinds);
+}
+exports.rewriteBinds = rewriteBinds;
+
 export ometa OData2AbstractSQL {
 
-	Process :method :bodyKeys =
+	Process :method :bodyKeys :bindVarsLength =
 		:path
 		end
+		{this.bindVarsLength = bindVarsLength}
 		(	?_.isEmpty(path)
 			-> ['$serviceroot']
 		|	?_.includes(['$metadata', '$serviceroot'], path.resource)
@@ -81,14 +105,14 @@ export ometa OData2AbstractSQL {
 				-> query.compile(queryType)
 			)
 		):tree
-		-> { tree: tree, extraBodyVars: this.extraBodyVars }
+		-> { tree: tree, extraBodyVars: this.extraBodyVars, extraBindVars: this.extraBindVars }
 	,
 	PathSegment :method :bodyKeys :path =
 		?path.resource
 		Resource(path.resource, this.defaultResource):resource
 		{this.defaultResource = resource}
 		{new Query()}:query
-		{query.fromResource(resource)}
+		{query.fromResource(resource, this)}
 
 		// We can't use the ReferencedField rule as resource.idField is the model name (using spaces),
 		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
@@ -218,7 +242,7 @@ export ometa OData2AbstractSQL {
 		Boolean(filter):where
 		{
 			query.select.push(referencedIdField)
-			query.fromResource(resource)
+			query.fromResource(resource, this)
 			query.where.push(where)
 		}
 		-> query
@@ -647,7 +671,7 @@ export ometa OData2AbstractSQL {
 					|	Expands(expandResource, nestedExpandQuery, expand.options.$expand.properties)
 					)
 				)
-				{nestedExpandQuery.fromResource(expandResource)}
+				{nestedExpandQuery.fromResource(expandResource, this)}
 				(	AddCountField(expand, nestedExpandQuery, expandResource)
 				|	AddSelectFields(expand, nestedExpandQuery, expandResource)
 				)
@@ -733,7 +757,7 @@ export ometa OData2AbstractSQL {
 				return from === navigation.resource.tableAlias ||
 					(_.isArray(from) && from[1] === navigation.resource.tableAlias);
 			}))
-			{query.fromResource(navigation.resource)}
+			{query.fromResource(navigation.resource, this)}
 			{query.where.push(navigation.where)}
 			-> navigation.resource
 		)?
@@ -747,6 +771,7 @@ OData2AbstractSQL.reset = function() {
 	this.resourceAliases = {};
 	this.defaultResource = null;
 	this.extraBodyVars = {};
+	this.extraBindVars = [];
 };
 
 OData2AbstractSQL.Synonym = function(sqlName) {

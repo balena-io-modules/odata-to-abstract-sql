@@ -17,8 +17,12 @@
         this.where = this.where.concat(otherQuery.where);
         this.extras = this.extras.concat(otherQuery.extras);
     };
-    Query.prototype.fromResource = function(resource) {
-        resource.name !== resource.tableAlias ? this.from.push([ resource.name, resource.tableAlias ]) : this.from.push(resource.name);
+    Query.prototype.fromResource = function(resource, args) {
+        if (resource.definition) {
+            definition = _.cloneDeep(resource.definition);
+            rewriteBinds(definition, args.extraBindVars, args.bindVarsLength);
+            this.from.push([ definition.abstractSqlQuery, resource.tableAlias ]);
+        } else resource.name !== resource.tableAlias ? this.from.push([ resource.name, resource.tableAlias ]) : this.from.push(resource.name);
     };
     Query.prototype.compile = function(queryType) {
         var compiled = [ queryType ], where = this.where;
@@ -40,11 +44,22 @@
         return odataName.replace(/__/g, "-").replace(/_/g, " ");
     };
     exports.odataNameToSqlName = odataNameToSqlName;
+    var incrementBinds = function(inc, abstractSql) {
+        _.isArray(abstractSql) && ("Bind" === abstractSql[0] ? _.isNumber(abstractSql[1]) && (abstractSql[1] += inc) : _.each(abstractSql, function(abstractSql) {
+            incrementBinds(inc, abstractSql);
+        }));
+    }, rewriteBinds = function(definition, existingBinds, inc) {
+        inc = inc || 0;
+        incrementBinds(existingBinds.length + inc, definition.abstractSqlQuery);
+        existingBinds.push.apply(existingBinds, definition.extraBinds);
+    };
+    exports.rewriteBinds = rewriteBinds;
     var OData2AbstractSQL = exports.OData2AbstractSQL = OMeta._extend({
-        Process: function(method, bodyKeys) {
+        Process: function(method, bodyKeys, bindVarsLength) {
             var $elf = this, _fromIdx = this.input.idx, insertQuery, path, query, queryType, tree;
             path = this.anything();
             this._apply("end");
+            this.bindVarsLength = bindVarsLength;
             tree = this._or(function() {
                 this._pred(_.isEmpty(path));
                 return [ "$serviceroot" ];
@@ -78,7 +93,8 @@
             });
             return {
                 tree: tree,
-                extraBodyVars: this.extraBodyVars
+                extraBodyVars: this.extraBodyVars,
+                extraBindVars: this.extraBindVars
             };
         },
         PathSegment: function(method, bodyKeys, path) {
@@ -87,7 +103,7 @@
             resource = this._applyWithArgs("Resource", path.resource, this.defaultResource);
             this.defaultResource = resource;
             query = new Query();
-            query.fromResource(resource);
+            query.fromResource(resource, this);
             referencedIdField = [ "ReferencedField", resource.tableAlias, resource.idField ];
             this._applyWithArgs("PathKey", path, query, resource, referencedIdField, bodyKeys);
             this._or(function() {
@@ -230,7 +246,7 @@
             where = this._applyWithArgs("Boolean", filter);
             (function() {
                 query.select.push(referencedIdField);
-                query.fromResource(resource);
+                query.fromResource(resource, this);
                 return query.where.push(where);
             }).call(this);
             return query;
@@ -802,7 +818,7 @@
                     }, function() {
                         return this._applyWithArgs("Expands", expandResource, nestedExpandQuery, expand.options.$expand.properties);
                     });
-                    nestedExpandQuery.fromResource(expandResource);
+                    nestedExpandQuery.fromResource(expandResource, this);
                     this._or(function() {
                         return this._applyWithArgs("AddCountField", expand, nestedExpandQuery, expandResource);
                     }, function() {
@@ -913,7 +929,7 @@
                 this._pred(!_.some(query.from, function(from) {
                     return from === navigation.resource.tableAlias || _.isArray(from) && from[1] === navigation.resource.tableAlias;
                 }));
-                query.fromResource(navigation.resource);
+                query.fromResource(navigation.resource, this);
                 query.where.push(navigation.where);
                 return navigation.resource;
             });
@@ -926,6 +942,7 @@
         this.resourceAliases = {};
         this.defaultResource = null;
         this.extraBodyVars = {};
+        this.extraBindVars = [];
     };
     OData2AbstractSQL.Synonym = function(sqlName) {
         var $elf = this;
