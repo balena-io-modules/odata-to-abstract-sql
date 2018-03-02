@@ -231,9 +231,8 @@
                 query.from.push([ [ "SelectQuery", [ "Select", _.map(resource.fields, function(field) {
                     var cast, alias = field.fieldName, bindVar = _.find(bindVars, {
                         0: alias
-                    });
-                    cast = bindVar ? [ "Cast", bindVar[1], field.dataType ] : "Null";
-                    return [ cast, alias ];
+                    }), value = bindVar ? bindVar[1] : "Null";
+                    return [ [ "Cast", value, field.dataType ], alias ];
                 }) ] ], resource.tableAlias ]);
                 return query.where.push(where);
             }).call(this);

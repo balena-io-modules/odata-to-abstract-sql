@@ -217,20 +217,19 @@ run ->
 				[	'From'
 					[	[	'SelectQuery'
 							[	'Select'
-								[
-									[ 'Null', 'created at' ]
-									[ 'Null', 'id' ]
-									[ 'Null', 'person' ]
-									[ 'Null', 'is experienced' ]
+								[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+									[ [ 'Cast', 'Null', 'Serial' ], 'id' ]
+									[ [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
+									[ [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
 									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
 										'name'
 									]
-									[ 'Null', 'age' ]
-									[ 'Null', 'favourite colour' ]
-									[ 'Null', 'is on-team' ]
-									[ 'Null', 'licence' ]
-									[ 'Null', 'hire date' ]
-									[ 'Null', 'was trained by-pilot' ]
+									[ [ 'Cast', 'Null', 'Integer' ], 'age' ]
+									[ [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
+									[ [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
+									[ [ 'Cast', 'Null', 'ForeignKey' ], 'licence' ]
+									[ [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
+									[ [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
 								]
 							]
 						]
@@ -371,22 +370,21 @@ run [['Number', 1]], ->
 				[	'From'
 					[	[	'SelectQuery'
 							[	'Select'
-								[
-									[ 'Null', 'created at' ]
+								[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
 									[	['Cast', ['Bind', 'pilot', 'id'], 'Serial']
 										'id'
 									]
-									[ 'Null', 'person' ]
-									[ 'Null', 'is experienced' ]
+									[ [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
+									[ [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
 									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
 										'name'
 									]
-									[ 'Null', 'age' ]
-									[ 'Null', 'favourite colour' ]
-									[ 'Null', 'is on-team' ]
-									[ 'Null', 'licence' ]
-									[ 'Null', 'hire date' ]
-									[ 'Null', 'was trained by-pilot' ]
+									[ [ 'Cast', 'Null', 'Integer' ], 'age' ]
+									[ [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
+									[ [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
+									[ [ 'Cast', 'Null', 'ForeignKey' ], 'licence' ]
+									[ [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
+									[ [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
 								]
 							]
 						]
@@ -498,20 +496,19 @@ run ->
 					[	'From'
 						[	[	'SelectQuery'
 								[	'Select'
-									[
-										[ 'Null', 'created at' ]
-										[ 'Null', 'id' ]
-										[ 'Null', 'person' ]
-										[ 'Null', 'is experienced' ]
-										[ 'Null', 'name' ]
-										[ 'Null', 'age' ]
-										[ 'Null', 'favourite colour' ]
-										[ 'Null', 'is on-team' ]
+									[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[ [ 'Cast', 'Null', 'Serial' ], 'id' ]
+										[ [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
+										[ [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
+										[ [ 'Cast', 'Null', 'Short Text' ], 'name' ]
+										[ [ 'Cast', 'Null', 'Integer' ], 'age' ]
+										[ [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
+										[ [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
 										[	['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
 											'licence'
 										]
-										[ 'Null', 'hire date' ]
-										[ 'Null', 'was trained by-pilot' ]
+										[ [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
+										[ [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
 									]
 								]
 							]
@@ -549,19 +546,19 @@ run ->
 					[	'From'
 						[	[	'SelectQuery'
 								[	'Select'
-									[	[ 'Null', 'created at' ]
-										[ 'Null', 'id' ]
-										[ 'Null', 'person' ]
-										[ 'Null', 'is experienced' ]
-										[ 'Null', 'name' ]
-										[ 'Null', 'age' ]
-										[ 'Null', 'favourite colour' ]
-										[ 'Null', 'is on-team' ]
+									[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[ [ 'Cast', 'Null', 'Serial' ], 'id' ]
+										[ [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
+										[ [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
+										[ [ 'Cast', 'Null', 'Short Text' ], 'name' ]
+										[ [ 'Cast', 'Null', 'Integer' ], 'age' ]
+										[ [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
+										[ [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
 										[	['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
 											'licence'
 										]
-										[ 'Null', 'hire date' ]
-										[ 'Null', 'was trained by-pilot' ]
+										[ [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
+										[ [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
 									]
 								]
 							]
@@ -747,7 +744,7 @@ run ->
 					[	'From'
 						[	[	'SelectQuery'
 								[	'Select'
-									[	[ 'Null', 'created at' ]
+									[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
 										[	['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
 											'favourite colour'
 										]
