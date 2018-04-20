@@ -248,9 +248,9 @@ run ->
 				[	['ReferencedField', 'pilot', 'id']
 				]
 			],
+			['From', 'pilot']
 			['From', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane']]
 			['From', ['plane', 'pilot.pilot-can fly-plane.plane']]
-			['From', 'pilot']
 			['Where', filterWhere]
 		]
 	]
@@ -335,9 +335,9 @@ run ->
 							[	['ReferencedField', 'pilot', 'id']
 							]
 						],
+						['From', 'pilot']
 						['From', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane']]
 						['From', ['plane', 'pilot.pilot-can fly-plane.plane']]
-						['From', 'pilot']
 						['Where'
 							['And'
 								['Equals'
