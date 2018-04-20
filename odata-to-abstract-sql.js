@@ -165,23 +165,26 @@
             this._or(function() {
                 return this._pred(!path.options);
             }, function() {
-                this._or(function() {
-                    return this._pred(!path.options.$filter);
-                }, function() {
-                    this._pred("POST" == method || "PUT-INSERT" == method);
+                this._pred("POST" == method || "PUT-INSERT" == method);
+                return this._opt(function() {
+                    this._pred(path.options.$filter);
                     subQuery = this._applyWithArgs("InsertFilter", path.options.$filter, resource, bindVars);
                     valuesIndex = _.findIndex(query.extras, {
                         0: "Values"
                     });
                     return query.extras[valuesIndex] = [ "Values", subQuery.compile("SelectQuery") ];
-                }, function() {
-                    this._pred("PUT" == method || "PATCH" == method || "MERGE" == method || "DELETE" == method);
-                    subQuery = this._applyWithArgs("UpdateFilter", path.options.$filter, resource, referencedIdField);
-                    return query.where.push([ "In", referencedIdField, subQuery.compile("SelectQuery") ]);
-                }, function() {
-                    return this._applyWithArgs("SelectFilter", path.options.$filter, query, resource);
                 });
-                return this._applyWithArgs("AddExtraQueryOptions", resource, path, query);
+            }, function() {
+                this._pred("PUT" == method || "PATCH" == method || "MERGE" == method || "DELETE" == method);
+                subQuery = new Query();
+                (function() {
+                    subQuery.select.push(referencedIdField);
+                    return subQuery.fromResource(resource, this);
+                }).call(this);
+                this._applyWithArgs("AddQueryOptions", resource, path, subQuery);
+                return query.where.push([ "In", referencedIdField, subQuery.compile("SelectQuery") ]);
+            }, function() {
+                return this._applyWithArgs("AddQueryOptions", resource, path, query);
             });
             return query;
         },
@@ -234,18 +237,6 @@
                     }), value = bindVar ? bindVar[1] : "Null";
                     return [ [ "Cast", value, field.dataType ], alias ];
                 }) ] ], resource.tableAlias ]);
-                return query.where.push(where);
-            }).call(this);
-            return query;
-        },
-        UpdateFilter: function(filter, resource, referencedIdField) {
-            var $elf = this, _fromIdx = this.input.idx, query, where;
-            query = new Query();
-            this._applyWithArgs("AddExtraFroms", query, resource, filter);
-            where = this._applyWithArgs("Boolean", filter);
-            (function() {
-                query.select.push(referencedIdField);
-                query.fromResource(resource, this);
                 return query.where.push(where);
             }).call(this);
             return query;
@@ -826,12 +817,7 @@
                     this._or(function() {
                         return this._pred(!expand.options);
                     }, function() {
-                        this._or(function() {
-                            return this._pred(!expand.options.$filter);
-                        }, function() {
-                            return this._applyWithArgs("SelectFilter", expand.options.$filter, nestedExpandQuery, expandResource);
-                        });
-                        return this._applyWithArgs("AddExtraQueryOptions", expandResource, expand, nestedExpandQuery);
+                        return this._applyWithArgs("AddQueryOptions", expandResource, expand, nestedExpandQuery);
                     });
                     this.defaultResource = defaultResource;
                     nestedExpandQuery.where.push(navigation.where);
@@ -842,8 +828,13 @@
                 });
             });
         },
-        AddExtraQueryOptions: function(resource, path, query) {
+        AddQueryOptions: function(resource, path, query) {
             var $elf = this, _fromIdx = this.input.idx, limit, offset;
+            this._or(function() {
+                return this._pred(!path.options.$filter);
+            }, function() {
+                return this._applyWithArgs("SelectFilter", path.options.$filter, query, resource);
+            });
             return this._or(function() {
                 return this._pred(path.count);
             }, function() {

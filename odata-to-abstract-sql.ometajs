@@ -156,18 +156,24 @@ export ometa OData2AbstractSQL {
 		)
 
 		(	?(!path.options)
-		|	(	?(!path.options.$filter)
-			|	?(method == 'POST' || method == 'PUT-INSERT')
-				InsertFilter(path.options.$filter, resource, bindVars):subQuery
-				{_.findIndex(query.extras, {0: 'Values'})}:valuesIndex
-				// Replace the values bind var list with our filtered SELECT query.
-				-> (query.extras[valuesIndex] = ['Values', subQuery.compile('SelectQuery')])
+		|	(	?(method == 'POST' || method == 'PUT-INSERT')
+				(	?path.options.$filter
+					InsertFilter(path.options.$filter, resource, bindVars):subQuery
+					{_.findIndex(query.extras, {0: 'Values'})}:valuesIndex
+					// Replace the values bind var list with our filtered SELECT query.
+					-> (query.extras[valuesIndex] = ['Values', subQuery.compile('SelectQuery')])
+				)?
 			|	?(method == 'PUT' || method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
-				UpdateFilter(path.options.$filter, resource, referencedIdField):subQuery
+				// For update statements we need to use a WHERE id IN (SELECT...) style query
+				{new Query()}:subQuery
+				{
+					subQuery.select.push(referencedIdField)
+					subQuery.fromResource(resource, this)
+				}
+				AddQueryOptions(resource, path, subQuery)
 				-> query.where.push(['In', referencedIdField, subQuery.compile('SelectQuery')])
-			|	SelectFilter(path.options.$filter, query, resource)
+			|	AddQueryOptions(resource, path, query)
 			)
-			AddExtraQueryOptions(resource, path, query)
 		)
 
 		-> query
@@ -225,19 +231,6 @@ export ometa OData2AbstractSQL {
 				],
 				resource.tableAlias
 			])
-			query.where.push(where)
-		}
-		-> query
-	,
-
-	UpdateFilter :filter :resource :referencedIdField =
-		// For update statements we need to use a WHERE id IN (SELECT...) style query
-		{new Query()}:query
-		AddExtraFroms(query, resource, filter)
-		Boolean(filter):where
-		{
-			query.select.push(referencedIdField)
-			query.fromResource(resource, this)
 			query.where.push(where)
 		}
 		-> query
@@ -671,10 +664,7 @@ export ometa OData2AbstractSQL {
 				|	AddSelectFields(expand, nestedExpandQuery, expandResource)
 				)
 				(	?(!expand.options)
-				|	(	?(!expand.options.$filter)
-					|	SelectFilter(expand.options.$filter, nestedExpandQuery, expandResource)
-					)
-					AddExtraQueryOptions(expandResource, expand, nestedExpandQuery)
+				|	AddQueryOptions(expandResource, expand, nestedExpandQuery)
 				)
 
 				{this.defaultResource = defaultResource}
@@ -689,9 +679,12 @@ export ometa OData2AbstractSQL {
 		]
 	,
 
-	AddExtraQueryOptions :resource :path :query =
-		// When querying /$count, $orderby/$top/$skip must be ignored
-		?path.count
+	AddQueryOptions :resource :path :query =
+		(	?(!path.options.$filter)
+		|	SelectFilter(path.options.$filter, query, resource)
+		)
+		(	// When querying /$count, $orderby/$top/$skip must be ignored
+			?path.count
 		|	(	?(!path.options.$orderby)
 			|	OrderBy(path.options.$orderby, query, resource)
 			)
@@ -703,6 +696,7 @@ export ometa OData2AbstractSQL {
 			|	Number(path.options.$skip):offset
 				-> query.extras.push(['Offset', offset])
 			)
+		)
 	,
 
 	NavigateResources :resource :navigation =
