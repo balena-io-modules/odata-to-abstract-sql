@@ -19,7 +19,7 @@
     "randomstring": "^1.1.5"
   },
   "devDependencies": {
-    "@resin/lf-to-abstract-sql": "^1.0.4",
+    "@resin/lf-to-abstract-sql": "^2.0.0",
     "@resin/odata-parser": "^0.2.4",
     "@resin/sbvr-parser": "^0.1.0",
     "@resin/sbvr-types": "^1.2.1",

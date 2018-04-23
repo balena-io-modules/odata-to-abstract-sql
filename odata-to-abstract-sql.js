@@ -301,9 +301,7 @@
                 resource = this._or(function() {
                     this._pred(parentResource);
                     relationshipMapping = this._applyWithArgs("ResolveRelationship", parentResource, resourceName);
-                    return _.find(this.clientModel.tables, {
-                        name: relationshipMapping[1][0]
-                    });
+                    return this.clientModel.tables[relationshipMapping[1][0]];
                 }, function() {
                     sqlName = odataNameToSqlName(resourceName);
                     sqlName = this._applyWithArgs("Synonym", sqlName);
