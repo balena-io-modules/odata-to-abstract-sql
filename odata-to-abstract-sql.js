@@ -36,13 +36,17 @@
         }
         return compiled.concat(this.extras);
     };
-    var sqlNameToODataName = function(sqlName) {
+    var sqlNameToODataName = memoize(function(sqlName) {
         return sqlName.replace(/-/g, "__").replace(/ /g, "_");
-    };
+    }, {
+        primitive: !0
+    });
     exports.sqlNameToODataName = sqlNameToODataName;
-    var odataNameToSqlName = function(odataName) {
+    var odataNameToSqlName = memoize(function(odataName) {
         return odataName.replace(/__/g, "-").replace(/_/g, " ");
-    };
+    }, {
+        primitive: !0
+    });
     exports.odataNameToSqlName = odataNameToSqlName;
     var incrementBinds = function(inc, abstractSql) {
         _.isArray(abstractSql) && ("Bind" === abstractSql[0] ? _.isNumber(abstractSql[1]) && (abstractSql[1] += inc) : _.each(abstractSql, function(abstractSql) {

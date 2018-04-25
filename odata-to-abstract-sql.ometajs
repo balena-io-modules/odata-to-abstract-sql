@@ -45,13 +45,13 @@ Query.prototype.compile = function(queryType) {
 	return compiled.concat(this.extras);
 };
 
-var sqlNameToODataName = function(sqlName) {
+var sqlNameToODataName = memoize(function(sqlName) {
 	return sqlName.replace(/-/g, '__').replace(/ /g, '_');
-};
+}, { primitive: true });
 exports.sqlNameToODataName = sqlNameToODataName;
-var odataNameToSqlName = function(odataName) {
+var odataNameToSqlName = memoize(function(odataName) {
 	return odataName.replace(/__/g, '-').replace(/_/g, ' ');
-};
+}, { primitive: true });
 exports.odataNameToSqlName = odataNameToSqlName;
 
 var incrementBinds = function(inc, abstractSql) {
