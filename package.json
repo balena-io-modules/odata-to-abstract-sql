@@ -1,6 +1,6 @@
 {
   "name": "@resin/odata-to-abstract-sql",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "A consumer of the OData parser, written in OMeta",
   "main": "odata-to-abstract-sql.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "randomstring": "^1.1.5"
   },
   "devDependencies": {
-    "@resin/lf-to-abstract-sql": "^1.0.4",
+    "@resin/lf-to-abstract-sql": "^2.0.0",
     "@resin/odata-parser": "^0.2.4",
     "@resin/sbvr-parser": "^0.1.0",
     "@resin/sbvr-types": "^1.2.1",
