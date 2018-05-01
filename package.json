@@ -14,7 +14,7 @@
   "license": "BSD",
   "dependencies": {
     "lodash": "^4.17.5",
-    "memoizee": "^0.3.10",
+    "memoizee": "^0.4.12",
     "ometa-js": "^1.4.1",
     "randomstring": "^1.1.5"
   },
