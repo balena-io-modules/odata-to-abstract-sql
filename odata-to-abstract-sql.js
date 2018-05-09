@@ -238,8 +238,8 @@
                 query.from.push([ [ "SelectQuery", [ "Select", _.map(resource.fields, function(field) {
                     var cast, alias = field.fieldName, bindVar = _.find(bindVars, {
                         0: alias
-                    }), value = bindVar ? bindVar[1] : "Null";
-                    return [ [ "Cast", value, field.dataType ], alias ];
+                    });
+                    return [ [ "Cast", bindVar ? bindVar[1] : "Null", field.dataType ], alias ];
                 }) ] ], resource.tableAlias ]);
                 return query.where.push(where);
             }).call(this);
@@ -722,7 +722,7 @@
                     propResource = function() {
                         try {
                             return $elf.Resource(prop.name, this.defaultResource);
-                        } catch (e) {} finally {}
+                        } catch (e) {}
                     }.call(this);
                     this._pred(propResource);
                     this.defaultResource = propResource;
@@ -940,7 +940,7 @@
         var $elf = this;
         return _(sqlName).split("-").map(function(namePart) {
             var synonym = $elf.clientModel.synonyms[namePart];
-            return synonym ? synonym : namePart;
+            return synonym || namePart;
         }).join("-");
     };
     OData2AbstractSQL.checkAlias = _.identity;
@@ -1007,7 +1007,7 @@
     };
     OData2AbstractSQL.setClientModel = function(clientModel) {
         this.clientModel = clientModel;
-        var MAX_ALIAS_LENGTH = 64, RANDOM_ALIAS_LENGTH = 12, shortAliases = generateShortAliases(clientModel);
+        var MAX_ALIAS_LENGTH = 64, shortAliases = generateShortAliases(clientModel);
         this.checkAlias = memoize(function(alias) {
             var aliasLength = alias.length;
             if (aliasLength < MAX_ALIAS_LENGTH) return alias;
@@ -1017,16 +1017,16 @@
                 var shortAlias = _(part).split("-").map(function(part) {
                     var part = _(part).split(" ").map(function(part) {
                         var shortPart = shortAliases[part];
-                        return shortPart ? shortPart : part;
+                        return shortPart || part;
                     }).join(" ");
                     shortPart = shortAliases[part];
-                    return shortPart ? shortPart : part;
+                    return shortPart || part;
                 }).join("-");
                 aliasLength += shortAlias.length;
                 return shortAlias;
             }).join(".");
             if (aliasLength < MAX_ALIAS_LENGTH) return alias;
-            var randStr = randomstring.generate(RANDOM_ALIAS_LENGTH) + "$";
+            var randStr = randomstring.generate(12) + "$";
             return randStr + alias.slice(randStr.length + alias.length - MAX_ALIAS_LENGTH);
         });
     };

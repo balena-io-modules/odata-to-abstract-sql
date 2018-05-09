@@ -5,7 +5,6 @@ _ = require 'lodash'
 chai.use((chai, utils) ->
 	expect = chai.expect
 	assertionPrototype = chai.Assertion.prototype
-	chai.Assertion.prototype.contains = chai.Assertion.prototype.contain
 	utils.addProperty(assertionPrototype, 'query', ->
 		obj = utils.flag(this, 'object')
 		expect(obj).to.be.an.instanceof Array
