@@ -420,13 +420,17 @@ export ometa OData2AbstractSQL {
 					Boolean:op1
 					Boolean+:op2
 					-> [operation, op1].concat(op2)
+				|	'not'
+					Boolean:bool
+					-> ['Not', bool]
+				|	'in'
+					Operand:op1
+					[	Operand*:rest
+					]
+					-> ['In', op1].concat(rest)
 				):bool
 			]
 			-> bool
-		|	[	'not'
-				Boolean:bool
-			]
-			-> ['Not', bool]
 		|	ReferencedProperty
 		|	BooleanFunction
 	,

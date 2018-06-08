@@ -32,6 +32,7 @@ sqlOps =
 	sub: 'Subtract'
 	mul: 'Multiply'
 	div: 'Divide'
+	in: 'In'
 
 methodMaps =
 	length: 'CharacterLength'
@@ -43,6 +44,11 @@ createExpression = (lhs, op, rhs) ->
 		return {
 			odata: 'not ' + if op.odata? then '(' + op.odata + ')' else operandToOData(op)
 			abstractsql: ['Not', operandToAbstractSQL(op)]
+		}
+	if op is 'in'
+		return {
+			odata: operandToOData(lhs) + ' ' + op + ' ' + operandToOData(rhs)
+			abstractsql: [sqlOps[op], operandToAbstractSQL(lhs)].concat(operandToAbstractSQL(rhs))
 		}
 	if !rhs?
 		return {
@@ -107,6 +113,7 @@ operandTest(2, 'gt', 'name')
 operandTest(2, 'ge', 'name')
 operandTest(2, 'lt', 'name')
 operandTest(2, 'le', 'name')
+operandTest('name', 'in', '(1,2)')
 
 
 # Test each combination of operands

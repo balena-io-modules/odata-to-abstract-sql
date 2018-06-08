@@ -96,6 +96,14 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 		if _.isString(operand)
 			if operand is 'null'
 				return 'Null'
+			if operand.charAt(0) is '('
+				return operand.slice(1, -1).split(',').map (op) ->
+					n = _.parseInt(op)
+					if _.isFinite(n)
+						return operandToAbstractSQL(n)
+
+					operandToAbstractSQL(op)
+
 			if operand.charAt(0) is "'"
 				binds.push(['Text', decodeURIComponent(operand[1...(operand.length - 1)])])
 				return ['Bind', binds.length - 1]
