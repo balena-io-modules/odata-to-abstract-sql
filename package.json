@@ -1,6 +1,6 @@
 {
   "name": "@resin/odata-to-abstract-sql",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "A consumer of the OData parser, written in OMeta",
   "main": "odata-to-abstract-sql.js",
   "scripts": {
@@ -16,18 +16,18 @@
   "dependencies": {
     "lodash": "^4.17.10",
     "memoizee": "^0.4.12",
-    "ometa-js": "^1.5.0",
+    "ometa-js": "^1.5.2",
     "randomstring": "^1.1.5"
   },
   "devDependencies": {
-    "@resin/lf-to-abstract-sql": "^2.0.4",
-    "@resin/odata-parser": "^0.2.10",
+    "@resin/lf-to-abstract-sql": "^2.0.5",
+    "@resin/odata-parser": "^0.3.4",
     "@resin/sbvr-parser": "^0.1.4",
     "@resin/sbvr-types": "^1.4.2",
     "chai": "^4.1.2",
     "chai-things": "~0.2.0",
     "coffee-script": "~1.12.7",
-    "mocha": "^5.1.1",
+    "mocha": "^5.2.0",
     "require-npm4-to-publish": "^1.0.0",
     "resin-lint": "^1.5.7"
   }

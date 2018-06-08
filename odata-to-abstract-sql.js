@@ -432,7 +432,7 @@
             });
         },
         Boolean: function() {
-            var $elf = this, _fromIdx = this.input.idx, bool, op1, op2, operation;
+            var $elf = this, _fromIdx = this.input.idx, bool, op1, op2, operation, rest;
             return this._or(function() {
                 return this._apply("True");
             }, function() {
@@ -485,15 +485,27 @@
                             return this._apply("Boolean");
                         });
                         return [ operation, op1 ].concat(op2);
+                    }, function() {
+                        switch (this.anything()) {
+                          case "in":
+                            op1 = this._apply("Operand");
+                            this._form(function() {
+                                return rest = this._many(function() {
+                                    return this._apply("Operand");
+                                });
+                            });
+                            return [ "In", op1 ].concat(rest);
+
+                          case "not":
+                            bool = this._apply("Boolean");
+                            return [ "Not", bool ];
+
+                          default:
+                            throw this._fail();
+                        }
                     });
                 });
                 return bool;
-            }, function() {
-                this._form(function() {
-                    this._applyWithArgs("exactly", "not");
-                    return bool = this._apply("Boolean");
-                });
-                return [ "Not", bool ];
             }, function() {
                 return this._apply("ReferencedProperty");
             }, function() {
