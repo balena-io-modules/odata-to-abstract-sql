@@ -17,8 +17,8 @@
         this.where = this.where.concat(otherQuery.where);
         this.extras = this.extras.concat(otherQuery.extras);
     };
-    Query.prototype.fromResource = function(resource, args) {
-        if (resource.definition) {
+    Query.prototype.fromResource = function(resource, args, bypassDefinition) {
+        if (!0 !== bypassDefinition && resource.definition) {
             definition = _.cloneDeep(resource.definition);
             rewriteBinds(definition, args.extraBindVars, args.bindVarsLength);
             this.from.push([ definition.abstractSqlQuery, resource.tableAlias ]);
@@ -102,12 +102,13 @@
             };
         },
         PathSegment: function(method, bodyKeys, path) {
-            var $elf = this, _fromIdx = this.input.idx, aliasedField, bindVars, childQuery, linkResource, navigation, query, referencedField, referencedIdField, resource, resourceMapping, subQuery, valuesIndex;
+            var $elf = this, _fromIdx = this.input.idx, aliasedField, bindVars, bypassDefinition, childQuery, linkResource, navigation, query, referencedField, referencedIdField, resource, resourceMapping, subQuery, subQueryMethod, valuesIndex;
             this._pred(path.resource);
             resource = this._applyWithArgs("Resource", path.resource, this.defaultResource);
             this.defaultResource = resource;
             query = new Query();
-            query.fromResource(resource, this);
+            bypassDefinition = "GET" != method;
+            query.fromResource(resource, this, bypassDefinition);
             referencedIdField = [ "ReferencedField", resource.tableAlias, resource.idField ];
             this._applyWithArgs("PathKey", path, query, resource, referencedIdField, bodyKeys);
             this._or(function() {
@@ -166,8 +167,20 @@
             }, function() {
                 return this._applyWithArgs("AddSelectFields", path, query, resource);
             });
+            subQueryMethod = "PUT" == method || "PATCH" == method || "MERGE" == method || "DELETE" == method;
             this._or(function() {
-                return this._pred(!path.options);
+                return this._pred(!(path.options || resource.definition) || !subQueryMethod);
+            }, function() {
+                subQuery = new Query();
+                (function() {
+                    subQuery.select.push(referencedIdField);
+                    return subQuery.fromResource(resource, this);
+                }).call(this);
+                this._applyWithArgs("AddQueryOptions", resource, path, subQuery);
+                return query.where.push([ "In", referencedIdField, subQuery.compile("SelectQuery") ]);
+            });
+            this._or(function() {
+                return this._pred(!path.options || subQueryMethod);
             }, function() {
                 this._pred("POST" == method || "PUT-INSERT" == method);
                 return this._opt(function() {
@@ -179,15 +192,7 @@
                     return query.extras[valuesIndex] = [ "Values", subQuery.compile("SelectQuery") ];
                 });
             }, function() {
-                this._pred("PUT" == method || "PATCH" == method || "MERGE" == method || "DELETE" == method);
-                subQuery = new Query();
-                (function() {
-                    subQuery.select.push(referencedIdField);
-                    return subQuery.fromResource(resource, this);
-                }).call(this);
-                this._applyWithArgs("AddQueryOptions", resource, path, subQuery);
-                return query.where.push([ "In", referencedIdField, subQuery.compile("SelectQuery") ]);
-            }, function() {
+                this._pred("GET" == method);
                 return this._applyWithArgs("AddQueryOptions", resource, path, query);
             });
             return query;
