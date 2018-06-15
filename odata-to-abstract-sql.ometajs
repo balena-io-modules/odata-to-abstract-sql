@@ -16,8 +16,8 @@ Query.prototype.merge = function(otherQuery) {
 	this.where = this.where.concat(otherQuery.where);
 	this.extras = this.extras.concat(otherQuery.extras);
 };
-Query.prototype.fromResource = function(resource, args) {
-	if (resource.definition) {
+Query.prototype.fromResource = function(resource, args, bypassDefinition) {
+	if (bypassDefinition !== true && resource.definition) {
 		definition = _.cloneDeep(resource.definition);
 		rewriteBinds(definition, args.extraBindVars, args.bindVarsLength);
 		this.from.push([definition.abstractSqlQuery, resource.tableAlias]);
@@ -112,7 +112,9 @@ export ometa OData2AbstractSQL {
 		Resource(path.resource, this.defaultResource):resource
 		{this.defaultResource = resource}
 		{new Query()}:query
-		{query.fromResource(resource, this)}
+		// For non-GETs we bypass definitions for the actual update/insert as we need to write to the base table
+		{method != 'GET'}:bypassDefinition
+		{query.fromResource(resource, this, bypassDefinition)}
 
 		// We can't use the ReferencedField rule as resource.idField is the model name (using spaces),
 		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
@@ -155,24 +157,31 @@ export ometa OData2AbstractSQL {
 		|	AddSelectFields(path, query, resource)
 		)
 
-		(	?(!path.options)
+		// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
+		// we make sure to always apply it. This means that the definition will still be applied for these queries
+		{method == 'PUT' || method == 'PATCH' || method == 'MERGE' || method == 'DELETE'}:subQueryMethod
+		(	?(!(path.options || resource.definition) || !subQueryMethod)
+		|	// For update/delete statements we need to use a  style query
+			{new Query()}:subQuery
+			{
+				subQuery.select.push(referencedIdField)
+				subQuery.fromResource(resource, this)
+			}
+			AddQueryOptions(resource, path, subQuery)
+			-> query.where.push(['In', referencedIdField, subQuery.compile('SelectQuery')])
+		)
+		(	?(!path.options || subQueryMethod)
 		|	(	?(method == 'POST' || method == 'PUT-INSERT')
+				// TODO: Inserts should obey a table definition but that requires us to be able to pass the "base" table
+				// to the definition to select from, which in the case of an insert would be a select subquery with our insert binds
 				(	?path.options.$filter
 					InsertFilter(path.options.$filter, resource, bindVars):subQuery
 					{_.findIndex(query.extras, {0: 'Values'})}:valuesIndex
 					// Replace the values bind var list with our filtered SELECT query.
 					-> (query.extras[valuesIndex] = ['Values', subQuery.compile('SelectQuery')])
 				)?
-			|	?(method == 'PUT' || method == 'PATCH' || method == 'MERGE' || method == 'DELETE')
-				// For update statements we need to use a WHERE id IN (SELECT...) style query
-				{new Query()}:subQuery
-				{
-					subQuery.select.push(referencedIdField)
-					subQuery.fromResource(resource, this)
-				}
-				AddQueryOptions(resource, path, subQuery)
-				-> query.where.push(['In', referencedIdField, subQuery.compile('SelectQuery')])
-			|	AddQueryOptions(resource, path, query)
+			|	?(method == 'GET')
+				AddQueryOptions(resource, path, query)
 			)
 		)
 
