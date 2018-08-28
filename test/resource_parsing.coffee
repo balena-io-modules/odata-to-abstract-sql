@@ -159,24 +159,11 @@ do ->
 	testFunc = (result) ->
 		it 'should update the pilot with id 1', ->
 			expect(result).to.be.a.query.that.updates.
-				fields('id').
-				values(['Bind', 'pilot', 'id']).
-				from('pilot').
-				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
-	test '/pilot(1)', 'PATCH', testFunc
-	test '/pilot(1)', 'MERGE', testFunc
-
-do ->
-	testFunc = (result) ->
-		it 'should update the pilot with id 1', ->
-			expect(result).to.be.a.query.that.updates.
 				fields(
-					'id'
 					'is experienced'
 					'favourite colour'
 				).
 				values(
-					['Bind', 'pilot', 'id']
 					['Bind', 'pilot', 'is_experienced']
 					['Bind', 'pilot', 'favourite_colour']
 				).
@@ -235,10 +222,9 @@ do ->
 	testFunc = (result) ->
 		it 'should update the pilot__can_fly__plane with id 1', ->
 			expect(result).to.be.a.query.that.updates.
-				fields('pilot', 'id').
+				fields('pilot').
 				values(
 					['Bind', 'pilot-can fly-plane', 'pilot']
-					['Bind', 'pilot-can fly-plane', 'id']
 				).
 				from('pilot-can fly-plane').
 				where(['Equals', ['ReferencedField', 'pilot-can fly-plane', 'id'], ['Bind', 0]])

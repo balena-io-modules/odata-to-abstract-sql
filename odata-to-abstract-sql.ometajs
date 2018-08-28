@@ -119,7 +119,7 @@ export ometa OData2AbstractSQL {
 		// We can't use the ReferencedField rule as resource.idField is the model name (using spaces),
 		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
 		{['ReferencedField', resource.tableAlias, resource.idField]}:referencedIdField
-		PathKey(path, query, resource, referencedIdField, bodyKeys)
+		PathKey(method, path, query, resource, referencedIdField, bodyKeys)
 
 		(	?(!path.options)
 		|	?(!path.options.$expand)
@@ -146,7 +146,7 @@ export ometa OData2AbstractSQL {
 				-> [referencedField, resource.resourceName]
 			|	{throw new Error('Cannot navigate links')}
 			):aliasedField
-			PathKey(path.link, query, linkResource, referencedField, bodyKeys)
+			PathKey(method, path.link, query, linkResource, referencedField, bodyKeys)
 			-> query.select.push(aliasedField)
 		|	?(method == 'PUT' || method == 'PUT-INSERT' || method == 'POST' || method == 'PATCH' || method == 'MERGE')
 			ResourceMapping(resource):resourceMapping
@@ -188,11 +188,12 @@ export ometa OData2AbstractSQL {
 		-> query
 	,
 
-	PathKey :path :query :resource :referencedField :bodyKeys =
+	PathKey :method :path :query :resource :referencedField :bodyKeys =
 		(	?(path.key == null)
-		|	// Add the id field value to the body if it doesn't already exist.
-			{resource.resourceName + '.' + resource.idField}:qualifiedIDField
-			(	?(!_.includes(bodyKeys, qualifiedIDField) && !_.includes(bodyKeys, resource.idField))
+		|	(	?(method == 'PUT' || method == 'PUT-INSERT' || method == 'POST')
+				// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
+				{resource.resourceName + '.' + resource.idField}:qualifiedIDField
+				?(!_.includes(bodyKeys, qualifiedIDField) && !_.includes(bodyKeys, resource.idField))
 				{bodyKeys.push(qualifiedIDField)}
 				{this.extraBodyVars[qualifiedIDField] = path.key}
 			)?

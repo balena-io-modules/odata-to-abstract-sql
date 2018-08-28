@@ -110,7 +110,7 @@
             bypassDefinition = "GET" != method;
             query.fromResource(resource, this, bypassDefinition);
             referencedIdField = [ "ReferencedField", resource.tableAlias, resource.idField ];
-            this._applyWithArgs("PathKey", path, query, resource, referencedIdField, bodyKeys);
+            this._applyWithArgs("PathKey", method, path, query, resource, referencedIdField, bodyKeys);
             this._or(function() {
                 return this._pred(!path.options);
             }, function() {
@@ -154,7 +154,7 @@
                         throw new Error("Cannot navigate links");
                     }.call(this);
                 });
-                this._applyWithArgs("PathKey", path.link, query, linkResource, referencedField, bodyKeys);
+                this._applyWithArgs("PathKey", method, path.link, query, linkResource, referencedField, bodyKeys);
                 return query.select.push(aliasedField);
             }, function() {
                 this._pred("PUT" == method || "PUT-INSERT" == method || "POST" == method || "PATCH" == method || "MERGE" == method);
@@ -197,13 +197,14 @@
             });
             return query;
         },
-        PathKey: function(path, query, resource, referencedField, bodyKeys) {
+        PathKey: function(method, path, query, resource, referencedField, bodyKeys) {
             var $elf = this, _fromIdx = this.input.idx, key, qualifiedIDField;
             return this._or(function() {
                 return this._pred(null == path.key);
             }, function() {
-                qualifiedIDField = resource.resourceName + "." + resource.idField;
                 this._opt(function() {
+                    this._pred("PUT" == method || "PUT-INSERT" == method || "POST" == method);
+                    qualifiedIDField = resource.resourceName + "." + resource.idField;
                     this._pred(!_.includes(bodyKeys, qualifiedIDField) && !_.includes(bodyKeys, resource.idField));
                     bodyKeys.push(qualifiedIDField);
                     return this.extraBodyVars[qualifiedIDField] = path.key;

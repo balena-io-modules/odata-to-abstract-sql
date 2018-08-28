@@ -15,13 +15,13 @@
   "license": "BSD",
   "dependencies": {
     "lodash": "^4.17.10",
-    "memoizee": "^0.4.12",
-    "ometa-js": "^1.5.2",
+    "memoizee": "^0.4.14",
+    "ometa-js": "^1.5.3",
     "randomstring": "^1.1.5"
   },
   "devDependencies": {
     "@resin/lf-to-abstract-sql": "^2.0.5",
-    "@resin/odata-parser": "^0.3.4",
+    "@resin/odata-parser": "^0.3.5",
     "@resin/sbvr-parser": "^0.1.4",
     "@resin/sbvr-types": "^1.4.2",
     "chai": "^4.1.2",
