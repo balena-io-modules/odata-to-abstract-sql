@@ -434,11 +434,9 @@ run [['Number', 1]], ->
 		it 'should update the pilot with id 1', ->
 			expect(result).to.be.a.query.that.updates.
 				fields(
-					'id'
 					'name'
 				).
 				values(
-					['Bind', 'pilot', 'id']
 					['Bind', 'pilot', 'name']
 				).
 				from('pilot').
