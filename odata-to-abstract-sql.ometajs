@@ -740,16 +740,20 @@ export ometa OData2AbstractSQL {
 				)*
 			]
 		|	:nextProp
-			(	{nextProp}:prop
-				?prop
-				?prop.name
-				?prop.property
-				?prop.property.name
-				{prop.property}:nextProp
-				(	ResolveResourceAlias(prop.name)
-				|	AddNavigation(query, parentResource, prop.name)
-				):parentResource
-			)+
+			(	(	{nextProp}:prop
+					?prop
+					?prop.name
+					?prop.property
+					?prop.property.name
+					{prop.property}:nextProp
+					(	ResolveResourceAlias(prop.name)
+					|	AddNavigation(query, parentResource, prop.name)
+					):parentResource
+				)+
+			|	?nextProp
+				?nextProp.args
+				AddExtraFroms(query, parentResource, prop.args)
+			)
 		| anything
 		)
 	,
