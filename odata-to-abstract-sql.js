@@ -915,18 +915,24 @@
                 });
             }, function() {
                 nextProp = this.anything();
-                return this._many1(function() {
-                    prop = nextProp;
-                    this._pred(prop);
-                    this._pred(prop.name);
-                    this._pred(prop.property);
-                    this._pred(prop.property.name);
-                    nextProp = prop.property;
-                    return parentResource = this._or(function() {
-                        return this._applyWithArgs("ResolveResourceAlias", prop.name);
-                    }, function() {
-                        return this._applyWithArgs("AddNavigation", query, parentResource, prop.name);
+                return this._or(function() {
+                    return this._many1(function() {
+                        prop = nextProp;
+                        this._pred(prop);
+                        this._pred(prop.name);
+                        this._pred(prop.property);
+                        this._pred(prop.property.name);
+                        nextProp = prop.property;
+                        return parentResource = this._or(function() {
+                            return this._applyWithArgs("ResolveResourceAlias", prop.name);
+                        }, function() {
+                            return this._applyWithArgs("AddNavigation", query, parentResource, prop.name);
+                        });
                     });
+                }, function() {
+                    this._pred(nextProp);
+                    this._pred(nextProp.args);
+                    return this._applyWithArgs("AddExtraFroms", query, parentResource, prop.args);
                 });
             }, function() {
                 return this.anything();

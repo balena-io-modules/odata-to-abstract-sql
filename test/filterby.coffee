@@ -91,21 +91,43 @@ operandTest = (lhs, op, rhs) ->
 				from('pilot').
 				where(abstractsql)
 
-methodTest = (args...) ->
+navigatedOperandTest = (lhs, op, rhs) ->
 	run ->
-		{ odata, abstractsql } = createMethodCall.apply(null, args)
+		{ odata, abstractsql } = createExpression(lhs, op, rhs)
 		test '/pilot?$filter=' + odata, (result) ->
 			it 'should select from pilot where "' + odata + '"', ->
 				expect(result).to.be.a.query.that.
 					selects(pilotFields).
-					from('pilot').
-					where(abstractsql)
+					from(
+						'pilot',
+						[ 'licence', 'pilot.licence' ]
+					).
+					where([
+						'And'
+						['Equals', ['ReferencedField', 'pilot', 'licence'], ['ReferencedField', 'pilot.licence', 'id']]
+						abstractsql
+					])
 		test '/pilot/$count?$filter=' + odata, (result) ->
 			it 'should count(*) from pilot where "' + odata + '"', ->
 				expect(result).to.be.a.query.that.
 				selects([[['Count', '*'], '$count']]).
-				from('pilot').
-				where(abstractsql)
+				from(
+					'pilot',
+					[ 'licence', 'pilot.licence' ]
+				).
+				where([
+					'And'
+					['Equals', ['ReferencedField', 'pilot', 'licence'], ['ReferencedField', 'pilot.licence', 'id']]
+					abstractsql
+				])
+
+methodTest = (args...) ->
+	run ->
+		operandTest(createMethodCall.apply(null, args))
+
+navigatedMethodTest = (args...) ->
+	run ->
+		navigatedOperandTest(createMethodCall.apply(null, args))
 
 operandTest(2, 'eq', 'name')
 operandTest(2, 'ne', 'name')
@@ -583,6 +605,8 @@ methodTest('contains', 'name', "'et'")
 methodTest('endswith', 'name', "'ete'")
 methodTest('startswith', 'name', "'P'")
 
+navigatedMethodTest('startswith', 'licence/name', "'P'")
+
 run -> operandTest(createMethodCall('length', 'name'), 'eq', 4)
 run -> operandTest(createMethodCall('indexof', 'name', "'Pe'"), 'eq', 0)
 # x = test
@@ -591,7 +615,7 @@ run -> operandTest(createMethodCall('substring', 'name', 1), 'eq', "'ete'")
 # test = x
 run -> operandTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'")
 run -> operandTest(createMethodCall('tolower', 'name'), 'eq', "'pete'")
-run -> operandTest(createMethodCall('tolower', 'licence/name'), 'eq', "'pete'")
+run -> navigatedOperandTest(createMethodCall('tolower', 'licence/name'), 'eq', "'pete'")
 run -> operandTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'")
 run ->
 	concat = createMethodCall('concat', 'name', "'%20'")
