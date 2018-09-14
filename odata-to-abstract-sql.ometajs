@@ -397,6 +397,9 @@ export ometa OData2AbstractSQL {
 				-> resource.tableAlias
 			|	-> resource.name
 			):tableAlias
+			(	?(relationshipMapping.length > 1 && relationshipMapping[0] === resource.idField)
+				{throw new Error('Attempted to directly fetch a virtual field: "' + resourceField + '"')}
+			)?
 			-> ['ReferencedField', tableAlias, relationshipMapping[0]]
 		|	{console.error('Unknown mapping: ', mapping, resource.resourceName, resourceField)}
 			{throw new Error('Unknown mapping: ' + resource.resourceName + ' : ' + resourceField)}
