@@ -370,7 +370,7 @@
             this._pred(resourceRelations);
             relationshipPath = _(relationship).split("__").map(odataNameToSqlName).flatMap(function(sqlName) {
                 return $elf.Synonym(sqlName).split("-");
-            }).join(".");
+            }).value();
             relationshipMapping = _.get(resourceRelations, relationshipPath);
             this._pred(relationshipMapping);
             this._pred(relationshipMapping.$);
