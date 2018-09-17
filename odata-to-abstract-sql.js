@@ -429,6 +429,12 @@
                 }, function() {
                     return resource.name;
                 });
+                this._opt(function() {
+                    this._pred(relationshipMapping.length > 1 && relationshipMapping[0] === resource.idField);
+                    return function() {
+                        throw new Error('Attempted to directly fetch a virtual field: "' + resourceField + '"');
+                    }.call(this);
+                });
                 return [ "ReferencedField", tableAlias, relationshipMapping[0] ];
             }, function() {
                 console.error("Unknown mapping: ", mapping, resource.resourceName, resourceField);
