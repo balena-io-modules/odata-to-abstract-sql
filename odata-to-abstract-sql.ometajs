@@ -343,7 +343,7 @@ export ometa OData2AbstractSQL {
 			.map(odataNameToSqlName)
 			.flatMap(function(sqlName) {
 				return $elf.Synonym(sqlName).split('-')
-			}).join('.')
+			}).value()
 		}:relationshipPath
 		{_.get(resourceRelations, relationshipPath)}:relationshipMapping
 		?relationshipMapping
