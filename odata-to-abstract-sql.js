@@ -75,7 +75,7 @@
                 query = this._applyWithArgs("PathSegment", method, bodyKeys, path);
                 return this._or(function() {
                     this._pred("PUT" == method);
-                    this.reset();
+                    this.putReset();
                     insertQuery = this._applyWithArgs("PathSegment", "PUT-INSERT", bodyKeys, path);
                     return [ "UpsertQuery", insertQuery.compile("InsertQuery"), query.compile("UpdateQuery") ];
                 }, function() {
@@ -961,10 +961,13 @@
         this.reset();
     };
     OData2AbstractSQL.reset = function() {
-        this.resourceAliases = {};
-        this.defaultResource = null;
+        this.putReset();
         this.extraBodyVars = {};
         this.extraBindVars = [];
+    };
+    OData2AbstractSQL.putReset = function() {
+        this.resourceAliases = {};
+        this.defaultResource = null;
     };
     OData2AbstractSQL.Synonym = function(sqlName) {
         var $elf = this;
