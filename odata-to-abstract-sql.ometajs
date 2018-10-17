@@ -90,7 +90,7 @@ export ometa OData2AbstractSQL {
 				// For PUT the initial pass generates the update query,
 				// so we run it through the parser a second time to get the insert query,
 				// for a full upsert query
-				{this.reset()}
+				{this.putReset()}
 				PathSegment('PUT-INSERT', bodyKeys, path):insertQuery
 				-> ['UpsertQuery', insertQuery.compile('InsertQuery'), query.compile('UpdateQuery')]
 			|	(	?(method == 'GET')
@@ -778,10 +778,14 @@ OData2AbstractSQL.initialize = function() {
 };
 
 OData2AbstractSQL.reset = function() {
-	this.resourceAliases = {};
-	this.defaultResource = null;
+	this.putReset();
 	this.extraBodyVars = {};
 	this.extraBindVars = [];
+};
+
+OData2AbstractSQL.putReset = function() {
+	this.resourceAliases = {};
+	this.defaultResource = null;
 };
 
 OData2AbstractSQL.Synonym = function(sqlName) {
