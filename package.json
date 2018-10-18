@@ -8,12 +8,13 @@
     "pretest": "npm run lint && npm run prepublishOnly",
     "test": "mocha",
     "prepublish": "require-npm4-to-publish",
-    "prepublishOnly": "ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
+    "prepublishOnly": "tsc && ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
   },
   "repository": "https://github.com/resin-io-modules/odata-to-abstract-sql.git",
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "@resin/abstract-sql-compiler": "^6.0.0",
     "lodash": "^4.17.11",
     "memoizee": "^0.4.14",
     "ometa-js": "^1.5.3",
@@ -29,6 +30,7 @@
     "coffee-script": "~1.12.7",
     "mocha": "^5.2.0",
     "require-npm4-to-publish": "^1.0.0",
-    "resin-lint": "^1.5.7"
+    "resin-lint": "^1.5.7",
+    "typescript": "^3.1.3"
   }
 }
