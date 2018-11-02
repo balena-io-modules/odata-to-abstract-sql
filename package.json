@@ -8,7 +8,7 @@
     "pretest": "npm run lint && npm run prepublishOnly",
     "test": "mocha",
     "prepublish": "require-npm4-to-publish",
-    "prepublishOnly": "tsc && ometajs2js --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
+    "prepublishOnly": "tsc && ometajs2js --commonjs --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
   },
   "repository": "https://github.com/resin-io-modules/odata-to-abstract-sql.git",
   "author": "",
