@@ -5,10 +5,10 @@
   "main": "odata-to-abstract-sql.js",
   "scripts": {
     "lint": "resin-lint test",
-    "pretest": "npm run lint && npm run prepublishOnly",
+    "pretest": "npm run lint && npm run prepare",
     "test": "mocha",
     "prepublish": "require-npm4-to-publish",
-    "prepublishOnly": "tsc && ometajs2js --commonjs --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
+    "prepare": "tsc && ometajs2js --commonjs --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
   },
   "repository": "https://github.com/resin-io-modules/odata-to-abstract-sql.git",
   "author": "",
