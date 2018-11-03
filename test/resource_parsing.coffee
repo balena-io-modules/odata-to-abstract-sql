@@ -1,6 +1,7 @@
 expect = require('chai').expect
 { aliasFields, pilotFields, licenceFields, planeFields, teamFields, pilotCanFlyPlaneFields } = require('./chai-sql')
 test = require('./test')
+ODataParser = require('@resin/odata-parser')
 
 test '/', (result) ->
 	it 'Service root should return $serviceroot', ->
@@ -316,7 +317,7 @@ test '/team', 'POST', { favourite_colour: 'purple' }, (result) ->
 
 test '/pilot/$count/$count', (result) ->
 	it 'should fail because it is invalid', ->
-		expect(result).to.be.instanceOf(SyntaxError)
+		expect(result).to.be.instanceOf(ODataParser.SyntaxError)
 
 test '/pilot/$count', (result) ->
 	it 'should select count(*) from pilot', ->
@@ -326,11 +327,11 @@ test '/pilot/$count', (result) ->
 
 test '/pilot(5)/$count', (result) ->
 	it 'should fail because it is invalid', ->
-		expect(result).to.be.instanceOf(SyntaxError)
+		expect(result).to.be.instanceOf(ODataParser.SyntaxError)
 
 test '/pilot?$filter=id eq 5/$count', (result) ->
 	it 'should fail because it is invalid', ->
-		expect(result).to.be.instanceOf(SyntaxError)
+		expect(result).to.be.instanceOf(ODataParser.SyntaxError)
 
 test '/pilot/$count?$filter=id gt 5', (result) ->
 	it 'should select count(*) from pilot where pilot/id > 5 ', ->
