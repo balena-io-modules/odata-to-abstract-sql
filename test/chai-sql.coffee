@@ -41,7 +41,15 @@ chai.use((chai, utils) ->
 
 	utils.addMethod(assertionPrototype, 'fields', multiBodyClause('Fields'))
 	utils.addMethod(assertionPrototype, 'values', multiBodyClause('Values'))
-	utils.addMethod(assertionPrototype, 'from', bodyClause('From'))
+	fromClause = bodyClause('From')
+	utils.addMethod(assertionPrototype, 'from', (bodyClauses...) ->
+		bodyClauses = bodyClauses.map((v) ->
+			if _.isString(v)
+				return ['Table', v]
+			return ['Alias', ['Table', v[0]], v[1]]
+		)
+		fromClause.apply(this, bodyClauses)
+	)
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'))
 	utils.addMethod(assertionPrototype, 'orderby', (bodyClauses...) ->
 		bodyType = 'OrderBy'
@@ -95,7 +103,7 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 			return ['Bind', binds.length - 1]
 		if _.isString(operand)
 			if operand is 'null'
-				return 'Null'
+				return ['Null']
 			if operand.charAt(0) is '('
 				return operand.slice(1, -1).split(',').map (op) ->
 					n = _.parseInt(op)
@@ -174,10 +182,11 @@ exports.aliasFields = do ->
 	aliasField = (resourceAlias, verb, field) ->
 		if field[0] is 'ReferencedField'
 			return [field[0], shortenAlias("#{resourceAlias}.#{verb}#{field[1]}"), field[2]]
-		if field.length is 2 and field[0][0] is 'ReferencedField'
+		if field[0] is 'Alias'
 			return [
-				aliasField(resourceAlias, verb, field[0])
-				field[1]
+				'Alias'
+				aliasField(resourceAlias, verb, field[1])
+				field[2]
 			]
 		else
 			return field
@@ -189,39 +198,45 @@ exports.aliasFields = do ->
 		_.map(fields, _.partial(aliasField, resourceAlias, verb))
 
 exports.pilotFields = [
-	[['ReferencedField', 'pilot', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'pilot', 'created at'], 'created_at']
 	['ReferencedField', 'pilot', 'id']
 	['ReferencedField', 'pilot', 'person']
-	[['ReferencedField', 'pilot', 'is experienced'], 'is_experienced']
+	['Alias', ['ReferencedField', 'pilot', 'is experienced'], 'is_experienced']
 	['ReferencedField', 'pilot', 'name']
 	['ReferencedField', 'pilot', 'age']
-	[['ReferencedField', 'pilot', 'favourite colour'], 'favourite_colour']
-	[['ReferencedField', 'pilot', 'is on-team'], 'is_on__team'],
+	['Alias', ['ReferencedField', 'pilot', 'favourite colour'], 'favourite_colour']
+	['Alias', ['ReferencedField', 'pilot', 'is on-team'], 'is_on__team'],
 	['ReferencedField', 'pilot', 'licence']
-	[['ReferencedField', 'pilot', 'hire date'], 'hire_date']
-	[['ReferencedField', 'pilot', 'was trained by-pilot'], 'was_trained_by__pilot']
+	['Alias', ['ReferencedField', 'pilot', 'hire date'], 'hire_date']
+	['Alias', ['ReferencedField', 'pilot', 'was trained by-pilot'], 'was_trained_by__pilot']
 ]
 
 exports.licenceFields = [
-	[['ReferencedField', 'licence', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'licence', 'created at'], 'created_at']
 	['ReferencedField', 'licence', 'id']
 	['ReferencedField', 'licence', 'name']
 ]
 
 exports.planeFields = [
-	[['ReferencedField', 'plane', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'plane', 'created at'], 'created_at']
 	['ReferencedField', 'plane', 'id']
 	['ReferencedField', 'plane', 'name']
 ]
 
 exports.pilotCanFlyPlaneFields = [
-	[['ReferencedField', 'pilot-can fly-plane', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'pilot-can fly-plane', 'created at'], 'created_at']
 	['ReferencedField', 'pilot-can fly-plane', 'pilot']
-	[['ReferencedField', 'pilot-can fly-plane', 'can fly-plane'], 'can_fly__plane']
+	['Alias', ['ReferencedField', 'pilot-can fly-plane', 'can fly-plane'], 'can_fly__plane']
 	['ReferencedField', 'pilot-can fly-plane', 'id']
 ]
 
 exports.teamFields = [
-	[['ReferencedField', 'team', 'created at'], 'created_at']
-	[['ReferencedField', 'team', 'favourite colour'], 'favourite_colour']
+	['Alias', ['ReferencedField', 'team', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'team', 'favourite colour'], 'favourite_colour']
 ]
+
+exports.$count = [[
+	'Alias',
+	['Count', '*'],
+	'$count'
+]]

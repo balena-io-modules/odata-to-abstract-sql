@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{ aliasFields, pilotFields, licenceFields, planeFields, teamFields, pilotCanFlyPlaneFields } = require('./chai-sql')
+{ aliasFields, pilotFields, licenceFields, planeFields, teamFields, pilotCanFlyPlaneFields, $count } = require('./chai-sql')
 test = require('./test')
 ODataParser = require('@resin/odata-parser')
 
@@ -249,7 +249,7 @@ test '/pilot__can_fly__plane', 'POST', { pilot: 2, can_fly__plane: 3 }, (result)
 test '/pilot(1)/$links/licence', (result) ->
 	it 'should select the list of licence ids, for generating the links', ->
 		expect(result).to.be.a.query.that.
-			selects([[['ReferencedField', 'pilot', 'licence'], 'licence']]).
+			selects([['Alias', ['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
@@ -257,7 +257,7 @@ test '/pilot(1)/$links/licence', (result) ->
 test '/pilot(1)/$links/licence(2)', (result) ->
 	it 'should select the licence id 2, for generating the link', ->
 		expect(result).to.be.a.query.that.
-			selects([[['ReferencedField', 'pilot', 'licence'], 'licence']]).
+			selects([['Alias', ['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['And'
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
@@ -268,7 +268,7 @@ test '/pilot(1)/$links/licence(2)', (result) ->
 test "/pilot('Peter')/$links/licence('X')", (result) ->
 	it 'should select the licence id 2, for generating the link', ->
 		expect(result).to.be.a.query.that.
-			selects([[['ReferencedField', 'pilot', 'licence'], 'licence']]).
+			selects([['Alias', ['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['And'
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
@@ -279,7 +279,7 @@ test "/pilot('Peter')/$links/licence('X')", (result) ->
 test '/pilot(1)/can_fly__plane/$links/plane', (result) ->
 	it 'should select the list of plane ids, for generating the links', ->
 		expect(result).to.be.a.query.that.
-			selects([[['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'], 'plane']]).
+			selects([['Alias', ['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'], 'plane']]).
 			from(
 				'pilot'
 				['pilot-can fly-plane', 'pilot.pilot-can fly-plane']
@@ -322,7 +322,7 @@ test '/pilot/$count/$count', (result) ->
 test '/pilot/$count', (result) ->
 	it 'should select count(*) from pilot', ->
 		expect(result).to.be.a.query.that.
-		selects([[['Count', '*'], '$count']]).
+		selects($count).
 		from('pilot')
 
 test '/pilot(5)/$count', (result) ->
@@ -336,7 +336,7 @@ test '/pilot?$filter=id eq 5/$count', (result) ->
 test '/pilot/$count?$filter=id gt 5', (result) ->
 	it 'should select count(*) from pilot where pilot/id > 5 ', ->
 		expect(result).to.be.a.query.that.
-			selects([[['Count', '*'], '$count']]).
+			selects($count).
 			from('pilot').
 			where(
 				['GreaterThan', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
@@ -345,7 +345,7 @@ test '/pilot/$count?$filter=id gt 5', (result) ->
 test '/pilot/$count?$filter=id eq 5 or id eq 10', (result) ->
 	it 'should select count(*) from pilot where id in (5,10)', ->
 		expect(result).to.be.a.query.that.
-			selects([[['Count', '*'], '$count']]).
+			selects($count).
 			from('pilot').
 			where(
 				['Or',
@@ -356,7 +356,7 @@ test '/pilot/$count?$filter=id eq 5 or id eq 10', (result) ->
 test '/pilot(5)/licence/$count', (result) ->
 	it 'should select count(*) the licence from pilot where pilot/id', ->
 		expect(result).to.be.a.query.that.
-			selects([[['Count', '*'], '$count']]).
+			selects($count).
 			from(
 				'pilot',
 				['licence', 'pilot.licence']
@@ -369,29 +369,29 @@ test '/pilot(5)/licence/$count', (result) ->
 test '/pilot/$count?$orderby=id asc', (result) ->
 	it 'should select count(*) from pilot and ignore orderby', ->
 		expect(result).to.be.a.query.that.
-		selects([[['Count', '*'], '$count']]).
+		selects($count).
 		from('pilot').and.has.a.lengthOf(3)
 
 test '/pilot/$count?$skip=5', (result) ->
 	it 'should select count(*) from pilot and ignore skip', ->
 		expect(result).to.be.a.query.that.
-		selects([[['Count', '*'], '$count']]).
+		selects($count).
 		from('pilot').and.has.a.lengthOf(3)
 
 test '/pilot/$count?$top=5', (result) ->
 	it 'should select count(*) from pilot and ignore top', ->
 		expect(result).to.be.a.query.that.
-		selects([[['Count', '*'], '$count']]).
+		selects($count).
 		from('pilot').and.has.a.lengthOf(3)
 
 test '/pilot/$count?$top=5&$skip=5', (result) ->
 	it 'should select count(*) from pilot and ignore top and skip', ->
 		expect(result).to.be.a.query.that.
-		selects([[['Count', '*'], '$count']]).
+		selects($count).
 		from('pilot').and.has.a.lengthOf(3)
 
 test '/pilot/$count?$select=id', (result) ->
 	it 'should select count(*) from pilot and ignore select', ->
 		expect(result).to.be.a.query.that.
-		selects([[['Count', '*'], '$count']]).
+		selects($count).
 		from('pilot').and.has.a.lengthOf(3)

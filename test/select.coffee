@@ -18,7 +18,7 @@ test '/pilot?$select=favourite_colour', (result) ->
 	it 'should select favourite_colour from pilot', ->
 		expect(result).to.be.a.query.that.
 			selects(
-				_.filter(pilotFields, 1: 'favourite_colour')
+				_.filter(pilotFields, 2: 'favourite_colour')
 			).
 			from('pilot')
 
@@ -26,7 +26,7 @@ test '/pilot(1)?$select=favourite_colour', (result) ->
 	it 'should select from pilot with id', ->
 		expect(result).to.be.a.query.that.
 			selects(
-				_.filter(pilotFields, 1: 'favourite_colour')
+				_.filter(pilotFields, 2: 'favourite_colour')
 			).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
@@ -35,7 +35,7 @@ test "/pilot('TextKey')?$select=favourite_colour", (result) ->
 	it 'should select from pilot with id', ->
 		expect(result).to.be.a.query.that.
 			selects(
-				_.filter(pilotFields, 1: 'favourite_colour')
+				_.filter(pilotFields, 2: 'favourite_colour')
 			).
 			from('pilot').
 			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])

@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{ operandToAbstractSQLFactory, operandToOData, aliasFields, pilotFields, pilotCanFlyPlaneFields, teamFields } = require('./chai-sql')
+{ operandToAbstractSQLFactory, operandToOData, aliasFields, pilotFields, pilotCanFlyPlaneFields, teamFields, $count } = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
 
@@ -87,7 +87,7 @@ operandTest = (lhs, op, rhs) ->
 		test '/pilot/$count?$filter=' + odata, (result) ->
 			it 'should count(*) from pilot where "' + odata + '"', ->
 				expect(result).to.be.a.query.that.
-				selects([[['Count', '*'], '$count']]).
+				selects($count).
 				from('pilot').
 				where(abstractsql)
 
@@ -110,7 +110,7 @@ navigatedOperandTest = (lhs, op, rhs) ->
 		test '/pilot/$count?$filter=' + odata, (result) ->
 			it 'should count(*) from pilot where "' + odata + '"', ->
 				expect(result).to.be.a.query.that.
-				selects([[['Count', '*'], '$count']]).
+				selects($count).
 				from(
 					'pilot',
 					[ 'licence', 'pilot.licence' ]
@@ -241,24 +241,26 @@ run ->
 					[	[ 'ReferencedField', 'pilot', 'name' ]
 					]
 				]
-				['From', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane']]
-				['From', ['plane', 'pilot.pilot-can fly-plane.plane']]
+				['From', ['Alias', ['Table', 'pilot-can fly-plane'], 'pilot.pilot-can fly-plane']]
+				['From', ['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane']]
 				[	'From'
-					[	[	'SelectQuery'
+					[	'Alias',
+						[	'SelectQuery'
 							[	'Select'
-								[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
-									[ [ 'Cast', 'Null', 'Serial' ], 'id' ]
-									[ [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
-									[ [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
-									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
+								[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Serial' ], 'id' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
+									[	'Alias',
+										['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
 										'name'
 									]
-									[ [ 'Cast', 'Null', 'Integer' ], 'age' ]
-									[ [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
-									[ [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
-									[ [ 'Cast', 'Null', 'ForeignKey' ], 'licence' ]
-									[ [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
-									[ [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Integer' ], 'age' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'licence' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
 								]
 							]
 						]
@@ -277,9 +279,9 @@ run ->
 				[	['ReferencedField', 'pilot', 'id']
 				]
 			],
-			['From', 'pilot']
-			['From', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane']]
-			['From', ['plane', 'pilot.pilot-can fly-plane.plane']]
+			['From', ['Table', 'pilot']]
+			['From', ['Alias', ['Table', 'pilot-can fly-plane'], 'pilot.pilot-can fly-plane']]
+			['From', ['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane']]
 			['Where', filterWhere]
 		]
 	]
@@ -364,9 +366,9 @@ run ->
 							[	['ReferencedField', 'pilot', 'id']
 							]
 						],
-						['From', 'pilot']
-						['From', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane']]
-						['From', ['plane', 'pilot.pilot-can fly-plane.plane']]
+						['From', ['Table', 'pilot']]
+						['From', ['Alias', ['Table', 'pilot-can fly-plane'], 'pilot.pilot-can fly-plane']]
+						['From', ['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane']]
 						['Where'
 							['And'
 								['Equals'
@@ -397,23 +399,26 @@ run [['Number', 1]], ->
 					]
 				]
 				[	'From'
-					[	[	'SelectQuery'
+					[	'Alias',
+						[	'SelectQuery'
 							[	'Select'
-								[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
-									[	['Cast', ['Bind', 'pilot', 'id'], 'Serial']
+								[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+									[	'Alias',
+										['Cast', ['Bind', 'pilot', 'id'], 'Serial']
 										'id'
 									]
-									[ [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
-									[ [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
-									[	['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
+									[ 'Alias', [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
+									[	'Alias',
+										['Cast', ['Bind', 'pilot', 'name'], 'Short Text']
 										'name'
 									]
-									[ [ 'Cast', 'Null', 'Integer' ], 'age' ]
-									[ [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
-									[ [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
-									[ [ 'Cast', 'Null', 'ForeignKey' ], 'licence' ]
-									[ [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
-									[ [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Integer' ], 'age' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'licence' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
 								]
 							]
 						]
@@ -440,7 +445,7 @@ run [['Number', 1]], ->
 							['ReferencedField', 'pilot', 'id']
 						]
 					]
-					['From', 'pilot']
+					['From', ['Table', 'pilot']]
 					[	'Where'
 						abstractsql
 					]
@@ -516,26 +521,29 @@ run ->
 						]
 					]
 					[	'From'
-						[	'licence'
+						[	'Alias',
+							['Table', 'licence'],
 							'pilot.licence'
 						]
 					]
 					[	'From'
-						[	[	'SelectQuery'
+						[	'Alias'
+							[	'SelectQuery'
 								[	'Select'
-									[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
-										[ [ 'Cast', 'Null', 'Serial' ], 'id' ]
-										[ [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
-										[ [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
-										[ [ 'Cast', 'Null', 'Short Text' ], 'name' ]
-										[ [ 'Cast', 'Null', 'Integer' ], 'age' ]
-										[ [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
-										[ [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
-										[	['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
+									[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Serial' ], 'id' ]
+										[ 'Alias', [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Short Text' ], 'name' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Integer' ], 'age' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
+										[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
+										[	'Alias',
+											['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
 											'licence'
 										]
-										[ [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
-										[ [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
+										[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
 									]
 								]
 							]
@@ -566,26 +574,29 @@ run ->
 						]
 					]
 					[	'From'
-						[	'licence'
+						[	'Alias',
+							['Table', 'licence']
 							'pilot.licence'
 						]
 					]
 					[	'From'
-						[	[	'SelectQuery'
+						[	'Alias',
+							[	'SelectQuery'
 								[	'Select'
-									[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
-										[ [ 'Cast', 'Null', 'Serial' ], 'id' ]
-										[ [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
-										[ [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
-										[ [ 'Cast', 'Null', 'Short Text' ], 'name' ]
-										[ [ 'Cast', 'Null', 'Integer' ], 'age' ]
-										[ [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
-										[ [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
-										[	['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
+									[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Serial' ], 'id' ]
+										[ 'Alias', [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Short Text' ], 'name' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Integer' ], 'age' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
+										[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
+										[	'Alias',
+											['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey']
 											'licence'
 										]
-										[ [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
-										[ [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
+										[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
 									]
 								]
 							]
@@ -673,8 +684,8 @@ lambdaTest = (methodName) ->
 			[	'Exists'
 				[ 'SelectQuery'
 					['Select', []]
-					['From', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane']]
-					['From', ['plane', 'pilot.pilot-can fly-plane.plane']]
+					['From', ['Alias', ['Table', 'pilot-can fly-plane'], 'pilot.pilot-can fly-plane']]
+					['From', ['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane']]
 					['Where', subWhere]
 				]
 			]
@@ -692,7 +703,7 @@ lambdaTest = (methodName) ->
 		test '/pilot/$count?$filter=can_fly__plane/' + methodName + "(d:d/plane/name eq 'Concorde')", (result) ->
 			it 'should select count(*) from pilot where ...', ->
 				expect(result).to.be.a.query.that.
-					selects([[['Count', '*'], '$count']]).
+					selects($count).
 					from('pilot').
 					where(where)
 
@@ -719,7 +730,7 @@ lambdaTest = (methodName) ->
 			[ 'Exists'
 				[ 'SelectQuery'
 					['Select', []]
-					['From', ['plane', 'pilot.pilot-can fly-plane.plane']]
+					['From', ['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane']]
 					['Where', subWhere]
 				]
 			]
@@ -747,7 +758,7 @@ lambdaTest = (methodName) ->
 		test '/pilot/$count?$filter=can_fly__plane/plane/' + methodName + "(d:d/name eq 'Concorde')", (result) ->
 			it 'should select count(*) from pilot where ...', ->
 				expect(result).to.be.a.query.that.
-					selects([[['Count', '*'], '$count']]).
+					selects($count).
 					from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane']).
 					where(where)
 
@@ -771,10 +782,12 @@ run ->
 						]
 					]
 					[	'From'
-						[	[	'SelectQuery'
+						[	'Alias',
+							[	'SelectQuery'
 								[	'Select'
-									[	[ [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
-										[	['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
+									[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[	'Alias',
+											['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
 											'favourite colour'
 										]
 									]
