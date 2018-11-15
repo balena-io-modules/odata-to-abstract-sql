@@ -829,9 +829,8 @@ var generateShortAliases = function(clientModel) {
 			_.each(node, function(value, key) {
 				if (key === '$suffix') {
 					var lowerCaseAliasPart = str + value;
-					var origAliasPart = _.find(origAliasParts, function(aliasPart) {
-						return aliasPart.toLowerCase() === lowerCaseAliasPart;
-					});
+					var index = lowerCaseAliasParts.indexOf(lowerCaseAliasPart);
+					var origAliasPart = origAliasParts[index];
 					shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
 				} else {
 					traverseNodes(str + key, value, origAliasParts);
@@ -839,10 +838,11 @@ var generateShortAliases = function(clientModel) {
 			});
 		};
 
-		_(origAliasParts)
-		.invokeMap('toLowerCase')
-		.sort()
-		.each(buildTrie);
+		var lowerCaseAliasParts = _.invokeMap(origAliasParts, 'toLowerCase');
+		lowerCaseAliasParts
+			.slice()
+			.sort()
+			.forEach(buildTrie);
 
 		// Find the shortest unique alias for each term, using the trie.
 		traverseNodes('', trie, origAliasParts);
@@ -855,9 +855,9 @@ var generateShortAliases = function(clientModel) {
 		} else {
 			return _(relationships).keys().reject(function(key) {
 				return key === '$';
-			}).concat(
+			}).union(
 				_.flatMap(relationships, getRelationships)
-			).uniq().value();
+			).value();
 		}
 	}
 	var aliasParts = getRelationships(clientModel.relationships).concat(_.keys(clientModel.synonyms));
