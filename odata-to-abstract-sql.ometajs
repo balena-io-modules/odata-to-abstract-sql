@@ -807,38 +807,39 @@ var generateShortAliases = function(clientModel) {
 		var trie = {};
 		var buildTrie = function(aliasPart) {
 			var node = trie;
-			_.each(aliasPart, function(c, i) {
+			for (var i = 0; i < aliasPart.length; i++) {
 				if (node.$suffix) {
 					node[node.$suffix[0]] = {
 						$suffix: node.$suffix.slice(1)
 					};
 					delete node.$suffix;
 				}
+				var c = aliasPart[i];
 				if (node[c]) {
 					node = node[c];
-				}
-				else {
+				} else {
 					node[c] = {
 						$suffix: aliasPart.slice(i + 1)
 					};
-					return false;
+					return;
 				}
-			});
+			}
 		};
 		var traverseNodes = function(str, node) {
-			_.each(node, function(value, key) {
-				if (key === '$suffix') {
-					var lowerCaseAliasPart = str + value;
-					var index = lowerCaseAliasParts.indexOf(lowerCaseAliasPart);
-					var origAliasPart = origAliasParts[index];
-					shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
-				} else {
-					traverseNodes(str + key, value, origAliasParts);
-				}
-			});
+			if (node.$suffix) {
+				var index = lowerCaseAliasParts.indexOf(str + node.$suffix);
+				var origAliasPart = origAliasParts[index];
+				shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
+			} else {
+				_.each(node, function(value, key) {
+					traverseNodes(str + key, value);
+				});
+			}
 		};
 
-		var lowerCaseAliasParts = _.invokeMap(origAliasParts, 'toLowerCase');
+		var lowerCaseAliasParts = origAliasParts.map(function(origAliasPart) {
+			return origAliasPart.toLowerCase();
+		});
 		lowerCaseAliasParts
 			.slice()
 			.sort()
@@ -850,19 +851,24 @@ var generateShortAliases = function(clientModel) {
 
 
 	var getRelationships = function(relationships) {
-		if (_.isArray(relationships)) {
-			return [];
-		} else {
-			return _(relationships).keys().reject(function(key) {
-				return key === '$';
-			}).union(
-				_.flatMap(relationships, getRelationships)
-			).value();
+		var relationshipKeys = Object.keys(relationships);
+		var nestedRelationships = [];
+		for (var i = 0; i < relationshipKeys.length; i++) {
+			var key = relationshipKeys[i];
+			if (key !== '$') {
+				nestedRelationships.push(
+					getRelationships(relationships[key])
+				);
+			}
 		}
+		return relationshipKeys.concat.apply(relationshipKeys, nestedRelationships);
 	}
-	var aliasParts = getRelationships(clientModel.relationships).concat(_.keys(clientModel.synonyms));
-
-
+	var aliasParts = _(getRelationships(clientModel.relationships))
+		.union(Object.keys(clientModel.synonyms))
+		.reject(function(key) {
+			return key === '$';
+		})
+		.value();
 
 	// Add the first level of aliases, of names split by `-` and ` `, for short aliases on a word by word basis
 	var origAliasParts = _(aliasParts).flatMap(function(aliasPart) {
@@ -880,7 +886,7 @@ var generateShortAliases = function(clientModel) {
 		return _.includes(aliasPart, ' ');
 	})
 	.map(function(aliasPart) {
-		return _(aliasPart)
+		return aliasPart
 			.split(' ')
 			.map(function(part) {
 				return shortAliases[part];
@@ -898,7 +904,7 @@ var generateShortAliases = function(clientModel) {
 		return _.includes(aliasPart, '-');
 	})
 	.map(function(aliasPart) {
-		return _(aliasPart)
+		return aliasPart
 			.split('-')
 			.map(function(part) {
 				return shortAliases[part];
