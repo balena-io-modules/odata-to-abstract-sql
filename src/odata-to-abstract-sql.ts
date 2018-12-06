@@ -27,9 +27,19 @@ import {
 	CastNode,
 } from '@resin/abstract-sql-compiler';
 
+export type ResourceNode = ['Resource', string];
+
 declare module '@resin/abstract-sql-compiler' {
 	interface AbstractSqlTable {
 		definition?: Definition;
+	}
+	interface FromNode {
+		1:
+			| SelectQueryNode
+			| UnionQueryNode
+			| TableNode
+			| ResourceNode
+			| AliasNode<SelectQueryNode | UnionQueryNode | TableNode | ResourceNode>;
 	}
 }
 
@@ -48,7 +58,7 @@ export interface ODataBinds extends Array<any> {
 
 export interface Definition {
 	extraBinds: ODataBinds;
-	abstractSqlQuery: SelectQueryNode | UnionQueryNode;
+	abstractSqlQuery: SelectQueryNode | UnionQueryNode | ResourceNode;
 }
 
 interface Resource extends AbstractSqlTable {
@@ -71,6 +81,47 @@ const operations = {
 	div: 'Divide',
 };
 
+const rewriteDefinition = (
+	abstractSqlModel: AbstractSqlModel,
+	definition: Definition,
+	extraBindVars: ODataBinds,
+	bindVarsLength: number,
+) => {
+	const rewrittenDefinition = _.cloneDeep(definition);
+	rewriteBinds(rewrittenDefinition, extraBindVars, bindVarsLength);
+	modifyAbstractSql(
+		'Resource',
+		rewrittenDefinition.abstractSqlQuery as AbstractSqlQuery,
+		(resource: AbstractSqlQuery) => {
+			const resourceName = resource[1] as string;
+			const referencedResource = abstractSqlModel.tables[resourceName];
+			if (!referencedResource) {
+				throw new Error(`Could not resolve resource ${resourceName}`);
+			}
+			if (referencedResource.definition) {
+				const subDefinition = rewriteDefinition(
+					abstractSqlModel,
+					referencedResource.definition,
+					extraBindVars,
+					bindVarsLength,
+				);
+				resource.splice(
+					0,
+					resource.length,
+					...(subDefinition.abstractSqlQuery as AbstractSqlType[]),
+				);
+			} else {
+				resource.splice(
+					0,
+					resource.length,
+					...['Table', referencedResource.name],
+				);
+			}
+		},
+	);
+	return rewrittenDefinition;
+};
+
 class Query {
 	public select: SelectNode[1][] = [];
 	public from: FromNode[1][] = [];
@@ -88,13 +139,18 @@ class Query {
 		this.extras = this.extras.concat(otherQuery.extras);
 	}
 	fromResource(
+		abstractSqlModel: AbstractSqlModel,
 		resource: Resource,
 		args: { extraBindVars: ODataBinds; bindVarsLength: number },
 		bypassDefinition?: boolean,
 	) {
 		if (bypassDefinition !== true && resource.definition) {
-			const definition = _.cloneDeep(resource.definition);
-			rewriteBinds(definition, args.extraBindVars, args.bindVarsLength);
+			const definition = rewriteDefinition(
+				abstractSqlModel,
+				resource.definition,
+				args.extraBindVars,
+				args.bindVarsLength,
+			);
 			this.from.push([
 				'Alias',
 				definition.abstractSqlQuery,
@@ -135,15 +191,17 @@ export const odataNameToSqlName = memoize(
 	{ primitive: true },
 );
 
-const incrementBinds = (inc: number, abstractSql: any[]): void => {
+const modifyAbstractSql = (
+	match: string,
+	abstractSql: AbstractSqlQuery,
+	fn: (abstractSql: AbstractSqlQuery) => void,
+): void => {
 	if (_.isArray(abstractSql)) {
-		if (abstractSql[0] === 'Bind') {
-			if (_.isNumber(abstractSql[1])) {
-				(abstractSql[1] as any) += inc;
-			}
+		if (abstractSql[0] === match) {
+			fn(abstractSql);
 		} else {
-			_.each(abstractSql, abstractSql => {
-				incrementBinds(inc, abstractSql);
+			_.each(abstractSql, abstractSqlComponent => {
+				modifyAbstractSql(match, abstractSqlComponent as AbstractSqlQuery, fn);
 			});
 		}
 	}
@@ -153,7 +211,16 @@ export const rewriteBinds = (
 	existingBinds: ODataBinds,
 	inc: number = 0,
 ): void => {
-	incrementBinds(existingBinds.length + inc, definition.abstractSqlQuery);
+	inc += existingBinds.length;
+	modifyAbstractSql(
+		'Bind',
+		definition.abstractSqlQuery as AbstractSqlQuery,
+		(bind: AbstractSqlQuery) => {
+			if (_.isNumber(bind[1])) {
+				(bind[1] as any) += inc;
+			}
+		},
+	);
 	existingBinds.push(...definition.extraBinds);
 };
 
@@ -276,7 +343,7 @@ export class OData2AbstractSQL {
 		const query = new Query();
 		// For non-GETs we bypass definitions for the actual update/insert as we need to write to the base table
 		const bypassDefinition = method !== 'GET';
-		query.fromResource(resource, this, bypassDefinition);
+		query.fromResource(this.clientModel, resource, this, bypassDefinition);
 
 		// We can't use the ReferencedField rule as resource.idField is the model name (using spaces),
 		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
@@ -366,7 +433,7 @@ export class OData2AbstractSQL {
 			// For update/delete statements we need to use a  style query
 			const subQuery = new Query();
 			subQuery.select.push(referencedIdField);
-			subQuery.fromResource(resource, this);
+			subQuery.fromResource(this.clientModel, resource, this);
 			if (path.options) {
 				this.AddQueryOptions(resource, path, subQuery);
 			}
@@ -1017,7 +1084,7 @@ export class OData2AbstractSQL {
 					expand.options.$expand.properties,
 				);
 			}
-			nestedExpandQuery.fromResource(expandResource, this);
+			nestedExpandQuery.fromResource(this.clientModel, expandResource, this);
 			if (expand.count) {
 				this.AddCountField(expand, nestedExpandQuery);
 			} else {
@@ -1135,7 +1202,7 @@ export class OData2AbstractSQL {
 					(from[0] === 'Alias' && from[2] === navigation.resource.tableAlias),
 			)
 		) {
-			query.fromResource(navigation.resource, this);
+			query.fromResource(this.clientModel, navigation.resource, this);
 			query.where.push(navigation.where);
 			return navigation.resource;
 		} else {
