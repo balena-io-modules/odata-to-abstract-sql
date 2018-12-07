@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
+		"target": "es2015",
 		"noImplicitAny": true,
 		"noUnusedParameters": true,
 		"noUnusedLocals": true,
@@ -9,10 +10,10 @@
 		"sourceMap": true,
 		"strictNullChecks": true,
 		"declaration": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"outDir": "out"
 	},
 	"include": [
-		"*.ts",
-		"*.d.ts"
+		"src/*.ts"
 	]
 }

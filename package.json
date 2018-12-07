@@ -2,42 +2,44 @@
   "name": "@resin/odata-to-abstract-sql",
   "version": "2.4.3",
   "description": "A consumer of the OData parser, written in OMeta",
-  "main": "odata-to-abstract-sql.js",
+  "main": "out/odata-to-abstract-sql.js",
   "scripts": {
     "lint:coffee": "resin-lint test/",
     "lint:typescript": "resin-lint --typescript odata-to-abstract-sql.d.ts && tsc --noEmit",
     "lint": "npm run lint:coffee && npm run lint:typescript",
     "prettify": "prettier --config ./node_modules/resin-lint/config/.prettierrc --write \"*.ts\"",
     "precommit": "lint-staged",
-    "pretest": "npm run lint && npm run prepare",
+    "pretest": "npm run prepare",
     "test": "mocha",
     "prepublish": "require-npm4-to-publish",
-    "prepare": "tsc && ometajs2js --commonjs --input odata-to-abstract-sql.ometajs --output odata-to-abstract-sql.js"
+    "prepare": "tsc"
   },
   "repository": "https://github.com/resin-io-modules/odata-to-abstract-sql.git",
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^6.1.2",
+    "@resin/abstract-sql-compiler": "^6.3.3",
+    "@types/lodash": "^4.14.118",
+    "@types/memoizee": "^0.4.2",
+    "@types/randomstring": "^1.1.6",
     "lodash": "^4.17.11",
     "memoizee": "^0.4.14",
-    "ometa-js": "^1.5.3",
     "randomstring": "^1.1.5"
   },
   "devDependencies": {
     "@resin/lf-to-abstract-sql": "^2.1.0",
-    "@resin/odata-parser": "^1.0.0",
+    "@resin/odata-parser": "^1.0.1",
     "@resin/sbvr-parser": "^0.2.1",
     "@resin/sbvr-types": "^2.0.0",
     "chai": "^4.2.0",
     "chai-things": "~0.2.0",
     "coffee-script": "~1.12.7",
-    "husky": "^1.1.4",
-    "lint-staged": "^8.0.4",
+    "husky": "^1.2.0",
+    "lint-staged": "^8.1.0",
     "mocha": "^5.2.0",
-    "prettier": "^1.15.2",
+    "prettier": "^1.15.3",
     "require-npm4-to-publish": "^1.0.0",
     "resin-lint": "^2.0.1",
-    "typescript": "^3.1.6"
+    "typescript": "^3.2.2"
   }
 }

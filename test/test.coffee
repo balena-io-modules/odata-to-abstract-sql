@@ -4,8 +4,8 @@ require('ometa-js')
 { clientModel } = require './chai-sql'
 
 ODataParser = require('@resin/odata-parser')
-OData2AbstractSQL = require('../odata-to-abstract-sql').OData2AbstractSQL.createInstance()
-OData2AbstractSQL.setClientModel(clientModel)
+{ OData2AbstractSQL } = require('../out/odata-to-abstract-sql')
+translator = new OData2AbstractSQL(clientModel)
 
 { skip } = describe
 runExpectation = (describe, input, method, body, expectation) ->
@@ -22,7 +22,7 @@ runExpectation = (describe, input, method, body, expectation) ->
 			return expectation()
 		try
 			input = ODataParser.parse(input)
-			{ tree, extraBodyVars } = OData2AbstractSQL.match(input.tree, 'Process', [method, _.keys(body)])
+			{ tree, extraBodyVars } = translator.match(input.tree, method, _.keys(body))
 			_.assign(body, extraBodyVars)
 		catch e
 			expectation(e)
