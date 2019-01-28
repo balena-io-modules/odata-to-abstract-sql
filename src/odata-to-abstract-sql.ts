@@ -132,7 +132,7 @@ class Query {
 
 	constructor() {}
 
-	merge(otherQuery: Query) {
+	merge(otherQuery: Query): void {
 		this.select = this.select.concat(otherQuery.select);
 		this.from = this.from.concat(otherQuery.from);
 		this.where = this.where.concat(otherQuery.where);
@@ -143,7 +143,7 @@ class Query {
 		resource: Resource,
 		args: { extraBindVars: ODataBinds; bindVarsLength: number },
 		bypassDefinition?: boolean,
-	) {
+	): void {
 		if (bypassDefinition !== true && resource.definition) {
 			const definition = rewriteDefinition(
 				abstractSqlModel,
@@ -162,8 +162,8 @@ class Query {
 			this.from.push(['Table', resource.name]);
 		}
 	}
-	compile(queryType: string) {
-		const compiled: AbstractSqlQuery = [queryType];
+	compile(queryType: string): AbstractSqlQuery {
+		const compiled: AbstractSqlType[] = [];
 		let where = this.where;
 		if (queryType === 'SelectQuery') {
 			compiled.push(['Select', this.select] as SelectNode);
@@ -177,7 +177,7 @@ class Query {
 			}
 			compiled.push(['Where', ...where]);
 		}
-		return compiled.concat(this.extras as AbstractSqlType[]);
+		return [queryType, ...compiled, ...this.extras] as AbstractSqlQuery;
 	}
 }
 
@@ -288,10 +288,14 @@ export class OData2AbstractSQL {
 		method: SupportedMethod,
 		bodyKeys: string[],
 		bindVarsLength: number,
-	) {
+	): {
+		tree: AbstractSqlQuery;
+		extraBodyVars: _.Dictionary<any>;
+		extraBindVars: ODataBinds;
+	} {
 		this.reset();
 		this.bindVarsLength = bindVarsLength;
-		let tree;
+		let tree: AbstractSqlQuery;
 		if (_.isEmpty(path)) {
 			tree = ['$serviceroot'];
 		} else if (_.includes(['$metadata', '$serviceroot'], path.resource)) {
