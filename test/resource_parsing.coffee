@@ -53,8 +53,8 @@ test '/pilot(1)/licence', (result) ->
 				['licence', 'pilot.licence']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot', 'licence'], ['ReferencedField', 'pilot.licence', 'id']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -67,8 +67,8 @@ test '/licence(1)/is_of__pilot', (result) ->
 				['pilot', 'licence.is of-pilot']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'licence', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'licence.is of-pilot', 'licence']]
+				['Equals', ['ReferencedField', 'licence', 'id'], ['Bind', 0]]
 			])
 
 
@@ -82,9 +82,9 @@ test '/pilot(1)/can_fly__plane/plane', (result) ->
 				['plane', 'pilot.pilot-can fly-plane.plane']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'], ['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id']]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -98,9 +98,9 @@ test '/plane(1)/can_be_flown_by__pilot/pilot', (result) ->
 				['pilot', 'plane.pilot-can fly-plane.pilot']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'plane', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'plane.pilot-can fly-plane', 'pilot'], ['ReferencedField', 'plane.pilot-can fly-plane.pilot', 'id']]
 				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'plane.pilot-can fly-plane', 'can fly-plane']]
+				['Equals', ['ReferencedField', 'plane', 'id'], ['Bind', 0]]
 			])
 
 
@@ -121,10 +121,43 @@ test '/pilot(1)', 'PUT', (result) ->
 				'id'
 			).
 			values(
-				['Bind', 'pilot', 'id']
+				'SelectQuery'
+				[	'Select'
+					[	[ 'ReferencedField', 'pilot', 'id' ]
+					]
+				]
+				[	'From'
+					[	'Alias',
+						[	'SelectQuery'
+							[	'Select'
+								[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+									[	'Alias',
+										[ 'Cast', [ 'Bind', 'pilot', 'id' ], 'Serial' ],
+										'id'
+									]
+									[ 'Alias', [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Short Text' ], 'name' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Integer' ], 'age' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Color' ], 'favourite colour' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'is on-team' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'licence' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'hire date' ]
+									[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'was trained by-pilot' ]
+								]
+							]
+						]
+						'pilot'
+					]
+				]
+				[	'Where'
+					[	'Equals',
+						['ReferencedField', 'pilot', 'id'],
+						['Bind', 0]
+					]
+				]
 			).
-			from('pilot').
-			where(whereClause)
+			from('pilot')
 		it 'and updates', ->
 			expect(result[2]).to.be.a.query.that.updates.
 			fields(
@@ -198,10 +231,36 @@ test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 					'id'
 				).
 				values(
-					['Bind', 'pilot-can fly-plane', 'id']
+					'SelectQuery'
+					[	'Select'
+						[	[ 'ReferencedField', 'pilot-can fly-plane', 'id' ]
+						]
+					]
+					[	'From'
+						[	'Alias',
+							[	'SelectQuery'
+								[	'Select'
+									[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'pilot' ]
+										[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'can fly-plane' ]
+										[	'Alias',
+											[ 'Cast', ['Bind', 'pilot-can fly-plane', 'id'], 'Serial' ],
+											'id'
+										]
+									]
+								]
+							]
+							'pilot-can fly-plane'
+						]
+					]
+					[	'Where'
+						[	'Equals',
+							['ReferencedField', 'pilot-can fly-plane', 'id'],
+							['Bind', 0]
+						]
+					]
 				).
-				from('pilot-can fly-plane').
-				where(whereClause)
+				from('pilot-can fly-plane')
 		it 'and updates', ->
 			expect(result[2]).to.be.a.query.that.updates.
 				fields(
@@ -260,8 +319,8 @@ test '/pilot(1)/$links/licence(2)', (result) ->
 			selects([['Alias', ['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['And'
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Bind', 1]]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -271,8 +330,8 @@ test "/pilot('Peter')/$links/licence('X')", (result) ->
 			selects([['Alias', ['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['And'
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Bind', 1]]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -285,8 +344,8 @@ test '/pilot(1)/can_fly__plane/$links/plane', (result) ->
 				['pilot-can fly-plane', 'pilot.pilot-can fly-plane']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -362,8 +421,8 @@ test '/pilot(5)/licence/$count', (result) ->
 				['licence', 'pilot.licence']
 			).
 			where(['And',
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 				['Equals', ['ReferencedField', 'pilot', 'licence'], ['ReferencedField', 'pilot.licence', 'id']]
+				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 test '/pilot/$count?$orderby=id asc', (result) ->

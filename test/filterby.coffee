@@ -204,10 +204,6 @@ run [['Number', 1]], ->
 				).
 				where(['And'
 					['Equals'
-						['ReferencedField', 'pilot', 'id']
-						['Bind', 0]
-					]
-					['Equals'
 						['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane']
 						['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id']
 					]
@@ -215,6 +211,10 @@ run [['Number', 1]], ->
 					['Equals'
 						['ReferencedField', 'pilot', 'id']
 						['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot']
+					]
+					['Equals'
+						['ReferencedField', 'pilot', 'id']
+						['Bind', 0]
 					]
 				])
 
@@ -426,7 +426,13 @@ run [['Number', 1]], ->
 					]
 				]
 				[	'Where'
-					abstractsql
+					[	'And'
+						abstractsql
+						['Equals'
+							['ReferencedField', 'pilot', 'id']
+							['Bind', 0]
+						]
+					]
 				]
 			).
 			from('pilot')

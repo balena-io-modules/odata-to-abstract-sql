@@ -367,7 +367,14 @@ export class OData2AbstractSQL {
 			resource.tableAlias!,
 			resource.idField,
 		];
-		this.PathKey(method, path, query, resource, referencedIdField, bodyKeys);
+		const pathKeyWhere = this.PathKey(
+			method,
+			path,
+			resource,
+			referencedIdField,
+			bodyKeys,
+		);
+		let addPathKey = true;
 
 		if (hasQueryOpts && path.options.$expand) {
 			this.Expands(resource, query, path.options.$expand.properties);
@@ -406,14 +413,16 @@ export class OData2AbstractSQL {
 			} else {
 				throw new Error('Cannot navigate links');
 			}
-			this.PathKey(
+			const linkKeyWhere = this.PathKey(
 				method,
 				path.link,
-				query,
 				linkResource,
 				referencedField,
 				bodyKeys,
 			);
+			if (linkKeyWhere) {
+				query.where.push(linkKeyWhere);
+			}
 			query.select.push(aliasedField);
 		} else if (
 			method == 'PUT' ||
@@ -434,7 +443,7 @@ export class OData2AbstractSQL {
 			// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
 			// we make sure to always apply it. This means that the definition will still be applied for these queries
 			if (
-				(hasQueryOpts || resource.definition) &&
+				(hasQueryOpts || resource.definition || pathKeyWhere != null) &&
 				(method == 'POST' || method == 'PUT-INSERT')
 			) {
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
@@ -512,6 +521,10 @@ export class OData2AbstractSQL {
 					this.AddQueryOptions(resource, path, subQuery);
 				}
 				subQuery.fromResource(this.clientModel, unionResource, this);
+				addPathKey = false;
+				if (pathKeyWhere != null) {
+					subQuery.where.push(pathKeyWhere);
+				}
 
 				query.extras.push([
 					'Values',
@@ -524,6 +537,10 @@ export class OData2AbstractSQL {
 			this.AddCountField(path, query);
 		} else {
 			this.AddSelectFields(path, query, resource);
+		}
+
+		if (addPathKey && pathKeyWhere != null) {
+			query.where.push(pathKeyWhere);
 		}
 
 		// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
@@ -557,11 +574,10 @@ export class OData2AbstractSQL {
 	PathKey(
 		method: string,
 		path: any,
-		query: Query,
 		resource: Resource,
 		referencedField: ReferencedFieldNode,
 		bodyKeys: string[],
-	) {
+	): BooleanTypeNodes | void {
 		if (path.key != null) {
 			if (method == 'PUT' || method == 'PUT-INSERT' || method == 'POST') {
 				// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
@@ -577,8 +593,7 @@ export class OData2AbstractSQL {
 			for (const matcher of [this.Bind, this.NumberMatch, this.TextMatch]) {
 				const key = matcher.call(this, path.key, true);
 				if (key) {
-					query.where.push(['Equals', referencedField, key]);
-					return;
+					return ['Equals', referencedField, key];
 				}
 			}
 			throw new SyntaxError('Could not match path key');
