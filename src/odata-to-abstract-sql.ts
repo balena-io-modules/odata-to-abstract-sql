@@ -425,11 +425,11 @@ export class OData2AbstractSQL {
 			}
 			query.select.push(aliasedField);
 		} else if (
-			method == 'PUT' ||
-			method == 'PUT-INSERT' ||
-			method == 'POST' ||
-			method == 'PATCH' ||
-			method == 'MERGE'
+			method === 'PUT' ||
+			method === 'PUT-INSERT' ||
+			method === 'POST' ||
+			method === 'PATCH' ||
+			method === 'MERGE'
 		) {
 			const resourceMapping = this.ResourceMapping(resource);
 			bindVars = this.BindVars(
@@ -444,7 +444,7 @@ export class OData2AbstractSQL {
 			// we make sure to always apply it. This means that the definition will still be applied for these queries
 			if (
 				(hasQueryOpts || resource.definition || pathKeyWhere != null) &&
-				(method == 'POST' || method == 'PUT-INSERT')
+				(method === 'POST' || method === 'PUT-INSERT')
 			) {
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
 				const subQuery = new Query();
@@ -493,7 +493,7 @@ export class OData2AbstractSQL {
 					}
 					let found = false;
 					const isTable = (part: any) =>
-						part[0] === 'Table' && part[1] == unionResource.name;
+						part[0] === 'Table' && part[1] === unionResource.name;
 					unionResource.definition.abstractSqlQuery = unionResource.definition.abstractSqlQuery.map(
 						part => {
 							if (part[0] === 'From') {
@@ -548,10 +548,10 @@ export class OData2AbstractSQL {
 		// this is handled when we set the 'Values'
 		if (
 			(hasQueryOpts || resource.definition) &&
-			(method == 'PUT' ||
-				method == 'PATCH' ||
-				method == 'MERGE' ||
-				method == 'DELETE')
+			(method === 'PUT' ||
+				method === 'PATCH' ||
+				method === 'MERGE' ||
+				method === 'DELETE')
 		) {
 			// For update/delete statements we need to use a  style query
 			const subQuery = new Query();
@@ -565,7 +565,7 @@ export class OData2AbstractSQL {
 				referencedIdField,
 				subQuery.compile('SelectQuery') as SelectQueryNode,
 			]);
-		} else if (hasQueryOpts && method == 'GET') {
+		} else if (hasQueryOpts && method === 'GET') {
 			this.AddQueryOptions(resource, path, query);
 		}
 
@@ -579,7 +579,7 @@ export class OData2AbstractSQL {
 		bodyKeys: string[],
 	): BooleanTypeNodes | void {
 		if (path.key != null) {
-			if (method == 'PUT' || method == 'PUT-INSERT' || method == 'POST') {
+			if (method === 'PUT' || method === 'PUT-INSERT' || method === 'POST') {
 				// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
 				const qualifiedIDField = resource.resourceName + '.' + resource.idField;
 				if (
@@ -749,7 +749,7 @@ export class OData2AbstractSQL {
 				.reject(field =>
 					_.some(
 						query.select,
-						existingField => _.last(existingField) == field.name,
+						existingField => _.last(existingField) === field.name,
 					),
 				)
 				.map(field => this.AliasSelectField(field.resource, field.name))
@@ -761,7 +761,7 @@ export class OData2AbstractSQL {
 				.reject(fieldName =>
 					_.some(
 						query.select,
-						existingField => _.last(existingField) == fieldName,
+						existingField => _.last(existingField) === fieldName,
 					),
 				)
 				.map(field => this.AliasSelectField(resource, field))
