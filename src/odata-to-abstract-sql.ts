@@ -122,6 +122,15 @@ const rewriteDefinition = (
 	return rewrittenDefinition;
 };
 
+const containsQueryOption = (opts: object): boolean => {
+	for (const key in opts) {
+		if (key[0] === '$') {
+			return true;
+		}
+	}
+	return false;
+};
+
 class Query {
 	public select: SelectNode[1][] = [];
 	public from: FromNode[1][] = [];
@@ -342,6 +351,8 @@ export class OData2AbstractSQL {
 		if (!path.resource) {
 			throw new SyntaxError('Path segment must contain a resource');
 		}
+		const hasQueryOpts = containsQueryOption(path.options);
+
 		const resource = this.Resource(path.resource, this.defaultResource);
 		this.defaultResource = resource;
 		const query = new Query();
@@ -356,9 +367,16 @@ export class OData2AbstractSQL {
 			resource.tableAlias!,
 			resource.idField,
 		];
-		this.PathKey(method, path, query, resource, referencedIdField, bodyKeys);
+		const pathKeyWhere = this.PathKey(
+			method,
+			path,
+			resource,
+			referencedIdField,
+			bodyKeys,
+		);
+		let addPathKey = true;
 
-		if (path.options && path.options.$expand) {
+		if (hasQueryOpts && path.options.$expand) {
 			this.Expands(resource, query, path.options.$expand.properties);
 		}
 		let bindVars: ReturnType<OData2AbstractSQL['BindVars']> | undefined;
@@ -395,21 +413,23 @@ export class OData2AbstractSQL {
 			} else {
 				throw new Error('Cannot navigate links');
 			}
-			this.PathKey(
+			const linkKeyWhere = this.PathKey(
 				method,
 				path.link,
-				query,
 				linkResource,
 				referencedField,
 				bodyKeys,
 			);
+			if (linkKeyWhere) {
+				query.where.push(linkKeyWhere);
+			}
 			query.select.push(aliasedField);
 		} else if (
-			method == 'PUT' ||
-			method == 'PUT-INSERT' ||
-			method == 'POST' ||
-			method == 'PATCH' ||
-			method == 'MERGE'
+			method === 'PUT' ||
+			method === 'PUT-INSERT' ||
+			method === 'POST' ||
+			method === 'PATCH' ||
+			method === 'MERGE'
 		) {
 			const resourceMapping = this.ResourceMapping(resource);
 			bindVars = this.BindVars(
@@ -419,26 +439,125 @@ export class OData2AbstractSQL {
 				_.toPairs(resourceMapping),
 			);
 			query.extras.push(['Fields', _.map(bindVars, 0)]);
-			query.extras.push(['Values', _.map(bindVars, 1)]);
+
+			// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
+			// we make sure to always apply it. This means that the definition will still be applied for these queries
+			if (
+				(hasQueryOpts || resource.definition || pathKeyWhere != null) &&
+				(method === 'POST' || method === 'PUT-INSERT')
+			) {
+				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
+				const subQuery = new Query();
+				subQuery.select = _.map(
+					bindVars,
+					bindVar =>
+						[
+							'ReferencedField',
+							resource.tableAlias,
+							bindVar[0],
+						] as ReferencedFieldNode,
+				);
+
+				const bindVarSelectQuery: SelectQueryNode = [
+					'SelectQuery',
+					[
+						'Select',
+						_.map(
+							resource.fields,
+							(field): AliasNode<CastNode> => {
+								const alias = field.fieldName;
+								const bindVar = _.find(bindVars, v => v[0] === alias);
+								const value = bindVar ? bindVar[1] : 'Null';
+								return ['Alias', ['Cast', value, field.dataType], alias];
+							},
+						),
+					],
+				];
+				const definitionQuery = new Query();
+				definitionQuery.select.push(referencedIdField);
+				const unionResource = _.clone(resource);
+				if (
+					unionResource.definition == null ||
+					!_.isObject(unionResource.definition)
+				) {
+					unionResource.definition = {
+						extraBinds: [],
+						abstractSqlQuery: bindVarSelectQuery,
+					};
+				} else {
+					unionResource.definition = _.clone(unionResource.definition);
+					if (unionResource.definition.abstractSqlQuery[0] !== 'SelectQuery') {
+						throw new Error(
+							'Only select query definitions supported for inserts',
+						);
+					}
+					let found = false;
+					const isTable = (part: any) =>
+						part[0] === 'Table' && part[1] === unionResource.name;
+					unionResource.definition.abstractSqlQuery = unionResource.definition.abstractSqlQuery.map(
+						part => {
+							if (part[0] === 'From') {
+								if (isTable(part[1])) {
+									found = true;
+									return [
+										'From',
+										['Alias', bindVarSelectQuery, unionResource.name],
+									];
+								} else if (part[1][0] === 'Alias' && isTable(part[1][1])) {
+									found = true;
+									return ['From', ['Alias', bindVarSelectQuery, part[1][2]]];
+								}
+							}
+							return part;
+						},
+					) as SelectQueryNode;
+					if (!found) {
+						throw new Error(
+							'Could not replace table entry in definition for insert',
+						);
+					}
+				}
+				if (hasQueryOpts) {
+					this.AddQueryOptions(resource, path, subQuery);
+				}
+				subQuery.fromResource(this.clientModel, unionResource, this);
+				addPathKey = false;
+				if (pathKeyWhere != null) {
+					subQuery.where.push(pathKeyWhere);
+				}
+
+				query.extras.push([
+					'Values',
+					subQuery.compile('SelectQuery') as SelectQueryNode,
+				]);
+			} else {
+				query.extras.push(['Values', _.map(bindVars, 1)]);
+			}
 		} else if (path.count) {
 			this.AddCountField(path, query);
 		} else {
 			this.AddSelectFields(path, query, resource);
 		}
 
+		if (addPathKey && pathKeyWhere != null) {
+			query.where.push(pathKeyWhere);
+		}
+
 		// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
-		// we make sure to always apply it. This means that the definition will still be applied for these queries
-		const subQueryMethod =
-			method == 'PUT' ||
-			method == 'PATCH' ||
-			method == 'MERGE' ||
-			method == 'DELETE';
-		if ((path.options || resource.definition) && subQueryMethod) {
+		// we make sure to always apply it. This means that the definition will still be applied for these queries, for insert queries
+		// this is handled when we set the 'Values'
+		if (
+			(hasQueryOpts || resource.definition) &&
+			(method === 'PUT' ||
+				method === 'PATCH' ||
+				method === 'MERGE' ||
+				method === 'DELETE')
+		) {
 			// For update/delete statements we need to use a  style query
 			const subQuery = new Query();
 			subQuery.select.push(referencedIdField);
 			subQuery.fromResource(this.clientModel, resource, this);
-			if (path.options) {
+			if (hasQueryOpts) {
 				this.AddQueryOptions(resource, path, subQuery);
 			}
 			query.where.push([
@@ -446,26 +565,8 @@ export class OData2AbstractSQL {
 				referencedIdField,
 				subQuery.compile('SelectQuery') as SelectQueryNode,
 			]);
-		} else if (path.options) {
-			if (method == 'POST' || method == 'PUT-INSERT') {
-				// TODO: Inserts should obey a table definition but that requires us to be able to pass the "base" table
-				// to the definition to select from, which in the case of an insert would be a select subquery with our insert binds
-				if (path.options.$filter) {
-					const subQuery = this.InsertFilter(
-						path.options.$filter,
-						resource,
-						bindVars!,
-					);
-					const valuesIndex = _.findIndex(query.extras, v => v[0] === 'Values');
-					// Replace the values bind var list with our filtered SELECT query.
-					query.extras[valuesIndex] = [
-						'Values',
-						subQuery.compile('SelectQuery') as SelectQueryNode,
-					];
-				}
-			} else if (method == 'GET') {
-				this.AddQueryOptions(resource, path, query);
-			}
+		} else if (hasQueryOpts && method === 'GET') {
+			this.AddQueryOptions(resource, path, query);
 		}
 
 		return query;
@@ -473,13 +574,12 @@ export class OData2AbstractSQL {
 	PathKey(
 		method: string,
 		path: any,
-		query: Query,
 		resource: Resource,
 		referencedField: ReferencedFieldNode,
 		bodyKeys: string[],
-	) {
+	): BooleanTypeNodes | void {
 		if (path.key != null) {
-			if (method == 'PUT' || method == 'PUT-INSERT' || method == 'POST') {
+			if (method === 'PUT' || method === 'PUT-INSERT' || method === 'POST') {
 				// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
 				const qualifiedIDField = resource.resourceName + '.' + resource.idField;
 				if (
@@ -493,8 +593,7 @@ export class OData2AbstractSQL {
 			for (const matcher of [this.Bind, this.NumberMatch, this.TextMatch]) {
 				const key = matcher.call(this, path.key, true);
 				if (key) {
-					query.where.push(['Equals', referencedField, key]);
-					return;
+					return ['Equals', referencedField, key];
 				}
 			}
 			throw new SyntaxError('Could not match path key');
@@ -507,48 +606,8 @@ export class OData2AbstractSQL {
 	}
 	SelectFilter(filter: any, query: Query, resource: Resource) {
 		this.AddExtraFroms(query, resource, filter);
-		filter = this.BooleanMatch(filter);
-		query.where.push(filter);
-	}
-	InsertFilter(
-		filter: any,
-		resource: Resource,
-		bindVars: ReturnType<OData2AbstractSQL['BindVars']>,
-	) {
-		// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
-		const query = new Query();
-		this.AddExtraFroms(query, resource, filter);
 		const where = this.BooleanMatch(filter);
-		query.select = _.map(
-			bindVars,
-			bindVar =>
-				[
-					'ReferencedField',
-					resource.tableAlias,
-					bindVar[0],
-				] as ReferencedFieldNode,
-		);
-		query.from.push([
-			'Alias',
-			[
-				'SelectQuery',
-				[
-					'Select',
-					_.map(
-						resource.fields,
-						(field): AliasNode<CastNode> => {
-							const alias = field.fieldName;
-							const bindVar = _.find(bindVars, v => v[0] === alias);
-							const value = bindVar ? bindVar[1] : 'Null';
-							return ['Alias', ['Cast', value, field.dataType], alias];
-						},
-					),
-				],
-			],
-			resource.tableAlias!,
-		]);
 		query.where.push(where);
-		return query;
 	}
 	OrderBy(orderby: any, query: Query, resource: Resource) {
 		this.AddExtraFroms(query, resource, orderby.properties);
@@ -690,7 +749,7 @@ export class OData2AbstractSQL {
 				.reject(field =>
 					_.some(
 						query.select,
-						existingField => _.last(existingField) == field.name,
+						existingField => _.last(existingField) === field.name,
 					),
 				)
 				.map(field => this.AliasSelectField(field.resource, field.name))
@@ -702,7 +761,7 @@ export class OData2AbstractSQL {
 				.reject(fieldName =>
 					_.some(
 						query.select,
-						existingField => _.last(existingField) == fieldName,
+						existingField => _.last(existingField) === fieldName,
 					),
 				)
 				.map(field => this.AliasSelectField(resource, field))
