@@ -242,18 +242,18 @@ export class OData2AbstractSQL {
 	private checkAlias: (alias: string) => string;
 
 	constructor(private clientModel: AbstractSqlModel) {
-		const MAX_ALIAS_LENGTH = 64;
+		const MAX_ALIAS_LENGTH = 63;
 		const RANDOM_ALIAS_LENGTH = 12;
 		const shortAliases = generateShortAliases(clientModel);
 		this.checkAlias = memoize((alias: string) => {
 			let aliasLength = alias.length;
-			if (aliasLength < MAX_ALIAS_LENGTH) {
+			if (aliasLength <= MAX_ALIAS_LENGTH) {
 				return alias;
 			}
 			alias = _(alias)
 				.split('.')
 				.map(part => {
-					if (aliasLength < MAX_ALIAS_LENGTH) {
+					if (aliasLength <= MAX_ALIAS_LENGTH) {
 						return part;
 					}
 					aliasLength -= part.length;
@@ -282,7 +282,7 @@ export class OData2AbstractSQL {
 				})
 				.join('.');
 
-			if (aliasLength < MAX_ALIAS_LENGTH) {
+			if (aliasLength <= MAX_ALIAS_LENGTH) {
 				return alias;
 			}
 
