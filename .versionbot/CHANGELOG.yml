@@ -1,379 +1,413 @@
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: c7892c3950b3e4ca9722c63c162893a7ea8b09ca
-    subject: Fix off-by-one error when having to resort to a random alias
-  date: "2019-04-22T15:38:45Z"
+    - subject: Add node 12 tests
+      hash: a6cc208654a36228a35fb8d8886e62bccc3c9fa4
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Add repo.yml for upstream changelogs
+      hash: e50ca4f49d80b3e89d37f7d8bf6607b0f797c7ae
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Add .versionbot/CHANGELOG.yml for downstream changelogs
+      hash: 9d68e94757f2f9498dedf3d6f085ce77ea70652a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 3.1.2
+  date: 2019-05-08T15:52:48.099Z
+- commits:
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: c7892c3950b3e4ca9722c63c162893a7ea8b09ca
+      subject: Fix off-by-one error when having to resort to a random alias
+  date: '2019-04-22T15:38:45Z'
   version: 3.1.1
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: b61b2f9a20fe0bb3632c591a452cf01f0740e42c
-    subject: Add support for definitions for the target table of insert queries
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: 815a4ff330f27fd503778bc1461e99e6ff0043b6
-    subject: Add path key where statements to the select subquery for inserts
-  - author: Pagan Gazzard
-    body: ""
-    hash: 785f06c38990b89614551f7cbd8ad87280561aeb
-    subject: Convert == to ===
-  date: "2019-03-08T14:39:00Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: b61b2f9a20fe0bb3632c591a452cf01f0740e42c
+      subject: Add support for definitions for the target table of insert queries
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: 815a4ff330f27fd503778bc1461e99e6ff0043b6
+      subject: Add path key where statements to the select subquery for inserts
+    - author: Pagan Gazzard
+      body: ''
+      hash: 785f06c38990b89614551f7cbd8ad87280561aeb
+      subject: Convert == to ===
+  date: '2019-03-08T14:39:00Z'
   version: 3.1.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: 47474247abdf4113e7df26c199c24f73d5e406e1
-    subject: Improve typings, typing `tree` as the `AbstractSqlQuery` it is
-  date: "2019-01-28T12:22:25Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: 47474247abdf4113e7df26c199c24f73d5e406e1
+      subject: 'Improve typings, typing `tree` as the `AbstractSqlQuery` it is'
+  date: '2019-01-28T12:22:25Z'
   version: 3.0.1
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: major
-    hash: df845be23124cd790ced0526017092c288dc9ed3
-    subject: Convert the translator into typescript
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: d4e897a56dff572f409ebf672b13aeab8e746b44
-    subject: Add support for automatically resolved `ResourceNode`s in definitions
-  date: "2018-12-07T15:28:37Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: major
+      hash: df845be23124cd790ced0526017092c288dc9ed3
+      subject: Convert the translator into typescript
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: d4e897a56dff572f409ebf672b13aeab8e746b44
+      subject: Add support for automatically resolved `ResourceNode`s in definitions
+  date: '2018-12-07T15:28:37Z'
   version: 3.0.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: 2d5a2e9645da23386d40dc2cb9c5f52d6285a9a5
-    subject: Further optimise `generateShortAliases`
-  date: "2018-11-16T18:30:10Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: 2d5a2e9645da23386d40dc2cb9c5f52d6285a9a5
+      subject: Further optimise `generateShortAliases`
+  date: '2018-11-16T18:30:10Z'
   version: 2.4.3
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: 76be108d7a51ea44bc97634c0055825a9adc2a71
-    subject: Optimise `generateShortAliases`
-  date: "2018-11-15T20:24:57Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: 76be108d7a51ea44bc97634c0055825a9adc2a71
+      subject: Optimise `generateShortAliases`
+  date: '2018-11-15T20:24:57Z'
   version: 2.4.2
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: d23f419d372a89534072b89f7ba469b6cf91ec68
-    subject: Add typescript linting and prettier commit hook
-  date: "2018-11-15T01:26:34Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: d23f419d372a89534072b89f7ba469b6cf91ec68
+      subject: Add typescript linting and prettier commit hook
+  date: '2018-11-15T01:26:34Z'
   version: 2.4.1
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: 0f48a8eccad3919e340ef505c3ad95178598177a
-    subject: Switch to generating commonjs format
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: 99bbcd4f2334b540e550e8a0642c6dbd82931518
-    subject: Switch to using a prepare script so npm git installs can work
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: 492c23a43e3e73ae0490e54077996fa0bec8df5f
-    subject: Update dev dependencies
-  date: "2018-11-03T13:22:42Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: 0f48a8eccad3919e340ef505c3ad95178598177a
+      subject: Switch to generating commonjs format
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: 99bbcd4f2334b540e550e8a0642c6dbd82931518
+      subject: Switch to using a prepare script so npm git installs can work
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: 492c23a43e3e73ae0490e54077996fa0bec8df5f
+      subject: Update dev dependencies
+  date: '2018-11-03T13:22:42Z'
   version: 2.4.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: 1dd6ece87674cad202ed4799adb048b6c0949865
-    subject: Add typings
-  date: "2018-10-18T09:56:19Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: 1dd6ece87674cad202ed4799adb048b6c0949865
+      subject: Add typings
+  date: '2018-10-18T09:56:19Z'
   version: 2.3.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: 690fee8d0d4be3dd9a9f7181f24b58cf87faf6d5
-    subject: Fix adding the id to body vars for PUT requests
-  date: "2018-10-17T16:25:17Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: 690fee8d0d4be3dd9a9f7181f24b58cf87faf6d5
+      subject: Fix adding the id to body vars for PUT requests
+  date: '2018-10-17T16:25:17Z'
   version: 2.2.6
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-      signed-off-by: Pagan Gazzard <page@resin.io>
-    hash: 4ccc0d311c20502fe882794a556c4fed0c2c7328
-    subject: Throw an error when trying to directly reference a virtual field
-  date: "2018-09-17T11:43:20Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+        signed-off-by: Pagan Gazzard <page@resin.io>
+      hash: 4ccc0d311c20502fe882794a556c4fed0c2c7328
+      subject: Throw an error when trying to directly reference a virtual field
+  date: '2018-09-17T11:43:20Z'
   version: 2.2.5
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-      signed-off-by: Pagan Gazzard <page@resin.io>
-    hash: 726f5acf3ad4beac27638983675a57d3a65c497f
-    subject: Optimise `ResolveRelationship` call to `_.get`
-  date: "2018-09-17T11:27:23Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+        signed-off-by: Pagan Gazzard <page@resin.io>
+      hash: 726f5acf3ad4beac27638983675a57d3a65c497f
+      subject: Optimise `ResolveRelationship` call to `_.get`
+  date: '2018-09-17T11:27:23Z'
   version: 2.2.4
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-      signed-off-by: Pagan Gazzard <page@resin.io>
-    hash: ad43443f3cb49eee6146e6c5b69c45dbc504de30
-    subject: Support navigation properties that only appear as method args
-  date: "2018-09-07T14:38:37Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+        signed-off-by: Pagan Gazzard <page@resin.io>
+      hash: ad43443f3cb49eee6146e6c5b69c45dbc504de30
+      subject: Support navigation properties that only appear as method args
+  date: '2018-09-07T14:38:37Z'
   version: 2.2.3
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-      signed-off-by: Pagan Gazzard <page@resin.io>
-    hash: c07adccc0e80dc9a9542117c87155f40391b7154
-    subject: Avoid unnecessarily adding the path key to update queries
-  date: "2018-08-28T17:49:18Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+        signed-off-by: Pagan Gazzard <page@resin.io>
+      hash: c07adccc0e80dc9a9542117c87155f40391b7154
+      subject: Avoid unnecessarily adding the path key to update queries
+  date: '2018-08-28T17:49:18Z'
   version: 2.2.2
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: 255ecbaefb6de54a1eaa41ac3349f10553bd0c06
-    subject: Apply inserts/updates/deletes direct to the base table, whilst respecting
-      the definition for filters on them.
-  date: "2018-06-15T18:31:29Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: 255ecbaefb6de54a1eaa41ac3349f10553bd0c06
+      subject: >-
+        Apply inserts/updates/deletes direct to the base table, whilst
+        respecting the definition for filters on them.
+  date: '2018-06-15T18:31:29Z'
   version: 2.2.1
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: 5c5ab86ba543f803233e0397c377fe3ac91c7231
-    subject: Add support for native `in` statements.
-  date: "2018-06-08T19:11:00Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: 5c5ab86ba543f803233e0397c377fe3ac91c7231
+      subject: Add support for native `in` statements.
+  date: '2018-06-08T19:11:00Z'
   version: 2.2.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: f4927787b07731d0091fc936bb22bdb483ea9d62
-    subject: Update dependencies
-  date: "2018-05-10T08:03:06Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: f4927787b07731d0091fc936bb22bdb483ea9d62
+      subject: Update dependencies
+  date: '2018-05-10T08:03:06Z'
   version: 2.1.2
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: 32aace5fb962931398db4d98f70a68af1ee557b3
-    subject: Require npm 4+ to publish, to avoid issues with publishing
-  date: "2018-05-10T06:54:35Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: 32aace5fb962931398db4d98f70a68af1ee557b3
+      subject: 'Require npm 4+ to publish, to avoid issues with publishing'
+  date: '2018-05-10T06:54:35Z'
   version: 2.1.1
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: 54f9d68001a8f1fd93e49d99dad1d7d1b607b929
-    subject: Update to memoizee ^0.4.12
-  date: "2018-05-01T17:21:29Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: 54f9d68001a8f1fd93e49d99dad1d7d1b607b929
+      subject: Update to memoizee ^0.4.12
+  date: '2018-05-01T17:21:29Z'
   version: 2.1.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: c6e769df4e0ec42e1f2f28b0999690dbe24c56a0
-    subject: Move circle.yml to .circleci/config.yml
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: 0f334fbf7459a3ba2ffbd3ebbaed1ddc45b3f57f
-    subject: Add node 10 to the circleci tests.
-  date: "2018-04-30T16:18:09Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: c6e769df4e0ec42e1f2f28b0999690dbe24c56a0
+      subject: Move circle.yml to .circleci/config.yml
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: 0f334fbf7459a3ba2ffbd3ebbaed1ddc45b3f57f
+      subject: Add node 10 to the circleci tests.
+  date: '2018-04-30T16:18:09Z'
   version: 2.0.1
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: major
-    hash: 821745f5f191283187a8889aa1471981266d7474
-    subject: Update to lf-to-abstract-sql 2.x and make use of the relationship lookup
-      being the resource name.
-  date: "2018-04-25T18:54:53Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: major
+      hash: 821745f5f191283187a8889aa1471981266d7474
+      subject: >-
+        Update to lf-to-abstract-sql 2.x and make use of the relationship lookup
+        being the resource name.
+  date: '2018-04-25T18:54:53Z'
   version: 2.0.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: d13ae3fd2c1021aaabd75f900aee5c34a3ef478f
-    subject: Memoize `sqlNameToODataName` and `odataNameToSqlName`
-  date: "2018-04-25T18:29:54Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: d13ae3fd2c1021aaabd75f900aee5c34a3ef478f
+      subject: Memoize `sqlNameToODataName` and `odataNameToSqlName`
+  date: '2018-04-25T18:29:54Z'
   version: 1.2.1
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: 5ca4f312d9367409b6d866d0ac5ac292e375960e
-    subject: Add support for more query options in PUT/PATCH/DELETE queries.
-  date: "2018-04-20T19:25:06Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: 5ca4f312d9367409b6d866d0ac5ac292e375960e
+      subject: Add support for more query options in PUT/PATCH/DELETE queries.
+  date: '2018-04-20T19:25:06Z'
   version: 1.2.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: 50dd4b462a4b6019810157c75b0e6dfebc0c9e20
-    subject: Cast nulls to the correct type as well, since nulls can also cause problems
-      in some queries if not cast
-  date: "2018-03-02T08:30:38Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: 50dd4b462a4b6019810157c75b0e6dfebc0c9e20
+      subject: >-
+        Cast nulls to the correct type as well, since nulls can also cause
+        problems in some queries if not cast
+  date: '2018-03-02T08:30:38Z'
   version: 1.1.1
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: minor
-    hash: 45b864729996760fb33deb2ce694cfccea23e4a7
-    subject: Add support for resources which are defined via an abstract SQL chunk.
-  date: "2018-01-05T13:06:32Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: minor
+      hash: 45b864729996760fb33deb2ce694cfccea23e4a7
+      subject: Add support for resources which are defined via an abstract SQL chunk.
+  date: '2018-01-05T13:06:32Z'
   version: 1.1.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    footers:
-      change-type: patch
-    hash: c5e3b677ba9477b4ed57f68ad72e9590dee7ed29
-    subject: Set up circleci auto-publishing
-  date: "2017-11-29T18:28:14Z"
+    - author: Pagan Gazzard
+      body: ''
+      footers:
+        change-type: patch
+      hash: c5e3b677ba9477b4ed57f68ad72e9590dee7ed29
+      subject: Set up circleci auto-publishing
+  date: '2017-11-29T18:28:14Z'
   version: 1.0.2
 - commits:
-  - author: Giovanni Garufi
-    body: ""
-    footers:
-      change-type: patch
-    hash: 867ca9bb79cf2ccb9dd990231a499ff9d3b6f5ef
-    subject: Added versionist
-  date: "2017-10-27T14:54:19Z"
+    - author: Giovanni Garufi
+      body: ''
+      footers:
+        change-type: patch
+      hash: 867ca9bb79cf2ccb9dd990231a499ff9d3b6f5ef
+      subject: Added versionist
+  date: '2017-10-27T14:54:19Z'
   version: 1.0.1
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    hash: 4622cfd9846443fc8fb1f990de7a37331e6a481a
-    subject: Map the resource's fields directly rather than going a roundabout way
-  - author: Pagan Gazzard
-    body: ""
-    hash: 2764783efceca736798bac7939ac0cd7d1de2f4b
-    subject: Simplify the parsing of extra from's by always dealing with an array.
-  - author: Pagan Gazzard
-    body: ""
-    hash: 870778b79cb1df22aca42e2a7e6946368be22a88
-    subject: Simplify the extra from's logic further by moving it into one pass
-  - author: Pagan Gazzard
-    body: ""
-    hash: bcfb0fb685161452bc5b30f0b17b5dfbd17a8846
-    subject: Consolidate the extra from's logic into a single rule
-  - author: Pagan Gazzard
-    body: ""
-    hash: 3cbfa36296eb16bc9321f4ae9a1d0ecd2600b343
-    subject: Avoid matching on skipped tests.
-  - author: Pagan Gazzard
-    body: ""
-    hash: 3dda7194f143ede311fb67969d270f5d9c7dca09
-    subject: Move the max alias length to a constant.
-  - author: Pagan Gazzard
-    body: ""
-    hash: 9e888b82aa9513b683dac5385f88de9a04f447c0
-    subject: Switch to generating the client model in the tests, rather than committing
-      it.
-  - author: Pagan Gazzard
-    body: ""
-    hash: ab360b4f44fad7877446eecfa8227367b84cbfcc
-    subject: Switch to using the abstract sql as an input.
-  - author: Pagan Gazzard
-    body: ""
-    hash: 4c9204a0b7bd855bda23e321e5c62b1dc26d3b98
-    subject: Add support for resolving synonyms
-  - author: Pagan Gazzard
-    body: ""
-    hash: d2bce686e7976ebc54e1ffea72ac54161c044380
-    subject: Expose `sqlNameToODataName` and `odataNameToSqlName` for converting between
-      odata and abstract sql resource names.
-  - author: Pagan Gazzard
-    body: ""
-    hash: 6db57a61fac13d4d16bed8449f5e534a35b5772c
-    subject: Fix looking up the resource by the referenced table name
-  - author: Pagan Gazzard
-    body: ""
-    hash: 38682fb8001b03d56725abd19c934fe36ecf5738
-    subject: Add more levels of alias shortening in order to be able to more aggressively
-      shortern aliases
-  - author: Pagan Gazzard
-    body: ""
-    hash: bb4686f4f8fb34888c58397c4df5429133d19124
-    subject: As a last resort use a random string to shorten the alias if the other
-      methods were unable to shorten it enough
-  date: "2017-07-27T19:16:21Z"
+    - author: Pagan Gazzard
+      body: ''
+      hash: 4622cfd9846443fc8fb1f990de7a37331e6a481a
+      subject: Map the resource's fields directly rather than going a roundabout way
+    - author: Pagan Gazzard
+      body: ''
+      hash: 2764783efceca736798bac7939ac0cd7d1de2f4b
+      subject: Simplify the parsing of extra from's by always dealing with an array.
+    - author: Pagan Gazzard
+      body: ''
+      hash: 870778b79cb1df22aca42e2a7e6946368be22a88
+      subject: Simplify the extra from's logic further by moving it into one pass
+    - author: Pagan Gazzard
+      body: ''
+      hash: bcfb0fb685161452bc5b30f0b17b5dfbd17a8846
+      subject: Consolidate the extra from's logic into a single rule
+    - author: Pagan Gazzard
+      body: ''
+      hash: 3cbfa36296eb16bc9321f4ae9a1d0ecd2600b343
+      subject: Avoid matching on skipped tests.
+    - author: Pagan Gazzard
+      body: ''
+      hash: 3dda7194f143ede311fb67969d270f5d9c7dca09
+      subject: Move the max alias length to a constant.
+    - author: Pagan Gazzard
+      body: ''
+      hash: 9e888b82aa9513b683dac5385f88de9a04f447c0
+      subject: >-
+        Switch to generating the client model in the tests, rather than
+        committing it.
+    - author: Pagan Gazzard
+      body: ''
+      hash: ab360b4f44fad7877446eecfa8227367b84cbfcc
+      subject: Switch to using the abstract sql as an input.
+    - author: Pagan Gazzard
+      body: ''
+      hash: 4c9204a0b7bd855bda23e321e5c62b1dc26d3b98
+      subject: Add support for resolving synonyms
+    - author: Pagan Gazzard
+      body: ''
+      hash: d2bce686e7976ebc54e1ffea72ac54161c044380
+      subject: >-
+        Expose `sqlNameToODataName` and `odataNameToSqlName` for converting
+        between odata and abstract sql resource names.
+    - author: Pagan Gazzard
+      body: ''
+      hash: 6db57a61fac13d4d16bed8449f5e534a35b5772c
+      subject: Fix looking up the resource by the referenced table name
+    - author: Pagan Gazzard
+      body: ''
+      hash: 38682fb8001b03d56725abd19c934fe36ecf5738
+      subject: >-
+        Add more levels of alias shortening in order to be able to more
+        aggressively shortern aliases
+    - author: Pagan Gazzard
+      body: ''
+      hash: bb4686f4f8fb34888c58397c4df5429133d19124
+      subject: >-
+        As a last resort use a random string to shorten the alias if the other
+        methods were unable to shorten it enough
+  date: '2017-07-27T19:16:21Z'
   version: 1.0.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    hash: b462f708e573f22241c5f072b7871ebe87845af5
-    subject: Fix the `all` lambda for cases where there are more than one of the parent
-      resource
-  date: "2017-07-05T16:14:31Z"
+    - author: Pagan Gazzard
+      body: ''
+      hash: b462f708e573f22241c5f072b7871ebe87845af5
+      subject: >-
+        Fix the `all` lambda for cases where there are more than one of the
+        parent resource
+  date: '2017-07-05T16:14:31Z'
   version: 0.4.1
 - commits:
-  - author: Pagan Gazzard
-    body: Removing the reliance on applying a side-effect to the input vars, allows
-      memoisation to work, and requiring only the body keys, not the values themselves,
-      increases the cache hit rate a lot.
-    hash: 2c46cd79a5949fdabd8e832043581f62d204897c
-    subject: Make some changes to be more friendly to memoisation.
-  date: "2016-11-02T21:18:07Z"
+    - author: Pagan Gazzard
+      body: >-
+        Removing the reliance on applying a side-effect to the input vars,
+        allows memoisation to work, and requiring only the body keys, not the
+        values themselves, increases the cache hit rate a lot.
+      hash: 2c46cd79a5949fdabd8e832043581f62d204897c
+      subject: Make some changes to be more friendly to memoisation.
+  date: '2016-11-02T21:18:07Z'
   version: 0.4.0
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    hash: ebcc167b5aa00d3a5b54976a237c18956ffabfdf
-    subject: Add support for parsing binds in the odata tree.
-  - author: Pagan Gazzard
-    body: ""
-    hash: 86a0fa66e2d201e6b2380409d5f3b4324b4f011e
-    subject: Make sure parsing fails if the path.key is invalid.
-  date: "2016-10-29T00:23:22Z"
+    - author: Pagan Gazzard
+      body: ''
+      hash: ebcc167b5aa00d3a5b54976a237c18956ffabfdf
+      subject: Add support for parsing binds in the odata tree.
+    - author: Pagan Gazzard
+      body: ''
+      hash: 86a0fa66e2d201e6b2380409d5f3b4324b4f011e
+      subject: Make sure parsing fails if the path.key is invalid.
+  date: '2016-10-29T00:23:22Z'
   version: 0.3.7
 - commits:
-  - author: Pagan Gazzard
-    body: ""
-    hash: 5b09205740f30b749619ffab00d17206752b254d
-    subject: Add functionality to sensibly shorten table aliases, to handle cases
-      where aliases can grow too large for the database.
-  date: "2016-07-06T19:36:22Z"
+    - author: Pagan Gazzard
+      body: ''
+      hash: 5b09205740f30b749619ffab00d17206752b254d
+      subject: >-
+        Add functionality to sensibly shorten table aliases, to handle cases
+        where aliases can grow too large for the database.
+  date: '2016-07-06T19:36:22Z'
   version: 0.3.6
