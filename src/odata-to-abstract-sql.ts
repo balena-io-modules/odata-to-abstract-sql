@@ -735,38 +735,31 @@ export class OData2AbstractSQL {
 		}
 	}
 	AddSelectFields(path: any, query: Query, resource: Resource) {
-		let fields;
+		let odataFieldNames: Array<[Resource, string]>;
 		if (
 			path.options &&
 			path.options.$select &&
 			path.options.$select.properties
 		) {
 			this.AddExtraFroms(query, resource, path.options.$select.properties);
-			fields = path.options.$select.properties.map((prop: any) =>
-				this.Property(prop),
-			);
-			fields = _(fields)
-				.reject(field =>
-					_.some(
-						query.select,
-						existingField => _.last(existingField) === field.name,
-					),
-				)
-				.map(field => this.AliasSelectField(field.resource, field.name))
-				.value();
+			odataFieldNames = path.options.$select.properties.map((prop: any) => {
+				const field = this.Property(prop) as {
+					resource: Resource;
+					name: string;
+				};
+				return [field.resource, field.name];
+			});
 		} else {
-			const resourceMapping = this.ResourceMapping(resource);
-			fields = _(resourceMapping)
-				.keys()
-				.reject(fieldName =>
-					_.some(
-						query.select,
-						existingField => _.last(existingField) === fieldName,
-					),
-				)
-				.map(field => this.AliasSelectField(resource, field))
-				.value();
+			odataFieldNames = resource.fields.map(({ fieldName }) => [
+				resource,
+				sqlNameToODataName(fieldName),
+			]);
 		}
+		const fields = _.differenceWith(
+			odataFieldNames,
+			query.select,
+			(a, b) => a[1] === _.last(b),
+		).map(([resource, field]) => this.AliasSelectField(resource, field));
 		query.select = query.select.concat(fields);
 	}
 	AliasSelectField(resource: Resource, fieldName: string) {
@@ -1110,7 +1103,7 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Failed to match a Date entry');
 		}
 	}
-	DurationMatch(match: DurationNode): AbstractSqlType | undefined {
+	DurationMatch(match: DurationNode[1]): AbstractSqlType | undefined {
 		if (!_.isObject(match)) {
 			return;
 		}
