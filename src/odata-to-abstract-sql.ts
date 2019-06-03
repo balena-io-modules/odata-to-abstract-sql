@@ -25,6 +25,7 @@ import {
 	InNode,
 	BindNode,
 	CastNode,
+	AbstractSqlField,
 } from '@resin/abstract-sql-compiler';
 
 export type ResourceNode = ['Resource', string];
@@ -120,6 +121,24 @@ const rewriteDefinition = (
 		},
 	);
 	return rewrittenDefinition;
+};
+
+const rewriteComputed = (
+	computed: NonNullable<AbstractSqlField['computed']>,
+	tableName: string,
+	tableAlias: string,
+) => {
+	const rewrittenComputed = _.cloneDeep(computed);
+	modifyAbstractSql(
+		'ReferencedField',
+		rewrittenComputed,
+		(referencedField: ReferencedFieldNode) => {
+			if (referencedField[1] === tableName) {
+				referencedField[1] = tableAlias;
+			}
+		},
+	);
+	return rewrittenComputed;
 };
 
 const containsQueryOption = (opts: object): boolean => {
@@ -735,7 +754,9 @@ export class OData2AbstractSQL {
 		}
 	}
 	AddSelectFields(path: any, query: Query, resource: Resource) {
-		let odataFieldNames: Array<[Resource, string]>;
+		let odataFieldNames: Array<
+			Parameters<OData2AbstractSQL['AliasSelectField']>
+		>;
 		if (
 			path.options &&
 			path.options.$select &&
@@ -747,22 +768,47 @@ export class OData2AbstractSQL {
 					resource: Resource;
 					name: string;
 				};
-				return [field.resource, field.name];
+				const resourceField = field.resource.fields.find(
+					({ fieldName }) => fieldName === field.name,
+				);
+				return [
+					field.resource,
+					field.name,
+					resourceField ? resourceField.computed : undefined,
+				];
 			});
 		} else {
-			odataFieldNames = resource.fields.map(({ fieldName }) => [
+			odataFieldNames = resource.fields.map(field => [
 				resource,
-				sqlNameToODataName(fieldName),
+				sqlNameToODataName(field.fieldName),
+				field.computed,
 			]);
 		}
 		const fields = _.differenceWith(
 			odataFieldNames,
 			query.select,
 			(a, b) => a[1] === _.last(b),
-		).map(([resource, field]) => this.AliasSelectField(resource, field));
+		).map(args => this.AliasSelectField(...args));
 		query.select = query.select.concat(fields);
 	}
-	AliasSelectField(resource: Resource, fieldName: string) {
+	AliasSelectField(
+		resource: Resource,
+		fieldName: string,
+		computed?: AbstractSqlQuery,
+	) {
+		if (computed) {
+			if (
+				resource.tableAlias != null &&
+				resource.tableAlias !== resource.name
+			) {
+				computed = rewriteComputed(
+					computed,
+					resource.name,
+					resource.tableAlias,
+				);
+			}
+			return ['Alias', computed, fieldName];
+		}
 		const referencedField = this.ReferencedField(resource, fieldName);
 		if (referencedField[2] === fieldName) {
 			return referencedField;
