@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add support for computed fields
+      hash: b38a49327120bcb5106b5a21eb20a1a5586e4c30
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 3.2.0
+  date: 2019-05-31T15:00:10.618Z
+- commits:
     - subject: Unify the handling of adding fields with or without a $select
       hash: 1aa3c17e24e3aeb76e02a39c46a58a9b9e72b5bb
       body: |
