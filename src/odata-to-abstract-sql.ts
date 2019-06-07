@@ -27,6 +27,8 @@ import {
 	CastNode,
 	AbstractSqlField,
 } from '@resin/abstract-sql-compiler';
+import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
+export { ODataBinds, ODataQuery, SupportedMethod };
 
 export type ResourceNode = ['Resource', string];
 
@@ -42,19 +44,6 @@ declare module '@resin/abstract-sql-compiler' {
 			| ResourceNode
 			| AliasNode<SelectQueryNode | UnionQueryNode | TableNode | ResourceNode>;
 	}
-}
-
-export type SupportedMethod =
-	| 'GET'
-	| 'PUT'
-	| 'POST'
-	| 'PATCH'
-	| 'MERGE'
-	| 'DELETE'
-	| 'OPTIONS';
-export type ODataQuery = _.Dictionary<any>;
-export interface ODataBinds extends Array<any> {
-	[key: string]: any;
 }
 
 export interface Definition {
@@ -647,21 +636,21 @@ export class OData2AbstractSQL {
 		resourceName: string,
 		match: Array<[string, [string, string]]>,
 	): Array<[string, 'Default' | BindNode]> {
-		const fields = match.map(
-			(field): [string, 'Default' | BindNode] | undefined => {
-				const [fieldName, [, mappedFieldName]] = field;
-				if (
-					_.includes(bodyKeys, fieldName) ||
-					_.includes(bodyKeys, resourceName + '.' + fieldName)
-				) {
-					return [mappedFieldName, ['Bind', resourceName, fieldName]];
-				}
-				// The body doesn't contain a bind var for this field.
-				if (method === 'PUT') {
-					return [mappedFieldName, 'Default'];
-				}
-			},
-		);
+		const fields = match.map((field):
+			| [string, 'Default' | BindNode]
+			| undefined => {
+			const [fieldName, [, mappedFieldName]] = field;
+			if (
+				_.includes(bodyKeys, fieldName) ||
+				_.includes(bodyKeys, resourceName + '.' + fieldName)
+			) {
+				return [mappedFieldName, ['Bind', resourceName, fieldName]];
+			}
+			// The body doesn't contain a bind var for this field.
+			if (method === 'PUT') {
+				return [mappedFieldName, 'Default'];
+			}
+		});
 		return _.compact(fields);
 	}
 	Resource(resourceName: string, parentResource?: Resource): Resource {
@@ -1309,9 +1298,7 @@ export class OData2AbstractSQL {
 			return navigation.resource;
 		} else {
 			throw new SyntaxError(
-				`Could not navigate resources '${
-					resource.name
-				}' and '${extraResource}'`,
+				`Could not navigate resources '${resource.name}' and '${extraResource}'`,
 			);
 		}
 	}
