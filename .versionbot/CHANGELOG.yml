@@ -1,4 +1,22 @@
 - commits:
+    - subject: Update tsconfig target to es2018
+      hash: 11305a9db04d1c63df1c71ecf521b076658bad15
+      body: ''
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+    - subject: Use `IsDistinctFrom`/`IsNotDistinctFrom` for odata `eq`/`ne`
+      hash: 96d697be6e9b190d4bf34d715b13bfa641a37091
+      body: |
+        This fixes comparing fields that contain null values
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+  version: 4.0.0
+  date: 2019-06-14T14:48:18.262Z
+- commits:
     - subject: Make use of odata-parser types
       hash: b8ca21dd56d9b0d38b989dfdc5334d35247ac536
       body: |
