@@ -29,7 +29,7 @@ test '/pilot(1)?$select=favourite_colour', (result) ->
 				_.filter(pilotFields, 2: 'favourite_colour')
 			).
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+			where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 test "/pilot('TextKey')?$select=favourite_colour", (result) ->
 	it 'should select from pilot with id', ->
@@ -38,7 +38,7 @@ test "/pilot('TextKey')?$select=favourite_colour", (result) ->
 				_.filter(pilotFields, 2: 'favourite_colour')
 			).
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+			where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test '/pilot?$select=was_trained_by__pilot/name', (result) ->

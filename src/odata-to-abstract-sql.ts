@@ -57,13 +57,13 @@ interface Resource extends AbstractSqlTable {
 }
 
 const comparison = {
-	eq: 'Equals' as 'Equals',
-	ne: 'NotEquals' as 'NotEquals',
-	gt: 'GreaterThan' as 'GreaterThan',
-	ge: 'GreaterThanOrEqual' as 'GreaterThanOrEqual',
-	lt: 'LessThan' as 'LessThan',
-	le: 'LessThanOrEqual' as 'LessThanOrEqual',
-};
+	eq: 'IsNotDistinctFrom',
+	ne: 'IsDistinctFrom',
+	gt: 'GreaterThan',
+	ge: 'GreaterThanOrEqual',
+	lt: 'LessThan',
+	le: 'LessThanOrEqual',
+} as const;
 const operations = {
 	add: 'Add',
 	sub: 'Subtract',
@@ -601,7 +601,7 @@ export class OData2AbstractSQL {
 			for (const matcher of [this.Bind, this.NumberMatch, this.TextMatch]) {
 				const key = matcher.call(this, path.key, true);
 				if (key) {
-					return ['Equals', referencedField, key];
+					return [comparison.eq, referencedField, key];
 				}
 			}
 			throw new SyntaxError('Could not match path key');
