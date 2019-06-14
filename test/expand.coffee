@@ -194,7 +194,7 @@ test '/pilot?$expand=licence($filter=id eq 1)', (result) ->
 		currentWhere = aggWhere.splice(1, Infinity)
 		aggWhere.push(
 			[ 'And',
-				[	'Equals'
+				[	'IsNotDistinctFrom'
 					[	'ReferencedField'
 						'pilot.licence'
 						'id'
@@ -246,7 +246,7 @@ test '/pilot?$expand=licence($filter=is_of__pilot/id eq 1)', (result) ->
 					]
 				]
 				[
-					'Equals'
+					'IsNotDistinctFrom'
 					[	'ReferencedField'
 						'pilot.licence.is of-pilot'
 						'id'
@@ -395,7 +395,7 @@ test '/pilot?$filter=id eq 5&$expand=licence/$count', (result) ->
 		expect(result).to.be.a.query.that.
 			selects([aggregateJSONCount.licence].concat(_.reject(pilotFields, 2: 'licence'))).
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+			where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 test '/pilot?$orderby=id asc&$expand=licence/$count', (result) ->
 	it 'should select from pilot.*, count(*) licence, ordered by pilot id', ->

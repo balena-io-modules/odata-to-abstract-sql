@@ -31,17 +31,17 @@ test '/pilot__can_fly__aircraft', (result) ->
 
 test '/pilot(1)', (result) ->
 	it 'should select from pilot with id', ->
-		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test '/pilot(0)', (result) ->
 	it 'should select from pilot with id', ->
-		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test "/pilot('TextKey')", (result) ->
 	it 'should select from pilot with id', ->
-		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test '/pilot(1)/licence', (result) ->
@@ -54,7 +54,7 @@ test '/pilot(1)/licence', (result) ->
 			).
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'licence'], ['ReferencedField', 'pilot.licence', 'id']]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+				['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -68,7 +68,7 @@ test '/licence(1)/is_of__pilot', (result) ->
 			).
 			where(['And',
 				['Equals', ['ReferencedField', 'licence', 'id'], ['ReferencedField', 'licence.is of-pilot', 'licence']]
-				['Equals', ['ReferencedField', 'licence', 'id'], ['Bind', 0]]
+				['IsNotDistinctFrom', ['ReferencedField', 'licence', 'id'], ['Bind', 0]]
 			])
 
 
@@ -84,7 +84,7 @@ test '/pilot(1)/can_fly__plane/plane', (result) ->
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'], ['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id']]
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot']]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+				['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -100,7 +100,7 @@ test '/plane(1)/can_be_flown_by__pilot/pilot', (result) ->
 			where(['And',
 				['Equals', ['ReferencedField', 'plane.pilot-can fly-plane', 'pilot'], ['ReferencedField', 'plane.pilot-can fly-plane.pilot', 'id']]
 				['Equals', ['ReferencedField', 'plane', 'id'], ['ReferencedField', 'plane.pilot-can fly-plane', 'can fly-plane']]
-				['Equals', ['ReferencedField', 'plane', 'id'], ['Bind', 0]]
+				['IsNotDistinctFrom', ['ReferencedField', 'plane', 'id'], ['Bind', 0]]
 			])
 
 
@@ -108,11 +108,11 @@ test '/pilot(1)', 'DELETE', (result) ->
 	it 'should delete the pilot with id 1', ->
 		expect(result).to.be.a.query.that.deletes.
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+			where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 test '/pilot(1)', 'PUT', (result) ->
 	describe 'should upsert the pilot with id 1', ->
-		whereClause = ['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+		whereClause = ['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 		it 'should be an upsert', ->
 			expect(result).to.be.a.query.that.upserts
 		it 'that inserts', ->
@@ -151,7 +151,7 @@ test '/pilot(1)', 'PUT', (result) ->
 					]
 				]
 				[	'Where'
-					[	'Equals',
+					[	'IsNotDistinctFrom',
 						['ReferencedField', 'pilot', 'id'],
 						['Bind', 0]
 					]
@@ -202,7 +202,7 @@ do ->
 					['Bind', 'pilot', 'favourite_colour']
 				).
 				from('pilot').
-				where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+				where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 	test '/pilot(1)', 'PATCH', { is_experienced: true, favourite_colour: null }, testFunc
 	test '/pilot(1)', 'MERGE', { is_experienced: true, favourite_colour: null }, testFunc
 
@@ -218,11 +218,11 @@ test '/pilot__can_fly__plane(1)', 'DELETE', (result) ->
 	it 'should delete the pilot__can_fly__plane with id 1', ->
 		expect(result).to.be.a.query.that.deletes.
 			from('pilot-can fly-plane').
-			where(['Equals', ['ReferencedField', 'pilot-can fly-plane', 'id'], ['Bind', 0]])
+			where(['IsNotDistinctFrom', ['ReferencedField', 'pilot-can fly-plane', 'id'], ['Bind', 0]])
 
 test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 	describe 'should upsert the pilot__can_fly__plane with id 1', ->
-		whereClause = ['Equals', ['ReferencedField', 'pilot-can fly-plane', 'id'], ['Bind', 0]]
+		whereClause = ['IsNotDistinctFrom', ['ReferencedField', 'pilot-can fly-plane', 'id'], ['Bind', 0]]
 		it 'should be an upsert', ->
 			expect(result).to.be.a.query.that.upserts
 		it 'that inserts', ->
@@ -254,7 +254,7 @@ test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 						]
 					]
 					[	'Where'
-						[	'Equals',
+						[	'IsNotDistinctFrom',
 							['ReferencedField', 'pilot-can fly-plane', 'id'],
 							['Bind', 0]
 						]
@@ -287,7 +287,7 @@ do ->
 					['Bind', 'pilot-can fly-plane', 'pilot']
 				).
 				from('pilot-can fly-plane').
-				where(['Equals', ['ReferencedField', 'pilot-can fly-plane', 'id'], ['Bind', 0]])
+				where(['IsNotDistinctFrom', ['ReferencedField', 'pilot-can fly-plane', 'id'], ['Bind', 0]])
 	test '/pilot__can_fly__plane(1)', 'PATCH', { pilot: 2 }, testFunc
 	test '/pilot__can_fly__plane(1)', 'MERGE', { pilot: 2 }, testFunc
 
@@ -310,7 +310,7 @@ test '/pilot(1)/$links/licence', (result) ->
 		expect(result).to.be.a.query.that.
 			selects([['Alias', ['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
-			where(['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+			where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
 test '/pilot(1)/$links/licence(2)', (result) ->
@@ -319,8 +319,8 @@ test '/pilot(1)/$links/licence(2)', (result) ->
 			selects([['Alias', ['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['And'
-				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Bind', 1]]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+				['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'licence'], ['Bind', 1]]
+				['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -330,8 +330,8 @@ test "/pilot('Peter')/$links/licence('X')", (result) ->
 			selects([['Alias', ['ReferencedField', 'pilot', 'licence'], 'licence']]).
 			from('pilot').
 			where(['And'
-				['Equals', ['ReferencedField', 'pilot', 'licence'], ['Bind', 1]]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+				['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'licence'], ['Bind', 1]]
+				['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -345,7 +345,7 @@ test '/pilot(1)/can_fly__plane/$links/plane', (result) ->
 			).
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot']]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+				['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 
@@ -364,7 +364,7 @@ test "/team('purple')", (result) ->
 			selects(teamFields).
 			from('team').
 			where(
-				['Equals', ['ReferencedField', 'team', 'favourite colour'], ['Bind', 0]]
+				['IsNotDistinctFrom', ['ReferencedField', 'team', 'favourite colour'], ['Bind', 0]]
 			)
 
 test '/team', 'POST', { favourite_colour: 'purple' }, (result) ->
@@ -408,8 +408,8 @@ test '/pilot/$count?$filter=id eq 5 or id eq 10', (result) ->
 			from('pilot').
 			where(
 				['Or',
-					['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]],
-					['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 1]]
+					['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]],
+					['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 1]]
 				])
 
 test '/pilot(5)/licence/$count', (result) ->
@@ -422,7 +422,7 @@ test '/pilot(5)/licence/$count', (result) ->
 			).
 			where(['And',
 				['Equals', ['ReferencedField', 'pilot', 'licence'], ['ReferencedField', 'pilot.licence', 'id']]
-				['Equals', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+				['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
 			])
 
 test '/pilot/$count?$orderby=id asc', (result) ->

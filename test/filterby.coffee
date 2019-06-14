@@ -20,8 +20,8 @@ run = do ->
 			fn()
 
 sqlOps =
-	eq: 'Equals'
-	ne: 'NotEquals'
+	eq: 'IsNotDistinctFrom'
+	ne: 'IsDistinctFrom'
 	gt: 'GreaterThan'
 	ge: 'GreaterThanOrEqual'
 	lt: 'LessThan'
@@ -212,7 +212,7 @@ run [['Number', 1]], ->
 						['ReferencedField', 'pilot', 'id']
 						['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot']
 					]
-					['Equals'
+					['IsNotDistinctFrom'
 						['ReferencedField', 'pilot', 'id']
 						['Bind', 0]
 					]
@@ -428,7 +428,7 @@ run [['Number', 1]], ->
 				[	'Where'
 					[	'And'
 						abstractsql
-						['Equals'
+						['IsNotDistinctFrom'
 							['ReferencedField', 'pilot', 'id']
 							['Bind', 0]
 						]
@@ -439,7 +439,7 @@ run [['Number', 1]], ->
 	updateWhere =
 		[
 			'And'
-			[	'Equals'
+			[	'IsNotDistinctFrom'
 				['ReferencedField', 'pilot', 'id']
 				['Bind', 0]
 			]
@@ -676,7 +676,7 @@ lambdaTest = (methodName) ->
 				]
 			]
 		filterWhere =
-			[	'Equals'
+			[	'IsNotDistinctFrom'
 				['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'name']
 				['Bind', 0]
 			]
@@ -722,7 +722,7 @@ lambdaTest = (methodName) ->
 				]
 			]
 		filterWhere =
-			[	'Equals'
+			[	'IsNotDistinctFrom'
 				['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'name']
 				['Bind', 0]
 			]
