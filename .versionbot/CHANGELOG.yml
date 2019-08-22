@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add support for `TableNode` definitions
+      hash: 3e13d631b82bc9e8cb2adc55176670348662829f
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 4.1.0
+  date: 2019-08-22T18:29:13.547Z
+- commits:
     - subject: Update dependencies
       hash: 10baad559daafbf22b5c94cd26ad6db2d89b77f9
       body: ''
