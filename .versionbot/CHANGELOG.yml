@@ -1,4 +1,14 @@
 - commits:
+    - subject: Update dependencies
+      hash: 10baad559daafbf22b5c94cd26ad6db2d89b77f9
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 4.0.1
+  date: 2019-08-22T17:15:23.248Z
+- commits:
     - subject: Update tsconfig target to es2018
       hash: 11305a9db04d1c63df1c71ecf521b076658bad15
       body: ''
