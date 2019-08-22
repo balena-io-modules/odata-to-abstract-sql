@@ -26,6 +26,7 @@ import {
 	BindNode,
 	CastNode,
 	AbstractSqlField,
+	TableNode,
 } from '@resin/abstract-sql-compiler';
 import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
 export { ODataBinds, ODataQuery, SupportedMethod };
@@ -48,7 +49,7 @@ declare module '@resin/abstract-sql-compiler' {
 
 export interface Definition {
 	extraBinds: ODataBinds;
-	abstractSqlQuery: SelectQueryNode | UnionQueryNode | ResourceNode;
+	abstractSqlQuery: SelectQueryNode | UnionQueryNode | ResourceNode | TableNode;
 }
 
 interface Resource extends AbstractSqlTable {
@@ -76,7 +77,7 @@ const rewriteDefinition = (
 	definition: Definition,
 	extraBindVars: ODataBinds,
 	bindVarsLength: number,
-) => {
+): Definition => {
 	const rewrittenDefinition = _.cloneDeep(definition);
 	rewriteBinds(rewrittenDefinition, extraBindVars, bindVarsLength);
 	modifyAbstractSql(
@@ -458,12 +459,11 @@ export class OData2AbstractSQL {
 				const subQuery = new Query();
 				subQuery.select = _.map(
 					bindVars,
-					bindVar =>
-						[
-							'ReferencedField',
-							resource.tableAlias,
-							bindVar[0],
-						] as ReferencedFieldNode,
+					(bindVar): ReferencedFieldNode => [
+						'ReferencedField',
+						resource.tableAlias!,
+						bindVar[0],
+					],
 				);
 
 				const bindVarSelectQuery: SelectQueryNode = [
@@ -481,8 +481,7 @@ export class OData2AbstractSQL {
 						),
 					],
 				];
-				const definitionQuery = new Query();
-				definitionQuery.select.push(referencedIdField);
+
 				const unionResource = _.clone(resource);
 				if (
 					unionResource.definition == null ||
@@ -499,30 +498,36 @@ export class OData2AbstractSQL {
 							'Only select query definitions supported for inserts',
 						);
 					}
-					let found = false;
-					const isTable = (part: any) =>
+
+					const isTable = (part: any): part is TableNode =>
 						part[0] === 'Table' && part[1] === unionResource.name;
-					unionResource.definition.abstractSqlQuery = unionResource.definition.abstractSqlQuery.map(
-						part => {
-							if (part[0] === 'From') {
-								if (isTable(part[1])) {
-									found = true;
-									return [
-										'From',
-										['Alias', bindVarSelectQuery, unionResource.name],
-									];
-								} else if (part[1][0] === 'Alias' && isTable(part[1][1])) {
-									found = true;
-									return ['From', ['Alias', bindVarSelectQuery, part[1][2]]];
+
+					if (isTable(unionResource.definition.abstractSqlQuery)) {
+						unionResource.definition.abstractSqlQuery = bindVarSelectQuery;
+					} else {
+						let found = false;
+						unionResource.definition.abstractSqlQuery = unionResource.definition.abstractSqlQuery.map(
+							part => {
+								if (part[0] === 'From') {
+									if (isTable(part[1])) {
+										found = true;
+										return [
+											'From',
+											['Alias', bindVarSelectQuery, unionResource.name],
+										];
+									} else if (part[1][0] === 'Alias' && isTable(part[1][1])) {
+										found = true;
+										return ['From', ['Alias', bindVarSelectQuery, part[1][2]]];
+									}
 								}
-							}
-							return part;
-						},
-					) as SelectQueryNode;
-					if (!found) {
-						throw new Error(
-							'Could not replace table entry in definition for insert',
-						);
+								return part;
+							},
+						) as SelectQueryNode;
+						if (!found) {
+							throw new Error(
+								'Could not replace table entry in definition for insert',
+							);
+						}
 					}
 				}
 				if (hasQueryOpts) {
