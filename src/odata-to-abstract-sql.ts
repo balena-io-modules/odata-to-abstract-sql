@@ -37,13 +37,30 @@ declare module '@resin/abstract-sql-compiler' {
 	interface AbstractSqlTable {
 		definition?: Definition;
 	}
+	type ExtendedFromTypeNodes =
+		| SelectQueryNode
+		| UnionQueryNode
+		| TableNode
+		| ResourceNode
+		| AliasNode<SelectQueryNode | UnionQueryNode | TableNode | ResourceNode>;
 	interface FromNode {
-		1:
-			| SelectQueryNode
-			| UnionQueryNode
-			| TableNode
-			| ResourceNode
-			| AliasNode<SelectQueryNode | UnionQueryNode | TableNode | ResourceNode>;
+		1: ExtendedFromTypeNodes;
+	}
+	interface InnerJoinNode {
+		1: ExtendedFromTypeNodes;
+		2?: OnNode;
+	}
+	interface LeftJoinNode {
+		1: ExtendedFromTypeNodes;
+		2?: OnNode;
+	}
+	interface RightJoinNode {
+		1: ExtendedFromTypeNodes;
+		2?: OnNode;
+	}
+	interface FullJoinNode {
+		1: ExtendedFromTypeNodes;
+		2?: OnNode;
 	}
 }
 
