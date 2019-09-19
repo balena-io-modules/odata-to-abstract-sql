@@ -1,4 +1,14 @@
 - commits:
+    - subject: Improve error messages on failing to resolve relationships
+      hash: 8362bf12f0ad5bf9c88eab9cbfad778331e4582b
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 4.1.1
+  date: 2019-09-19T15:50:37.453Z
+- commits:
     - subject: Add support for `TableNode` definitions
       hash: 3e13d631b82bc9e8cb2adc55176670348662829f
       body: ''
