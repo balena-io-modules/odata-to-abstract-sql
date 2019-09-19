@@ -746,7 +746,9 @@ export class OData2AbstractSQL {
 		resourceName = this.Synonym(resourceName);
 		const resourceRelations = this.clientModel.relationships[resourceName];
 		if (!resourceRelations) {
-			throw new SyntaxError('Could not resolve relationship');
+			throw new SyntaxError(
+				`Could not resolve relationship for '${resourceName}'`,
+			);
 		}
 		const relationshipPath = _(relationship)
 			.split('__')
@@ -755,7 +757,9 @@ export class OData2AbstractSQL {
 			.value();
 		const relationshipMapping = _.get(resourceRelations, relationshipPath);
 		if (!relationshipMapping || !relationshipMapping.$) {
-			throw new SyntaxError('Could not resolve relationship mapping');
+			throw new SyntaxError(
+				`Could not resolve relationship mapping from '${resourceName}' to '${relationshipPath}'`,
+			);
 		}
 		return relationshipMapping.$;
 	}
