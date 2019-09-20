@@ -17,10 +17,10 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@resin/abstract-sql-compiler": "^6.8.0",
-    "@resin/odata-parser": "^1.2.2",
+    "@resin/abstract-sql-compiler": "^6.9.0",
+    "@resin/odata-parser": "^1.2.3",
     "@types/lodash": "^4.14.138",
-    "@types/memoizee": "^0.4.2",
+    "@types/memoizee": "^0.4.3",
     "@types/randomstring": "^1.1.6",
     "lodash": "^4.17.15",
     "memoizee": "^0.4.14",
@@ -33,13 +33,13 @@
     "chai": "^4.2.0",
     "chai-things": "~0.2.0",
     "coffee-script": "~1.12.7",
-    "husky": "^3.0.4",
-    "lint-staged": "^9.2.5",
+    "husky": "^3.0.5",
+    "lint-staged": "^9.3.0",
     "mocha": "^6.2.0",
     "prettier": "^1.18.2",
     "require-npm4-to-publish": "^1.0.0",
     "resin-lint": "^2.0.1",
-    "typescript": "^3.6.2"
+    "typescript": "^3.6.3"
   },
   "husky": {
     "hooks": {

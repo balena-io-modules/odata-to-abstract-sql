@@ -729,10 +729,11 @@ export class OData2AbstractSQL {
 		const tableAlias = resource.tableAlias
 			? resource.tableAlias
 			: resource.name;
-		return _(resource.fields)
-			.map((field): [string, string] => [tableAlias, field.fieldName])
-			.keyBy(mapping => sqlNameToODataName(mapping[1]))
-			.value();
+		const resourceMappings: _.Dictionary<[string, string]> = {};
+		for (const { fieldName } of resource.fields) {
+			resourceMappings[sqlNameToODataName(fieldName)] = [tableAlias, fieldName];
+		}
+		return resourceMappings;
 	}
 	ResolveRelationship(resource: string | Resource, relationship: string) {
 		let resourceName;
