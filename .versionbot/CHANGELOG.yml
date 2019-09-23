@@ -1,4 +1,26 @@
 - commits:
+    - subject: Optimise generating resource mappings
+      hash: 6e18706b50d44c54de7f68081c0544d2e6187114
+      body: |
+        Update odata-parser from 1.2.2 to 1.2.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Optimise merging of operands in `FilterByExpressionLoop`
+              hash: 1f094ccea303ecf8b8e713bf897af55126358e5a
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-1.2.3
+          date: 2019-09-20T16:40:26.961Z
+  version: 4.1.2
+  date: 2019-09-23T11:00:07.519Z
+- commits:
     - subject: Improve error messages on failing to resolve relationships
       hash: 8362bf12f0ad5bf9c88eab9cbfad778331e4582b
       body: ''
