@@ -770,9 +770,9 @@ export class OData2AbstractSQL {
 		}
 	}
 	AddSelectFields(path: any, query: Query, resource: Resource) {
-		let odataFieldNames: Array<
-			Parameters<OData2AbstractSQL['AliasSelectField']>
-		>;
+		let odataFieldNames: Array<Parameters<
+			OData2AbstractSQL['AliasSelectField']
+		>>;
 		if (
 			path.options &&
 			path.options.$select &&
@@ -1056,6 +1056,11 @@ export class OData2AbstractSQL {
 			}
 		} else if (prop.lambda) {
 			return this.Lambda(prop.name, prop.lambda);
+		} else if (prop.count) {
+			const query = new Query();
+			query.select.push(['Count', '*']);
+			this.AddNavigation(query, this.defaultResource!, prop.name);
+			return query.compile('SelectQuery');
 		} else {
 			return { resource: this.defaultResource!, name: prop.name };
 		}

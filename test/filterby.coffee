@@ -626,10 +626,7 @@ navigatedMethodTest('startswith', 'licence/name', "'P'")
 
 run -> operandTest(createMethodCall('length', 'name'), 'eq', 4)
 run -> operandTest(createMethodCall('indexof', 'name', "'Pe'"), 'eq', 0)
-# x = test
-# test = test.only
 run -> operandTest(createMethodCall('substring', 'name', 1), 'eq', "'ete'")
-# test = x
 run -> operandTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'")
 run -> operandTest(createMethodCall('tolower', 'name'), 'eq', "'pete'")
 run -> navigatedOperandTest(createMethodCall('tolower', 'licence/name'), 'eq', "'pete'")
@@ -661,6 +658,35 @@ run -> operandTest(createMethodCall('ceiling', 'age'), 'eq', 25)
 
 run -> methodTest('substringof', "'Pete'", 'name')
 run -> operandTest(createMethodCall('replace', 'name', "'ete'", "'at'"), 'eq', "'Pat'")
+
+
+run ->
+	test '/pilot?$filter=can_fly__plane/$count eq 10', (result) ->
+		it 'should select from pilot where ...', ->
+			expect(result).to.be.a.query.that.
+				selects(pilotFields).
+				from('pilot').
+				where([
+					'IsNotDistinctFrom'
+					[	'SelectQuery'
+						[	'Select'
+							[['Count', '*']]
+						]
+						[	'From'
+							[	'Alias'
+								['Table', 'pilot-can fly-plane']
+								'pilot.pilot-can fly-plane'
+							]
+						]
+						[	'Where',
+							[	'Equals'
+								['ReferencedField', 'pilot', 'id']
+								['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot']
+							]
+						]
+					]
+					['Bind', 0]
+				])
 
 lambdaTest = (methodName) ->
 	run ->
