@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add support for `/$count` in filters
+      hash: dc9a8665d1245a76fe398a2fd5a56476e5e214d5
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 4.2.0
+  date: 2019-11-22T12:23:52.190Z
+- commits:
     - subject: Optimise generating resource mappings
       hash: 6e18706b50d44c54de7f68081c0544d2e6187114
       body: |
