@@ -74,6 +74,12 @@ interface Resource extends AbstractSqlTable {
 	definition?: Definition;
 }
 
+export interface ResourceFunction {
+	(this: OData2AbstractSQL, property: any):
+		| BooleanTypeNodes
+		| { resource: Resource; name: string };
+}
+
 const comparison = {
 	eq: 'IsNotDistinctFrom',
 	ne: 'IsDistinctFrom',
@@ -224,11 +230,14 @@ export class OData2AbstractSQL {
 	private extraBodyVars: _.Dictionary<any>;
 	public extraBindVars: ODataBinds;
 	private resourceAliases: _.Dictionary<Resource>;
-	private defaultResource: Resource | undefined;
+	public defaultResource: Resource | undefined;
 	public bindVarsLength: number;
 	private checkAlias: (alias: string) => string;
 
-	constructor(private clientModel: AbstractSqlModel) {
+	constructor(
+		private clientModel: AbstractSqlModel,
+		private methods: _.Dictionary<ResourceFunction> = {},
+	) {
 		const MAX_ALIAS_LENGTH = 63;
 		const RANDOM_ALIAS_LENGTH = 12;
 		const shortAliases = generateShortAliases(clientModel);
@@ -992,6 +1001,36 @@ export class OData2AbstractSQL {
 			return this.ReferencedField(prop.resource, prop.name);
 		}
 	}
+
+	Method(
+		prop: unknown & {
+			method: Array<string | { method: string }>;
+		},
+	): BooleanTypeNodes | { resource: Resource; name: string } {
+		if (!prop.method) {
+			throw new SyntaxError('Method is missing method entry');
+		}
+
+		if (prop.method[0] != 'call') {
+			throw new SyntaxError(
+				`Invalid value for method invocation: ${prop.method[0]}`,
+			);
+		}
+
+		if (typeof prop.method[1] !== 'object') {
+			throw new SyntaxError(
+				`Invalid value for method invocation: ${prop.method[1]} should be an object`,
+			);
+		}
+
+		const { method } = prop.method[1];
+		if (!this.methods.hasOwnProperty(method)) {
+			throw new SyntaxError(`Method ${method} is unknown`);
+		}
+
+		return this.methods[method].call(this, prop);
+	}
+
 	Property(prop: any): BooleanTypeNodes | { resource: Resource; name: string } {
 		if (!prop.name) {
 			throw new SyntaxError('Property is missing name');
@@ -1012,6 +1051,8 @@ export class OData2AbstractSQL {
 			} else {
 				return this.Property(prop.property);
 			}
+		} else if (prop.method) {
+			return this.Method(prop);
 		} else if (prop.lambda) {
 			return this.Lambda(prop.name, prop.lambda);
 		} else if (prop.count) {
