@@ -1,4 +1,14 @@
 - commits:
+    - subject: Add CODEOWNERS
+      hash: 802f99c32934b4eac31de4e3a14eaa6810d9d854
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 4.2.1
+  date: 2020-01-22T16:31:49.750Z
+- commits:
     - subject: Add support for `/$count` in filters
       hash: dc9a8665d1245a76fe398a2fd5a56476e5e214d5
       body: ''
