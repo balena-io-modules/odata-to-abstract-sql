@@ -1,4 +1,21 @@
 - commits:
+    - subject: Remove unsupported node 6 from the test matrix
+      hash: 2cd70f619ccaa8c985d98a48e1510fd2c05146e5
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+    - subject: Add support for computed field when selecting from a resource alias
+      hash: 6580973773c35c596a84cdbd9a87e872d8029a25
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 4.3.0
+  date: 2020-02-11T11:30:52.462Z
+- commits:
     - subject: Add CODEOWNERS
       hash: 802f99c32934b4eac31de4e3a14eaa6810d9d854
       body: ''
