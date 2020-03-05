@@ -1,4 +1,16 @@
 - commits:
+    - subject: '✨: Add custom resource functions'
+      hash: e65ade6c3bc46a7130f6f3e0442b846140e220c0
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+        signed-off-by: Andreas Fitzek <andreas@balena.io>
+      author: Andreas Fitzek
+  version: 4.4.0
+  date: 2020-03-02T13:57:20.504Z
+- commits:
     - subject: Remove unsupported node 6 from the test matrix
       hash: 2cd70f619ccaa8c985d98a48e1510fd2c05146e5
       body: ''
