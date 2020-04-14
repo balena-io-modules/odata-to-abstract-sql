@@ -9,7 +9,7 @@
     "lint": "npm run lint:coffee && npm run lint:typescript",
     "prettify": "balena-lint --typescript --fix src",
     "pretest": "npm run prepare",
-    "test": "mocha",
+    "test": "mocha && npm run lint",
     "prepublish": "require-npm4-to-publish",
     "prepare": "tsc"
   },
