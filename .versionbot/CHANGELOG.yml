@@ -1,4 +1,14 @@
 - commits:
+    - subject: Fix linting and make use of import type
+      hash: 0145269cfeecc4be63f66efb114d4251a57fd651
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 4.4.2
+  date: 2020-04-14T12:08:13.044Z
+- commits:
     - subject: Update dependencies
       hash: ade9704d46fac99028f0801c6e7d8c2b2863b4d7
       body: |
