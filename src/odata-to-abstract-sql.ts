@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as memoize from 'memoizee';
 import * as randomstring from 'randomstring';
-import {
+import type {
 	AbstractSqlQuery,
 	AbstractSqlModel,
 	AbstractSqlTable,
@@ -28,8 +28,12 @@ import {
 	AbstractSqlField,
 	TableNode,
 } from '@resin/abstract-sql-compiler';
-import { ODataBinds, ODataQuery, SupportedMethod } from '@resin/odata-parser';
-export { ODataBinds, ODataQuery, SupportedMethod };
+import type {
+	ODataBinds,
+	ODataQuery,
+	SupportedMethod,
+} from '@resin/odata-parser';
+export type { ODataBinds, ODataQuery, SupportedMethod };
 
 export type ResourceNode = ['Resource', string];
 
@@ -74,11 +78,10 @@ interface Resource extends AbstractSqlTable {
 	definition?: Definition;
 }
 
-export interface ResourceFunction {
-	(this: OData2AbstractSQL, property: any):
-		| BooleanTypeNodes
-		| { resource: Resource; name: string };
-}
+export type ResourceFunction = (
+	this: OData2AbstractSQL,
+	property: any,
+) => BooleanTypeNodes | { resource: Resource; name: string };
 
 const comparison = {
 	eq: 'IsNotDistinctFrom',
@@ -123,14 +126,12 @@ const containsQueryOption = (opts: object): boolean => {
 };
 
 class Query {
-	public select: SelectNode[1][] = [];
-	public from: FromNode[1][] = [];
-	public where: WhereNode[1][] = [];
+	public select: Array<SelectNode[1]> = [];
+	public from: Array<FromNode[1]> = [];
+	public where: Array<WhereNode[1]> = [];
 	public extras: Array<
 		FieldsNode | ValuesNode | OrderByNode | LimitNode | OffsetNode
 	> = [];
-
-	constructor() {}
 
 	merge(otherQuery: Query): void {
 		this.select = this.select.concat(otherQuery.select);
@@ -170,7 +171,7 @@ class Query {
 		if (queryType === 'SelectQuery') {
 			compiled.push(['Select', this.select] as SelectNode);
 		}
-		_.each(this.from, tableName => {
+		_.each(this.from, (tableName) => {
 			compiled.push(['From', tableName] as AbstractSqlQuery);
 		});
 		if (where.length > 0) {
@@ -202,7 +203,7 @@ const modifyAbstractSql = (
 		if (abstractSql[0] === match) {
 			fn(abstractSql);
 		} else {
-			_.each(abstractSql, abstractSqlComponent => {
+			_.each(abstractSql, (abstractSqlComponent) => {
 				modifyAbstractSql(match, abstractSqlComponent as AbstractSqlQuery, fn);
 			});
 		}
@@ -248,29 +249,29 @@ export class OData2AbstractSQL {
 			}
 			alias = _(alias)
 				.split('.')
-				.map(part => {
+				.map((part) => {
 					if (aliasLength <= MAX_ALIAS_LENGTH) {
 						return part;
 					}
 					aliasLength -= part.length;
 					const shortAlias = _(part)
 						.split('-')
-						.map(part => {
-							part = _(part)
+						.map((part2) => {
+							part2 = _(part2)
 								.split(' ')
-								.map(part => {
-									const shortPart = shortAliases[part];
-									if (shortPart) {
-										return shortPart;
+								.map((part3) => {
+									const shortPart2 = shortAliases[part3];
+									if (shortPart2) {
+										return shortPart2;
 									}
-									return part;
+									return part3;
 								})
 								.join(' ');
-							const shortPart = shortAliases[part];
+							const shortPart = shortAliases[part2];
 							if (shortPart) {
 								return shortPart;
 							}
-							return part;
+							return part2;
 						})
 						.join('-');
 					aliasLength += shortAlias.length;
@@ -461,7 +462,7 @@ export class OData2AbstractSQL {
 							resource.fields,
 							(field): AliasNode<CastNode> => {
 								const alias = field.fieldName;
-								const bindVar = _.find(bindVars, v => v[0] === alias);
+								const bindVar = _.find(bindVars, (v) => v[0] === alias);
 								const value = bindVar ? bindVar[1] : 'Null';
 								return ['Alias', ['Cast', value, field.dataType], alias];
 							},
@@ -494,7 +495,7 @@ export class OData2AbstractSQL {
 					} else {
 						let found = false;
 						unionResource.definition.abstractSqlQuery = unionResource.definition.abstractSqlQuery.map(
-							part => {
+							(part) => {
 								if (part[0] === 'From') {
 									if (isTable(part[1])) {
 										found = true;
@@ -617,7 +618,7 @@ export class OData2AbstractSQL {
 		]);
 	}
 	OrderByProperties(orderings: any[]): Array<OrderByNode[1]> {
-		return orderings.map(ordering => {
+		return orderings.map((ordering) => {
 			const field = this.ReferencedProperty(ordering);
 			return [ordering.order.toUpperCase(), field] as OrderByNode[1];
 		});
@@ -668,16 +669,16 @@ export class OData2AbstractSQL {
 		resource = _.clone(resource);
 		let tableAlias;
 		if (parentResource) {
-			let resourceAlias;
+			let resourceAlias2;
 			if (_.includes(resourceName, '__') && !_.includes(resource.name, '-')) {
 				// If we have a __ in the resource name to navigate then we used a verb for navigation,
 				// and no dash in the resulting resource name means we don't have the verb in the alias, so we need to add it
 				const verb = odataNameToSqlName(resourceName).split('-')[0];
-				resourceAlias = verb + '-' + resource.name;
+				resourceAlias2 = verb + '-' + resource.name;
 			} else {
-				resourceAlias = resource.name;
+				resourceAlias2 = resource.name;
 			}
-			tableAlias = parentResource.tableAlias + '.' + resourceAlias;
+			tableAlias = parentResource.tableAlias + '.' + resourceAlias2;
 		} else {
 			tableAlias = resource.name;
 		}
@@ -724,7 +725,7 @@ export class OData2AbstractSQL {
 		const relationshipPath = _(relationship)
 			.split('__')
 			.map(odataNameToSqlName)
-			.flatMap(sqlName => this.Synonym(sqlName).split('-'))
+			.flatMap((sqlName) => this.Synonym(sqlName).split('-'))
 			.value();
 		const relationshipMapping = _.get(resourceRelations, relationshipPath);
 		if (!relationshipMapping || !relationshipMapping.$) {
@@ -760,7 +761,7 @@ export class OData2AbstractSQL {
 				return [field.resource, field.name, resourceField?.computed];
 			});
 		} else {
-			odataFieldNames = resource.fields.map(field => [
+			odataFieldNames = resource.fields.map((field) => [
 				resource,
 				sqlNameToODataName(field.fieldName),
 				field.computed,
@@ -770,7 +771,7 @@ export class OData2AbstractSQL {
 			odataFieldNames,
 			query.select,
 			(a, b) => a[1] === _.last(b),
-		).map(args => this.AliasSelectField(...args));
+		).map((args) => this.AliasSelectField(...args));
 		query.select = query.select.concat(fields);
 	}
 	AliasSelectField(
@@ -858,7 +859,7 @@ export class OData2AbstractSQL {
 						case 'or':
 							return [
 								_.capitalize(type),
-								...rest.map(v => this.BooleanMatch(v)),
+								...rest.map((v) => this.BooleanMatch(v)),
 							] as BooleanTypeNodes;
 						case 'not':
 							const bool = this.BooleanMatch(rest[0]);
@@ -1011,7 +1012,7 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Method is missing method entry');
 		}
 
-		if (prop.method[0] != 'call') {
+		if (prop.method[0] !== 'call') {
 			throw new SyntaxError(
 				`Invalid value for method invocation: ${prop.method[0]}`,
 			);
@@ -1040,7 +1041,9 @@ export class OData2AbstractSQL {
 			let propResource;
 			try {
 				propResource = this.Resource(prop.name, this.defaultResource);
-			} catch (e) {}
+			} catch {
+				// ignore
+			}
 			if (propResource) {
 				try {
 					this.defaultResource = propResource;
@@ -1177,11 +1180,7 @@ export class OData2AbstractSQL {
 			.pick('negative', 'day', 'hour', 'minute', 'second')
 			.omitBy(_.isNil)
 			.value();
-		if (
-			_(duration)
-				.omit('negative')
-				.isEmpty()
-		) {
+		if (_(duration).omit('negative').isEmpty()) {
 			return;
 		}
 		return ['Duration', duration];
@@ -1282,11 +1281,12 @@ export class OData2AbstractSQL {
 		// TODO: try removing
 		try {
 			if (_.isArray(match)) {
-				match.forEach(v => this.AddExtraFroms(query, parentResource, v));
+				match.forEach((v) => this.AddExtraFroms(query, parentResource, v));
 			} else {
 				let nextProp = match;
 				let prop;
 				while (
+					// tslint:disable-next-line:no-conditional-assignment
 					(prop = nextProp) &&
 					prop.name &&
 					prop.property &&
@@ -1308,7 +1308,9 @@ export class OData2AbstractSQL {
 					this.AddExtraFroms(query, parentResource, prop.args);
 				}
 			}
-		} catch (e) {}
+		} catch {
+			// ignore
+		}
 	}
 	AddNavigation(
 		query: Query,
@@ -1319,7 +1321,7 @@ export class OData2AbstractSQL {
 		if (
 			!_.some(
 				query.from,
-				from =>
+				(from) =>
 					(from[0] === 'Table' && from[1] === navigation.resource.tableAlias) ||
 					(from[0] === 'Alias' && from[2] === navigation.resource.tableAlias),
 			)
@@ -1347,7 +1349,7 @@ export class OData2AbstractSQL {
 	Synonym(sqlName: string) {
 		return _(sqlName)
 			.split('-')
-			.map(namePart => {
+			.map((namePart) => {
 				const synonym = this.clientModel.synonyms[namePart];
 				if (synonym) {
 					return synonym;
@@ -1385,10 +1387,10 @@ export class OData2AbstractSQL {
 						...(subDefinition.abstractSqlQuery as AbstractSqlType[]),
 					);
 				} else if (
-					referencedResource.fields.some(field => field.computed != null)
+					referencedResource.fields.some((field) => field.computed != null)
 				) {
 					const computedFieldQuery = new Query();
-					computedFieldQuery.select = referencedResource.fields.map(field =>
+					computedFieldQuery.select = referencedResource.fields.map((field) =>
 						this.AliasSelectField(
 							referencedResource,
 							sqlNameToODataName(field.fieldName),
@@ -1419,53 +1421,54 @@ export class OData2AbstractSQL {
 	}
 }
 
+const addAliases = (
+	shortAliases: _.Dictionary<string>,
+	origAliasParts: string[],
+) => {
+	const trie = {};
+	const buildTrie = (aliasPart: string) => {
+		let node: any = trie;
+		for (let i = 0; i < aliasPart.length; i++) {
+			if (node.$suffix) {
+				node[node.$suffix[0]] = {
+					$suffix: node.$suffix.slice(1),
+				};
+				delete node.$suffix;
+			}
+			const c = aliasPart[i];
+			if (node[c]) {
+				node = node[c];
+			} else {
+				node[c] = {
+					$suffix: aliasPart.slice(i + 1),
+				};
+				return;
+			}
+		}
+	};
+	const traverseNodes = (str: string, node: any) => {
+		if (node.$suffix) {
+			const index = lowerCaseAliasParts.indexOf(str + node.$suffix);
+			const origAliasPart = origAliasParts[index];
+			shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
+		} else {
+			_.each(node, (value, key) => {
+				traverseNodes(str + key, value);
+			});
+		}
+	};
+
+	const lowerCaseAliasParts = origAliasParts.map((origAliasPart) =>
+		origAliasPart.toLowerCase(),
+	);
+	lowerCaseAliasParts.slice().sort().forEach(buildTrie);
+
+	// Find the shortest unique alias for each term, using the trie.
+	traverseNodes('', trie);
+};
+
 const generateShortAliases = (clientModel: AbstractSqlModel) => {
 	const shortAliases: _.Dictionary<string> = {};
-	const addAliases = (origAliasParts: string[]) => {
-		const trie = {};
-		const buildTrie = (aliasPart: string) => {
-			let node: any = trie;
-			for (let i = 0; i < aliasPart.length; i++) {
-				if (node.$suffix) {
-					node[node.$suffix[0]] = {
-						$suffix: node.$suffix.slice(1),
-					};
-					delete node.$suffix;
-				}
-				const c = aliasPart[i];
-				if (node[c]) {
-					node = node[c];
-				} else {
-					node[c] = {
-						$suffix: aliasPart.slice(i + 1),
-					};
-					return;
-				}
-			}
-		};
-		const traverseNodes = (str: string, node: any) => {
-			if (node.$suffix) {
-				const index = lowerCaseAliasParts.indexOf(str + node.$suffix);
-				const origAliasPart = origAliasParts[index];
-				shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
-			} else {
-				_.each(node, (value, key) => {
-					traverseNodes(str + key, value);
-				});
-			}
-		};
-
-		const lowerCaseAliasParts = origAliasParts.map(origAliasPart =>
-			origAliasPart.toLowerCase(),
-		);
-		lowerCaseAliasParts
-			.slice()
-			.sort()
-			.forEach(buildTrie);
-
-		// Find the shortest unique alias for each term, using the trie.
-		traverseNodes('', trie);
-	};
 
 	const getRelationships = (
 		relationships: AbstractSqlModel['relationships'] | Relationship,
@@ -1484,44 +1487,44 @@ const generateShortAliases = (clientModel: AbstractSqlModel) => {
 
 	const aliasParts = _(getRelationships(clientModel.relationships))
 		.union(Object.keys(clientModel.synonyms))
-		.reject(key => key === '$')
+		.reject((key) => key === '$')
 		.value();
 
 	// Add the first level of aliases, of names split by `-` and ` `, for short aliases on a word by word basis
 	let origAliasParts = _(aliasParts)
-		.flatMap(aliasPart => aliasPart.split(/-| /))
+		.flatMap((aliasPart) => aliasPart.split(/-| /))
 		.uniq()
 		.value();
-	addAliases(origAliasParts);
+	addAliases(shortAliases, origAliasParts);
 
 	// Add the second level of aliases, of names that include a ` `, split by `-`, for short aliases on a verb/term basis
 	origAliasParts = _(aliasParts)
-		.flatMap(aliasPart => aliasPart.split('-'))
-		.filter(aliasPart => _.includes(aliasPart, ' '))
-		.map(aliasPart =>
+		.flatMap((aliasPart) => aliasPart.split('-'))
+		.filter((aliasPart) => _.includes(aliasPart, ' '))
+		.map((aliasPart) =>
 			aliasPart
 				.split(' ')
-				.map(part => shortAliases[part])
+				.map((part) => shortAliases[part])
 				.join(' '),
 		)
 		.uniq()
 		.value();
 
-	addAliases(origAliasParts);
+	addAliases(shortAliases, origAliasParts);
 
 	// Add the third level of aliases, of names that include a `-`, for short aliases on a fact type basis
 	origAliasParts = _(aliasParts)
-		.filter(aliasPart => _.includes(aliasPart, '-'))
-		.map(aliasPart =>
+		.filter((aliasPart) => _.includes(aliasPart, '-'))
+		.map((aliasPart) =>
 			aliasPart
 				.split('-')
-				.map(part => shortAliases[part])
+				.map((part) => shortAliases[part])
 				.join('-'),
 		)
 		.uniq()
 		.value();
 
-	addAliases(origAliasParts);
+	addAliases(shortAliases, origAliasParts);
 
 	return shortAliases;
 };
