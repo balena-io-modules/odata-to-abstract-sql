@@ -1319,8 +1319,7 @@ export class OData2AbstractSQL {
 	): Resource {
 		const navigation = this.NavigateResources(resource, extraResource);
 		if (
-			!_.some(
-				query.from,
+			!query.from.some(
 				(from) =>
 					(from[0] === 'Table' && from[1] === navigation.resource.tableAlias) ||
 					(from[0] === 'Alias' && from[2] === navigation.resource.tableAlias),
