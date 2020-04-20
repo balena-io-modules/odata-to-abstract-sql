@@ -171,7 +171,7 @@ class Query {
 		if (queryType === 'SelectQuery') {
 			compiled.push(['Select', this.select] as SelectNode);
 		}
-		_.each(this.from, (tableName) => {
+		this.from.forEach((tableName) => {
 			compiled.push(['From', tableName] as AbstractSqlQuery);
 		});
 		if (where.length > 0) {
@@ -203,7 +203,7 @@ const modifyAbstractSql = (
 		if (abstractSql[0] === match) {
 			fn(abstractSql);
 		} else {
-			_.each(abstractSql, (abstractSqlComponent) => {
+			abstractSql.forEach((abstractSqlComponent) => {
 				modifyAbstractSql(match, abstractSqlComponent as AbstractSqlQuery, fn);
 			});
 		}
@@ -1449,7 +1449,7 @@ const addAliases = (
 			const origAliasPart = origAliasParts[index];
 			shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
 		} else {
-			_.each(node, (value, key) => {
+			_.forEach(node, (value, key) => {
 				traverseNodes(str + key, value);
 			});
 		}
