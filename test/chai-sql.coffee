@@ -44,7 +44,7 @@ chai.use((chai, utils) ->
 	fromClause = bodyClause('From')
 	utils.addMethod(assertionPrototype, 'from', (bodyClauses...) ->
 		bodyClauses = bodyClauses.map((v) ->
-			if _.isString(v)
+			if typeof v == 'string'
 				return ['Table', v]
 			return ['Alias', ['Table', v[0]], v[1]]
 		)
@@ -95,13 +95,13 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 		if _.isBoolean(operand)
 			binds.push(['Boolean', operand])
 			return ['Bind', binds.length - 1]
-		if _.isNumber(operand)
+		if typeof operand == 'number'
 			binds.push(['Number', operand])
 			return ['Bind', binds.length - 1]
 		if _.isDate(operand)
 			binds.push(['Date', operand])
 			return ['Bind', binds.length - 1]
-		if _.isString(operand)
+		if typeof operand == 'string'
 			if operand is 'null'
 				return ['Null']
 			if operand.charAt(0) is '('
@@ -124,7 +124,7 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 					sqlNameParts = sqlName.split('-')
 					mapping = _.get(clientModel.relationships[previousResource], sqlNameParts.join('.')).$
 					refTable = mapping[1][0]
-					if sqlNameParts.length > 1 and not _.includes(refTable, '-')
+					if sqlNameParts.length > 1 and not refTable.includes('-')
 						# Add the verb to tables that don't include the verb already
 						alias = "#{alias}.#{sqlNameParts[0]}-#{refTable}"
 					else
@@ -134,7 +134,7 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 			else
 				mapping = [resource, odataNameToSqlName(operand)]
 			return ['ReferencedField'].concat(mapping)
-		if _.isArray(operand)
+		if Array.isArray(operand)
 			return operandToAbstractSQL(operand...)
 		if _.isObject(operand)
 			return [ 'Duration', operand ]
@@ -145,7 +145,7 @@ exports.operandToOData = operandToOData = (operand) ->
 		return operand.odata
 	if _.isDate(operand)
 		return "datetime'" + encodeURIComponent(operand.toISOString()) + "'"
-	if _.isArray(operand)
+	if Array.isArray(operand)
 		return operandToOData(operand[0])
 	if _.isObject(operand)
 		duration = []
@@ -195,7 +195,7 @@ exports.aliasFields = do ->
 			verb = verb + '-'
 		else
 			verb = ''
-		_.map(fields, _.partial(aliasField, resourceAlias, verb))
+		fields.map(_.partial(aliasField, resourceAlias, verb))
 
 exports.pilotFields = [
 	['Alias', ['ReferencedField', 'pilot', 'created at'], 'created_at']

@@ -171,7 +171,7 @@ class Query {
 		if (queryType === 'SelectQuery') {
 			compiled.push(['Select', this.select] as SelectNode);
 		}
-		_.each(this.from, (tableName) => {
+		this.from.forEach((tableName) => {
 			compiled.push(['From', tableName] as AbstractSqlQuery);
 		});
 		if (where.length > 0) {
@@ -199,11 +199,11 @@ const modifyAbstractSql = (
 	abstractSql: AbstractSqlQuery,
 	fn: (abstractSql: AbstractSqlQuery) => void,
 ): void => {
-	if (_.isArray(abstractSql)) {
+	if (Array.isArray(abstractSql)) {
 		if (abstractSql[0] === match) {
 			fn(abstractSql);
 		} else {
-			_.each(abstractSql, (abstractSqlComponent) => {
+			abstractSql.forEach((abstractSqlComponent) => {
 				modifyAbstractSql(match, abstractSqlComponent as AbstractSqlQuery, fn);
 			});
 		}
@@ -219,7 +219,7 @@ export const rewriteBinds = (
 		'Bind',
 		definition.abstractSqlQuery as AbstractSqlQuery,
 		(bind: AbstractSqlQuery) => {
-			if (_.isNumber(bind[1])) {
+			if (typeof bind[1] === 'number') {
 				(bind[1] as any) += inc;
 			}
 		},
@@ -304,7 +304,7 @@ export class OData2AbstractSQL {
 		let tree: AbstractSqlQuery;
 		if (_.isEmpty(path)) {
 			tree = ['$serviceroot'];
-		} else if (_.includes(['$metadata', '$serviceroot'], path.resource)) {
+		} else if (['$metadata', '$serviceroot'].includes(path.resource)) {
 			tree = [path.resource];
 		} else {
 			const query = this.PathSegment(method, bodyKeys, path);
@@ -435,7 +435,7 @@ export class OData2AbstractSQL {
 				resource.resourceName,
 				_.toPairs(resourceMapping),
 			);
-			query.extras.push(['Fields', _.map(bindVars, 0)]);
+			query.extras.push(['Fields', bindVars.map((b) => b[0])]);
 
 			// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
 			// we make sure to always apply it. This means that the definition will still be applied for these queries
@@ -445,8 +445,7 @@ export class OData2AbstractSQL {
 			) {
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
 				const subQuery = new Query();
-				subQuery.select = _.map(
-					bindVars,
+				subQuery.select = bindVars.map(
 					(bindVar): ReferencedFieldNode => [
 						'ReferencedField',
 						resource.tableAlias!,
@@ -458,11 +457,10 @@ export class OData2AbstractSQL {
 					'SelectQuery',
 					[
 						'Select',
-						_.map(
-							resource.fields,
+						resource.fields.map(
 							(field): AliasNode<CastNode> => {
 								const alias = field.fieldName;
-								const bindVar = _.find(bindVars, (v) => v[0] === alias);
+								const bindVar = bindVars?.find((v) => v[0] === alias);
 								const value = bindVar ? bindVar[1] : 'Null';
 								return ['Alias', ['Cast', value, field.dataType], alias];
 							},
@@ -532,7 +530,7 @@ export class OData2AbstractSQL {
 					subQuery.compile('SelectQuery') as SelectQueryNode,
 				]);
 			} else {
-				query.extras.push(['Values', _.map(bindVars, 1)]);
+				query.extras.push(['Values', bindVars.map((b) => b[1])]);
 			}
 		} else if (path.count) {
 			this.AddCountField(path, query);
@@ -584,8 +582,8 @@ export class OData2AbstractSQL {
 				// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
 				const qualifiedIDField = resource.resourceName + '.' + resource.idField;
 				if (
-					!_.includes(bodyKeys, qualifiedIDField) &&
-					!_.includes(bodyKeys, resource.idField)
+					!bodyKeys.includes(qualifiedIDField) &&
+					!bodyKeys.includes(resource.idField)
 				) {
 					bodyKeys.push(qualifiedIDField);
 					this.extraBodyVars[qualifiedIDField] = path.key;
@@ -634,8 +632,8 @@ export class OData2AbstractSQL {
 			| undefined => {
 			const [fieldName, [, mappedFieldName]] = field;
 			if (
-				_.includes(bodyKeys, fieldName) ||
-				_.includes(bodyKeys, resourceName + '.' + fieldName)
+				bodyKeys.includes(fieldName) ||
+				bodyKeys.includes(resourceName + '.' + fieldName)
 			) {
 				return [mappedFieldName, ['Bind', resourceName, fieldName]];
 			}
@@ -670,7 +668,7 @@ export class OData2AbstractSQL {
 		let tableAlias;
 		if (parentResource) {
 			let resourceAlias2;
-			if (_.includes(resourceName, '__') && !_.includes(resource.name, '-')) {
+			if (resourceName.includes('__') && !resource.name.includes('-')) {
 				// If we have a __ in the resource name to navigate then we used a verb for navigation,
 				// and no dash in the resulting resource name means we don't have the verb in the alias, so we need to add it
 				const verb = odataNameToSqlName(resourceName).split('-')[0];
@@ -839,7 +837,7 @@ export class OData2AbstractSQL {
 			case false:
 				return ['Boolean', match];
 			default:
-				if (_.isArray(match)) {
+				if (Array.isArray(match)) {
 					const [type, ...rest] = match;
 					switch (type) {
 						case 'eq':
@@ -912,7 +910,7 @@ export class OData2AbstractSQL {
 		return [sqlName, ...fn.slice(1)];
 	}
 	FunctionMatch(name: string, match: any): AbstractSqlQuery {
-		if (!_.isArray(match) || match[0] !== 'call') {
+		if (!Array.isArray(match) || match[0] !== 'call') {
 			throw new SyntaxError('Not a function call');
 		}
 		const properties = match[1];
@@ -995,7 +993,7 @@ export class OData2AbstractSQL {
 	}
 	ReferencedProperty(match: any): BooleanTypeNodes {
 		const prop = this.Property(match);
-		if (_.isArray(prop)) {
+		if (Array.isArray(prop)) {
 			// It's the result of a lambda
 			return prop;
 		} else {
@@ -1070,9 +1068,9 @@ export class OData2AbstractSQL {
 	NumberMatch(match: any, optional: true): NumberTypeNodes | undefined;
 	NumberMatch(match: any): NumberTypeNodes;
 	NumberMatch(match: any, optional = false): NumberTypeNodes | undefined {
-		if (_.isNumber(match)) {
+		if (typeof match === 'number') {
 			return ['Number', match];
-		} else if (_.isArray(match) && match[0] === 'call') {
+		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
 			switch (method) {
 				case 'indexof':
@@ -1116,9 +1114,9 @@ export class OData2AbstractSQL {
 	TextMatch(match: any, optional: true): AbstractSqlType | undefined;
 	TextMatch(match: any): AbstractSqlType;
 	TextMatch(match: any, optional = false): AbstractSqlType | undefined {
-		if (_.isString(match)) {
+		if (typeof match === 'string') {
 			return ['Text', match];
-		} else if (_.isArray(match) && match[0] === 'call') {
+		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
 			switch (method) {
 				case 'tolower':
@@ -1153,7 +1151,7 @@ export class OData2AbstractSQL {
 	DateMatch(match: any, optional = false): AbstractSqlType | undefined {
 		if (_.isDate(match)) {
 			return ['Date', match];
-		} else if (_.isArray(match) && match[0] === 'call') {
+		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
 			switch (method) {
 				case 'now':
@@ -1280,7 +1278,7 @@ export class OData2AbstractSQL {
 	AddExtraFroms(query: Query, parentResource: Resource, match: any) {
 		// TODO: try removing
 		try {
-			if (_.isArray(match)) {
+			if (Array.isArray(match)) {
 				match.forEach((v) => this.AddExtraFroms(query, parentResource, v));
 			} else {
 				let nextProp = match;
@@ -1319,8 +1317,7 @@ export class OData2AbstractSQL {
 	): Resource {
 		const navigation = this.NavigateResources(resource, extraResource);
 		if (
-			!_.some(
-				query.from,
+			!query.from.some(
 				(from) =>
 					(from[0] === 'Table' && from[1] === navigation.resource.tableAlias) ||
 					(from[0] === 'Alias' && from[2] === navigation.resource.tableAlias),
@@ -1452,7 +1449,7 @@ const addAliases = (
 			const origAliasPart = origAliasParts[index];
 			shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
 		} else {
-			_.each(node, (value, key) => {
+			_.forEach(node, (value, key) => {
 				traverseNodes(str + key, value);
 			});
 		}
@@ -1500,7 +1497,7 @@ const generateShortAliases = (clientModel: AbstractSqlModel) => {
 	// Add the second level of aliases, of names that include a ` `, split by `-`, for short aliases on a verb/term basis
 	origAliasParts = _(aliasParts)
 		.flatMap((aliasPart) => aliasPart.split('-'))
-		.filter((aliasPart) => _.includes(aliasPart, ' '))
+		.filter((aliasPart) => aliasPart.includes(' '))
 		.map((aliasPart) =>
 			aliasPart
 				.split(' ')
@@ -1514,7 +1511,7 @@ const generateShortAliases = (clientModel: AbstractSqlModel) => {
 
 	// Add the third level of aliases, of names that include a `-`, for short aliases on a fact type basis
 	origAliasParts = _(aliasParts)
-		.filter((aliasPart) => _.includes(aliasPart, '-'))
+		.filter((aliasPart) => aliasPart.includes('-'))
 		.map((aliasPart) =>
 			aliasPart
 				.split('-')
