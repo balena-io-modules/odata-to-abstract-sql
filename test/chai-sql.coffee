@@ -124,7 +124,7 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 					sqlNameParts = sqlName.split('-')
 					mapping = _.get(clientModel.relationships[previousResource], sqlNameParts.join('.')).$
 					refTable = mapping[1][0]
-					if sqlNameParts.length > 1 and not _.includes(refTable, '-')
+					if sqlNameParts.length > 1 and not refTable.includes('-')
 						# Add the verb to tables that don't include the verb already
 						alias = "#{alias}.#{sqlNameParts[0]}-#{refTable}"
 					else

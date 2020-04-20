@@ -304,7 +304,7 @@ export class OData2AbstractSQL {
 		let tree: AbstractSqlQuery;
 		if (_.isEmpty(path)) {
 			tree = ['$serviceroot'];
-		} else if (_.includes(['$metadata', '$serviceroot'], path.resource)) {
+		} else if (['$metadata', '$serviceroot'].includes(path.resource)) {
 			tree = [path.resource];
 		} else {
 			const query = this.PathSegment(method, bodyKeys, path);
@@ -584,8 +584,8 @@ export class OData2AbstractSQL {
 				// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
 				const qualifiedIDField = resource.resourceName + '.' + resource.idField;
 				if (
-					!_.includes(bodyKeys, qualifiedIDField) &&
-					!_.includes(bodyKeys, resource.idField)
+					!bodyKeys.includes(qualifiedIDField) &&
+					!bodyKeys.includes(resource.idField)
 				) {
 					bodyKeys.push(qualifiedIDField);
 					this.extraBodyVars[qualifiedIDField] = path.key;
@@ -634,8 +634,8 @@ export class OData2AbstractSQL {
 			| undefined => {
 			const [fieldName, [, mappedFieldName]] = field;
 			if (
-				_.includes(bodyKeys, fieldName) ||
-				_.includes(bodyKeys, resourceName + '.' + fieldName)
+				bodyKeys.includes(fieldName) ||
+				bodyKeys.includes(resourceName + '.' + fieldName)
 			) {
 				return [mappedFieldName, ['Bind', resourceName, fieldName]];
 			}
@@ -670,7 +670,7 @@ export class OData2AbstractSQL {
 		let tableAlias;
 		if (parentResource) {
 			let resourceAlias2;
-			if (_.includes(resourceName, '__') && !_.includes(resource.name, '-')) {
+			if (resourceName.includes('__') && !resource.name.includes('-')) {
 				// If we have a __ in the resource name to navigate then we used a verb for navigation,
 				// and no dash in the resulting resource name means we don't have the verb in the alias, so we need to add it
 				const verb = odataNameToSqlName(resourceName).split('-')[0];
@@ -1500,7 +1500,7 @@ const generateShortAliases = (clientModel: AbstractSqlModel) => {
 	// Add the second level of aliases, of names that include a ` `, split by `-`, for short aliases on a verb/term basis
 	origAliasParts = _(aliasParts)
 		.flatMap((aliasPart) => aliasPart.split('-'))
-		.filter((aliasPart) => _.includes(aliasPart, ' '))
+		.filter((aliasPart) => aliasPart.includes(' '))
 		.map((aliasPart) =>
 			aliasPart
 				.split(' ')
@@ -1514,7 +1514,7 @@ const generateShortAliases = (clientModel: AbstractSqlModel) => {
 
 	// Add the third level of aliases, of names that include a `-`, for short aliases on a fact type basis
 	origAliasParts = _(aliasParts)
-		.filter((aliasPart) => _.includes(aliasPart, '-'))
+		.filter((aliasPart) => aliasPart.includes('-'))
 		.map((aliasPart) =>
 			aliasPart
 				.split('-')
