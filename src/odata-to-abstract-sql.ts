@@ -435,7 +435,7 @@ export class OData2AbstractSQL {
 				resource.resourceName,
 				_.toPairs(resourceMapping),
 			);
-			query.extras.push(['Fields', _.map(bindVars, 0)]);
+			query.extras.push(['Fields', bindVars.map((b) => b[0])]);
 
 			// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
 			// we make sure to always apply it. This means that the definition will still be applied for these queries
@@ -445,8 +445,7 @@ export class OData2AbstractSQL {
 			) {
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
 				const subQuery = new Query();
-				subQuery.select = _.map(
-					bindVars,
+				subQuery.select = bindVars.map(
 					(bindVar): ReferencedFieldNode => [
 						'ReferencedField',
 						resource.tableAlias!,
@@ -458,8 +457,7 @@ export class OData2AbstractSQL {
 					'SelectQuery',
 					[
 						'Select',
-						_.map(
-							resource.fields,
+						resource.fields.map(
 							(field): AliasNode<CastNode> => {
 								const alias = field.fieldName;
 								const bindVar = bindVars?.find((v) => v[0] === alias);
@@ -532,7 +530,7 @@ export class OData2AbstractSQL {
 					subQuery.compile('SelectQuery') as SelectQueryNode,
 				]);
 			} else {
-				query.extras.push(['Values', _.map(bindVars, 1)]);
+				query.extras.push(['Values', bindVars.map((b) => b[1])]);
 			}
 		} else if (path.count) {
 			this.AddCountField(path, query);

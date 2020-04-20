@@ -195,7 +195,7 @@ exports.aliasFields = do ->
 			verb = verb + '-'
 		else
 			verb = ''
-		_.map(fields, _.partial(aliasField, resourceAlias, verb))
+		fields.map(_.partial(aliasField, resourceAlias, verb))
 
 exports.pilotFields = [
 	['Alias', ['ReferencedField', 'pilot', 'created at'], 'created_at']
