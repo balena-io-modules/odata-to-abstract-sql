@@ -95,7 +95,7 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 		if _.isBoolean(operand)
 			binds.push(['Boolean', operand])
 			return ['Bind', binds.length - 1]
-		if _.isNumber(operand)
+		if typeof operand == 'number'
 			binds.push(['Number', operand])
 			return ['Bind', binds.length - 1]
 		if _.isDate(operand)

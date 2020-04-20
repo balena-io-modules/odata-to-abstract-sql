@@ -219,7 +219,7 @@ export const rewriteBinds = (
 		'Bind',
 		definition.abstractSqlQuery as AbstractSqlQuery,
 		(bind: AbstractSqlQuery) => {
-			if (_.isNumber(bind[1])) {
+			if (typeof bind[1] === 'number') {
 				(bind[1] as any) += inc;
 			}
 		},
@@ -1070,7 +1070,7 @@ export class OData2AbstractSQL {
 	NumberMatch(match: any, optional: true): NumberTypeNodes | undefined;
 	NumberMatch(match: any): NumberTypeNodes;
 	NumberMatch(match: any, optional = false): NumberTypeNodes | undefined {
-		if (_.isNumber(match)) {
+		if (typeof match === 'number') {
 			return ['Number', match];
 		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
