@@ -44,7 +44,7 @@ chai.use((chai, utils) ->
 	fromClause = bodyClause('From')
 	utils.addMethod(assertionPrototype, 'from', (bodyClauses...) ->
 		bodyClauses = bodyClauses.map((v) ->
-			if _.isString(v)
+			if typeof v == 'string'
 				return ['Table', v]
 			return ['Alias', ['Table', v[0]], v[1]]
 		)
@@ -101,7 +101,7 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 		if _.isDate(operand)
 			binds.push(['Date', operand])
 			return ['Bind', binds.length - 1]
-		if _.isString(operand)
+		if typeof operand == 'string'
 			if operand is 'null'
 				return ['Null']
 			if operand.charAt(0) is '('

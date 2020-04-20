@@ -1116,7 +1116,7 @@ export class OData2AbstractSQL {
 	TextMatch(match: any, optional: true): AbstractSqlType | undefined;
 	TextMatch(match: any): AbstractSqlType;
 	TextMatch(match: any, optional = false): AbstractSqlType | undefined {
-		if (_.isString(match)) {
+		if (typeof match === 'string') {
 			return ['Text', match];
 		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
