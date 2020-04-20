@@ -199,7 +199,7 @@ const modifyAbstractSql = (
 	abstractSql: AbstractSqlQuery,
 	fn: (abstractSql: AbstractSqlQuery) => void,
 ): void => {
-	if (_.isArray(abstractSql)) {
+	if (Array.isArray(abstractSql)) {
 		if (abstractSql[0] === match) {
 			fn(abstractSql);
 		} else {
@@ -839,7 +839,7 @@ export class OData2AbstractSQL {
 			case false:
 				return ['Boolean', match];
 			default:
-				if (_.isArray(match)) {
+				if (Array.isArray(match)) {
 					const [type, ...rest] = match;
 					switch (type) {
 						case 'eq':
@@ -912,7 +912,7 @@ export class OData2AbstractSQL {
 		return [sqlName, ...fn.slice(1)];
 	}
 	FunctionMatch(name: string, match: any): AbstractSqlQuery {
-		if (!_.isArray(match) || match[0] !== 'call') {
+		if (!Array.isArray(match) || match[0] !== 'call') {
 			throw new SyntaxError('Not a function call');
 		}
 		const properties = match[1];
@@ -995,7 +995,7 @@ export class OData2AbstractSQL {
 	}
 	ReferencedProperty(match: any): BooleanTypeNodes {
 		const prop = this.Property(match);
-		if (_.isArray(prop)) {
+		if (Array.isArray(prop)) {
 			// It's the result of a lambda
 			return prop;
 		} else {
@@ -1072,7 +1072,7 @@ export class OData2AbstractSQL {
 	NumberMatch(match: any, optional = false): NumberTypeNodes | undefined {
 		if (_.isNumber(match)) {
 			return ['Number', match];
-		} else if (_.isArray(match) && match[0] === 'call') {
+		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
 			switch (method) {
 				case 'indexof':
@@ -1118,7 +1118,7 @@ export class OData2AbstractSQL {
 	TextMatch(match: any, optional = false): AbstractSqlType | undefined {
 		if (_.isString(match)) {
 			return ['Text', match];
-		} else if (_.isArray(match) && match[0] === 'call') {
+		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
 			switch (method) {
 				case 'tolower':
@@ -1153,7 +1153,7 @@ export class OData2AbstractSQL {
 	DateMatch(match: any, optional = false): AbstractSqlType | undefined {
 		if (_.isDate(match)) {
 			return ['Date', match];
-		} else if (_.isArray(match) && match[0] === 'call') {
+		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
 			switch (method) {
 				case 'now':
@@ -1280,7 +1280,7 @@ export class OData2AbstractSQL {
 	AddExtraFroms(query: Query, parentResource: Resource, match: any) {
 		// TODO: try removing
 		try {
-			if (_.isArray(match)) {
+			if (Array.isArray(match)) {
 				match.forEach((v) => this.AddExtraFroms(query, parentResource, v));
 			} else {
 				let nextProp = match;

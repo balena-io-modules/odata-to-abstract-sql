@@ -134,7 +134,7 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 			else
 				mapping = [resource, odataNameToSqlName(operand)]
 			return ['ReferencedField'].concat(mapping)
-		if _.isArray(operand)
+		if Array.isArray(operand)
 			return operandToAbstractSQL(operand...)
 		if _.isObject(operand)
 			return [ 'Duration', operand ]
@@ -145,7 +145,7 @@ exports.operandToOData = operandToOData = (operand) ->
 		return operand.odata
 	if _.isDate(operand)
 		return "datetime'" + encodeURIComponent(operand.toISOString()) + "'"
-	if _.isArray(operand)
+	if Array.isArray(operand)
 		return operandToOData(operand[0])
 	if _.isObject(operand)
 		duration = []
