@@ -433,7 +433,7 @@ export class OData2AbstractSQL {
 				method,
 				bodyKeys,
 				resource.resourceName,
-				_.toPairs(resourceMapping),
+				Object.entries(resourceMapping),
 			);
 			query.extras.push(['Fields', bindVars.map((b) => b[0])]);
 
@@ -468,7 +468,7 @@ export class OData2AbstractSQL {
 					],
 				];
 
-				const unionResource = _.clone(resource);
+				const unionResource = { ...resource };
 				if (
 					unionResource.definition == null ||
 					!_.isObject(unionResource.definition)
@@ -478,7 +478,7 @@ export class OData2AbstractSQL {
 						abstractSqlQuery: bindVarSelectQuery,
 					};
 				} else {
-					unionResource.definition = _.clone(unionResource.definition);
+					unionResource.definition = { ...unionResource.definition };
 					if (unionResource.definition.abstractSqlQuery[0] !== 'SelectQuery') {
 						throw new Error(
 							'Only select query definitions supported for inserts',
@@ -664,7 +664,7 @@ export class OData2AbstractSQL {
 		if (!resource) {
 			throw new SyntaxError('Could not match resource');
 		}
-		resource = _.clone(resource);
+		resource = { ...resource };
 		let tableAlias;
 		if (parentResource) {
 			let resourceAlias2;
@@ -964,7 +964,7 @@ export class OData2AbstractSQL {
 				this.defaultResource!,
 				resourceName,
 			);
-			this.resourceAliases = _.clone(this.resourceAliases);
+			this.resourceAliases = { ...this.resourceAliases };
 			this.resourceAliases[lambda.identifier] = resource;
 
 			this.defaultResource = resource;
