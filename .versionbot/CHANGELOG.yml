@@ -1,4 +1,14 @@
 - commits:
+    - subject: Reduce lodash usage
+      hash: 0eaf4a66aad3fc69ec08ffced3958466413267ee
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 4.4.4
+  date: 2020-04-27T14:50:55.972Z
+- commits:
     - subject: Switch to native forEach where possible
       hash: f949a8e508088382d4ed583bc9903838bc3f73d8
       body: ''
