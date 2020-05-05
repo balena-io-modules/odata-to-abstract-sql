@@ -3,6 +3,6 @@
 		"balena-lint"
 	],
 	"*.ts": [
-		"balena-lint --typescript --no-prettier"
+		"balena-lint --typescript --fix"
 	],
 }
