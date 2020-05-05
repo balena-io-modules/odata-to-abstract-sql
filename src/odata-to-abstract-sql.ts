@@ -1464,23 +1464,23 @@ const addAliases = (
 	traverseNodes('', trie);
 };
 
+const getRelationships = (
+	relationships: AbstractSqlModel['relationships'] | Relationship,
+	/** For recursive usage only */
+	nestedRelationships: string[] = [],
+): string[] => {
+	const relationshipKeys = Object.keys(relationships);
+	for (const key of relationshipKeys) {
+		if (key !== '$') {
+			nestedRelationships.push(key);
+			getRelationships(relationships[key] as Relationship, nestedRelationships);
+		}
+	}
+	return nestedRelationships;
+};
+
 const generateShortAliases = (clientModel: AbstractSqlModel) => {
 	const shortAliases: _.Dictionary<string> = {};
-
-	const getRelationships = (
-		relationships: AbstractSqlModel['relationships'] | Relationship,
-	): string[] => {
-		const relationshipKeys = Object.keys(relationships);
-		const nestedRelationships = [];
-		for (const key of relationshipKeys) {
-			if (key !== '$') {
-				nestedRelationships.push(
-					getRelationships(relationships[key] as Relationship),
-				);
-			}
-		}
-		return relationshipKeys.concat(...nestedRelationships);
-	};
 
 	const aliasParts = _(getRelationships(clientModel.relationships))
 		.union(Object.keys(clientModel.synonyms))
