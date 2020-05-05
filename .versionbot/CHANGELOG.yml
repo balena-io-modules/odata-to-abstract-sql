@@ -1,4 +1,95 @@
 - commits:
+    - subject: Optimize `getRelationships`
+      hash: 4462f06baa9e5e3b2642640f4effc21f002b92f2
+      body: |
+        Update abstract-sql-compiler from 6.13.2 to 6.13.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Reduce lodash usage
+              hash: ed5c57cca3e703081feb04064fd8520558a54cd7
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: abstract-sql-compiler-6.13.4
+          date: 2020-04-30T09:10:27.512Z
+        - commits:
+            - subject: Update dependencies
+              hash: 23bbe47fbd663bb0d3642d22b752226d2c85ce91
+              body: |
+                Update odata-parser from 1.3.1 to 1.4.1
+                Update sbvr-types from 2.0.4 to 2.0.5
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: 'CI: Remove circleci deploy in favor of balenaCI'
+                      hash: 9e1137a305c6ded5c11209d292dab1c5cbabd0ee
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: 'CI: Add node 12 to the test matrix'
+                      hash: ccad733c04197834893804a6f8ccb8c76a1bf562
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: 'CI: Remove node 6 from the test matrix'
+                      hash: 5dd121cd02ffd37962ecefbfe0c1f9ab76168285
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: >-
+                        Update dependencies and use resin-lint for automatic
+                        lint fixes
+                      hash: caab18277ab22f8d60c6feca21d731b69239f963
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-2.0.5
+                  date: 2020-03-17T16:10:52.892Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: d991b20f6c90221c9a3734d0461540ec501576ad
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-1.4.1
+                  date: 2020-04-10T14:30:05.458Z
+                - commits:
+                    - subject: '✨: Add support for canAccess method call on resource'
+                      hash: bf99443b20616fef6344e3262832002d0d3909fd
+                      body: |
+                        Add support for `canAccess` method call on resource
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                        Signed-off-by: Andreas Fitzek <andreas@balena.io>
+                        signed-off-by: Andreas Fitzek <andreas@balena.io>
+                      author: Andreas Fitzek
+                  version: odata-parser-1.4.0
+                  date: 2020-03-02T13:31:22.416Z
+          version: abstract-sql-compiler-6.13.3
+          date: 2020-04-14T12:07:43.079Z
+  version: 4.4.5
+  date: 2020-05-05T13:33:05.813Z
+- commits:
     - subject: Reduce lodash usage
       hash: 0eaf4a66aad3fc69ec08ffced3958466413267ee
       body: ''
