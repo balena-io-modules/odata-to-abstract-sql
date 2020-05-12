@@ -29,8 +29,8 @@
   "devDependencies": {
     "@balena/lf-to-abstract-sql": "^4.0.0",
     "@balena/lint": "^5.0.4",
+    "@balena/sbvr-parser": "^1.0.1",
     "@balena/sbvr-types": "^3.0.0",
-    "@resin/sbvr-parser": "^0.2.8",
     "chai": "^4.2.0",
     "chai-things": "~0.2.0",
     "coffee-script": "~1.12.7",
