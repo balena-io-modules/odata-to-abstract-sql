@@ -199,6 +199,7 @@ exports.aliasFields = do ->
 
 exports.pilotFields = [
 	['Alias', ['ReferencedField', 'pilot', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'pilot', 'modified at'], 'modified_at']
 	['ReferencedField', 'pilot', 'id']
 	['ReferencedField', 'pilot', 'person']
 	['Alias', ['ReferencedField', 'pilot', 'is experienced'], 'is_experienced']
@@ -213,18 +214,21 @@ exports.pilotFields = [
 
 exports.licenceFields = [
 	['Alias', ['ReferencedField', 'licence', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'licence', 'modified at'], 'modified_at']
 	['ReferencedField', 'licence', 'id']
 	['ReferencedField', 'licence', 'name']
 ]
 
 exports.planeFields = [
 	['Alias', ['ReferencedField', 'plane', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'plane', 'modified at'], 'modified_at']
 	['ReferencedField', 'plane', 'id']
 	['ReferencedField', 'plane', 'name']
 ]
 
 exports.pilotCanFlyPlaneFields = [
 	['Alias', ['ReferencedField', 'pilot-can fly-plane', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'pilot-can fly-plane', 'modified at'], 'modified_at']
 	['ReferencedField', 'pilot-can fly-plane', 'pilot']
 	['Alias', ['ReferencedField', 'pilot-can fly-plane', 'can fly-plane'], 'can_fly__plane']
 	['ReferencedField', 'pilot-can fly-plane', 'id']
@@ -232,6 +236,7 @@ exports.pilotCanFlyPlaneFields = [
 
 exports.teamFields = [
 	['Alias', ['ReferencedField', 'team', 'created at'], 'created_at']
+	['Alias', ['ReferencedField', 'team', 'modified at'], 'modified_at']
 	['Alias', ['ReferencedField', 'team', 'favourite colour'], 'favourite_colour']
 ]
 

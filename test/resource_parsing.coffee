@@ -131,6 +131,7 @@ test '/pilot(1)', 'PUT', (result) ->
 						[	'SelectQuery'
 							[	'Select'
 								[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'modified at' ]
 									[	'Alias',
 										[ 'Cast', [ 'Bind', 'pilot', 'id' ], 'Serial' ],
 										'id'
@@ -162,6 +163,7 @@ test '/pilot(1)', 'PUT', (result) ->
 			expect(result[2]).to.be.a.query.that.updates.
 			fields(
 				'created at'
+				'modified at'
 				'id'
 				'person'
 				'is experienced'
@@ -174,6 +176,7 @@ test '/pilot(1)', 'PUT', (result) ->
 				'was trained by-pilot'
 			).
 			values(
+				'Default'
 				'Default'
 				['Bind', 'pilot', 'id']
 				'Default'
@@ -241,6 +244,7 @@ test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 							[	'SelectQuery'
 								[	'Select'
 									[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'modified at' ]
 										[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'pilot' ]
 										[ 'Alias', [ 'Cast', 'Null', 'ForeignKey' ], 'can fly-plane' ]
 										[	'Alias',
@@ -265,11 +269,13 @@ test '/pilot__can_fly__plane(1)', 'PUT', (result) ->
 			expect(result[2]).to.be.a.query.that.updates.
 				fields(
 					'created at'
+					'modified at'
 					'pilot'
 					'can fly-plane'
 					'id'
 				).
 				values(
+					'Default'
 					'Default'
 					'Default'
 					'Default'

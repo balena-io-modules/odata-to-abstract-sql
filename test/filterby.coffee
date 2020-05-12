@@ -248,6 +248,7 @@ run ->
 						[	'SelectQuery'
 							[	'Select'
 								[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'modified at' ]
 									[ 'Alias', [ 'Cast', 'Null', 'Serial' ], 'id' ]
 									[ 'Alias', [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
 									[ 'Alias', [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
@@ -328,6 +329,7 @@ run ->
 			expect(result[2]).to.be.a.query.that.updates.
 				fields(
 					'created at'
+					'modified at'
 					'id'
 					'person'
 					'is experienced'
@@ -340,6 +342,7 @@ run ->
 					'was trained by-pilot'
 				).
 				values(
+					'Default'
 					'Default'
 					'Default'
 					'Default'
@@ -403,6 +406,7 @@ run [['Number', 1]], ->
 						[	'SelectQuery'
 							[	'Select'
 								[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+									[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'modified at' ]
 									[	'Alias',
 										['Cast', ['Bind', 'pilot', 'id'], 'Serial']
 										'id'
@@ -485,6 +489,7 @@ run [['Number', 1]], ->
 				expect(result[2]).to.be.a.query.that.updates.
 				fields(
 					'created at'
+					'modified at'
 					'id'
 					'person'
 					'is experienced'
@@ -497,6 +502,7 @@ run [['Number', 1]], ->
 					'was trained by-pilot'
 				).
 				values(
+					'Default'
 					'Default'
 					['Bind', 'pilot', 'id']
 					'Default'
@@ -537,6 +543,7 @@ run ->
 							[	'SelectQuery'
 								[	'Select'
 									[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'modified at' ]
 										[ 'Alias', [ 'Cast', 'Null', 'Serial' ], 'id' ]
 										[ 'Alias', [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
 										[ 'Alias', [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
@@ -590,6 +597,7 @@ run ->
 							[	'SelectQuery'
 								[	'Select'
 									[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'modified at' ]
 										[ 'Alias', [ 'Cast', 'Null', 'Serial' ], 'id' ]
 										[ 'Alias', [ 'Cast', 'Null', 'ConceptType' ], 'person' ]
 										[ 'Alias', [ 'Cast', 'Null', 'Boolean' ], 'is experienced' ]
@@ -818,6 +826,7 @@ run ->
 							[	'SelectQuery'
 								[	'Select'
 									[	[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'created at' ]
+										[ 'Alias', [ 'Cast', 'Null', 'Date Time' ], 'modified at' ]
 										[	'Alias',
 											['Cast', ['Bind', 'team', 'favourite_colour'], 'Color']
 											'favourite colour'
