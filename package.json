@@ -29,7 +29,7 @@
   "devDependencies": {
     "@balena/lint": "^5.0.4",
     "@balena/sbvr-types": "^3.0.0",
-    "@resin/lf-to-abstract-sql": "^2.2.0",
+    "@resin/lf-to-abstract-sql": "^3.2.7",
     "@resin/sbvr-parser": "^0.2.8",
     "chai": "^4.2.0",
     "chai-things": "~0.2.0",
