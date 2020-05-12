@@ -1,7 +1,7 @@
 expect = require('chai').expect
 { aliasFields, pilotFields, licenceFields, planeFields, teamFields, pilotCanFlyPlaneFields, $count } = require('./chai-sql')
 test = require('./test')
-ODataParser = require('@resin/odata-parser')
+ODataParser = require('@balena/odata-parser')
 
 test '/', (result) ->
 	it 'Service root should return $serviceroot', ->
