@@ -74,7 +74,7 @@ generateClientModel = (input) ->
 	SBVRParser.AddCustomAttribute('Database Table Name:')
 	SBVRParser.AddBuiltInVocab(typeVocab)
 
-	LF2AbstractSQL = require '@resin/lf-to-abstract-sql'
+	LF2AbstractSQL = require '@balena/lf-to-abstract-sql'
 	LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes)
 
 	lf = SBVRParser.matchAll(input, 'Process')
