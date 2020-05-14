@@ -3,7 +3,7 @@ require('ometa-js')
 
 { clientModel } = require './chai-sql'
 
-ODataParser = require('@resin/odata-parser')
+ODataParser = require('@balena/odata-parser')
 { OData2AbstractSQL } = require('../out/odata-to-abstract-sql')
 translator = new OData2AbstractSQL(clientModel)
 

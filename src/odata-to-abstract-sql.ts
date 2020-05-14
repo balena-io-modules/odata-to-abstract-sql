@@ -32,7 +32,7 @@ import type {
 	ODataBinds,
 	ODataQuery,
 	SupportedMethod,
-} from '@resin/odata-parser';
+} from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
 export type ResourceNode = ['Resource', string];
