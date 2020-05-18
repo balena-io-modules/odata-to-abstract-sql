@@ -1,4 +1,54 @@
 - commits:
+    - subject: 'Dev: Update to @balena/lf-to-abstract-sql 4.x'
+      hash: c28116e952d5c778a28ce26f7f6762eaa8c42b49
+      body: |
+        Update lf-to-abstract-sql from 3.2.7 to 4.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Include linting as part of the tests
+              hash: 3c898aff5a6495b58ab963f6d979646dc43ca134
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Convert from UMD module to commonjs module
+              hash: 998c4ca6be517cf401883f725c8937f3a55c87fa
+              body: ''
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+            - subject: Rename to @balena/lf-to-abstract-sql
+              hash: 29aef57618f13597d99f839b4e63f9dab465c303
+              body: ''
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+            - subject: Drop support for node 8
+              hash: f3fa70101981f2d9a751a5bd0052dadbdc897604
+              body: ''
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+            - subject: Move @balena/sbvr-parser to production dependencies
+              hash: cf4653791f11a556196af95434d80fdf1187e17d
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: lf-to-abstract-sql-4.0.0
+          date: 2020-05-11T16:28:04.610Z
+  version: 4.5.1
+  date: 2020-05-18T15:20:04.626Z
+- commits:
     - subject: Update to @balena/odata-parser 2.x
       hash: 2dec95da406cc6f8e1733e4913afd2a02283bfb2
       body: |
