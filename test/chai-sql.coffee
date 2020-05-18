@@ -68,7 +68,7 @@ generateClientModel = (input) ->
 	sbvrTypes = require '@balena/sbvr-types'
 	typeVocab = fs.readFileSync(require.resolve('@balena/sbvr-types/Type.sbvr'), 'utf8')
 
-	SBVRParser = require('@resin/sbvr-parser').SBVRParser.createInstance()
+	SBVRParser = require('@balena/sbvr-parser').SBVRParser.createInstance()
 	SBVRParser.enableReusingMemoizations(SBVRParser._sideEffectingRules)
 	SBVRParser.AddCustomAttribute('Database ID Field:')
 	SBVRParser.AddCustomAttribute('Database Table Name:')
