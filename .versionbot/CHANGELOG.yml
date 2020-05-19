@@ -1,4 +1,14 @@
 - commits:
+    - subject: Enforce strict type checking
+      hash: 88c58d12bf15016738297928e5c991da6d3bde00
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+  version: 4.5.3
+  date: 2020-05-19T11:46:01.508Z
+- commits:
     - subject: 'Dev: Update to @balena/sbvr-parser 1.x'
       hash: 5c541188ff8cd7638223f6908472fed8de28e5ab
       body: |
