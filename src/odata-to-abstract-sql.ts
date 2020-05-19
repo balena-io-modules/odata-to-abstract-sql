@@ -194,14 +194,16 @@ export const odataNameToSqlName = memoize(
 	{ primitive: true },
 );
 
-const modifyAbstractSql = (
-	match: string,
+const modifyAbstractSql = <
+	T extends BindNode | ReferencedFieldNode | ResourceNode
+>(
+	match: T[0],
 	abstractSql: AbstractSqlQuery,
-	fn: (abstractSql: AbstractSqlQuery) => void,
+	fn: (abstractSql: T) => void,
 ): void => {
 	if (Array.isArray(abstractSql)) {
 		if (abstractSql[0] === match) {
-			fn(abstractSql);
+			fn(abstractSql as T);
 		} else {
 			abstractSql.forEach((abstractSqlComponent) => {
 				modifyAbstractSql(match, abstractSqlComponent as AbstractSqlQuery, fn);
@@ -218,7 +220,7 @@ export const rewriteBinds = (
 	modifyAbstractSql(
 		'Bind',
 		definition.abstractSqlQuery as AbstractSqlQuery,
-		(bind: AbstractSqlQuery) => {
+		(bind: BindNode) => {
 			if (typeof bind[1] === 'number') {
 				(bind[1] as any) += inc;
 			}
@@ -228,11 +230,11 @@ export const rewriteBinds = (
 };
 
 export class OData2AbstractSQL {
-	private extraBodyVars: _.Dictionary<any>;
-	public extraBindVars: ODataBinds;
-	private resourceAliases: _.Dictionary<Resource>;
+	private extraBodyVars: _.Dictionary<any> = {};
+	public extraBindVars: ODataBinds = [];
+	private resourceAliases: _.Dictionary<Resource> = {};
 	public defaultResource: Resource | undefined;
-	public bindVarsLength: number;
+	public bindVarsLength: number = 0;
 	private checkAlias: (alias: string) => string;
 
 	constructor(
@@ -598,7 +600,7 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Could not match path key');
 		}
 	}
-	Bind(bind: any): AbstractSqlType | undefined {
+	Bind(bind: any, _optional?: boolean): AbstractSqlType | undefined {
 		if (bind != null && bind.bind != null) {
 			return ['Bind', bind.bind];
 		}
@@ -1366,8 +1368,8 @@ export class OData2AbstractSQL {
 		modifyAbstractSql(
 			'Resource',
 			rewrittenDefinition.abstractSqlQuery as AbstractSqlQuery,
-			(resource: AbstractSqlQuery) => {
-				const resourceName = resource[1] as string;
+			(resource: ResourceNode) => {
+				const resourceName = resource[1];
 				const referencedResource = this.clientModel.tables[resourceName];
 				if (!referencedResource) {
 					throw new Error(`Could not resolve resource ${resourceName}`);
@@ -1378,7 +1380,7 @@ export class OData2AbstractSQL {
 						extraBindVars,
 						bindVarsLength,
 					);
-					resource.splice(
+					(resource as AbstractSqlType[]).splice(
 						0,
 						resource.length,
 						...(subDefinition.abstractSqlQuery as AbstractSqlType[]),
@@ -1400,7 +1402,7 @@ export class OData2AbstractSQL {
 						tableAlias: referencedResource.name,
 					});
 
-					resource.splice(
+					(resource as AbstractSqlType[]).splice(
 						0,
 						resource.length,
 						...computedFieldQuery.compile('SelectQuery'),
