@@ -19,7 +19,7 @@
   "dependencies": {
     "@balena/odata-parser": "^2.0.0",
     "@resin/abstract-sql-compiler": "^6.13.4",
-    "@types/lodash": "^4.14.150",
+    "@types/lodash": "^4.14.151",
     "@types/memoizee": "^0.4.4",
     "@types/randomstring": "^1.1.6",
     "lodash": "^4.17.15",
@@ -28,17 +28,17 @@
   },
   "devDependencies": {
     "@balena/lf-to-abstract-sql": "^4.0.0",
-    "@balena/lint": "^5.0.4",
+    "@balena/lint": "^5.1.0",
     "@balena/sbvr-parser": "^1.0.1",
     "@balena/sbvr-types": "^3.0.0",
     "chai": "^4.2.0",
     "chai-things": "~0.2.0",
     "coffee-script": "~1.12.7",
     "husky": "^4.2.5",
-    "lint-staged": "^10.2.2",
+    "lint-staged": "^10.2.4",
     "mocha": "^7.1.2",
     "require-npm4-to-publish": "^1.0.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.2"
   },
   "husky": {
     "hooks": {
