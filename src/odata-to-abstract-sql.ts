@@ -27,7 +27,7 @@ import type {
 	CastNode,
 	AbstractSqlField,
 	TableNode,
-} from '@resin/abstract-sql-compiler';
+} from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
 	ODataQuery,
@@ -37,34 +37,12 @@ export type { ODataBinds, ODataQuery, SupportedMethod };
 
 export type ResourceNode = ['Resource', string];
 
-declare module '@resin/abstract-sql-compiler' {
+declare module '@balena/abstract-sql-compiler' {
 	interface AbstractSqlTable {
 		definition?: Definition;
 	}
-	type ExtendedFromTypeNodes =
-		| SelectQueryNode
-		| UnionQueryNode
-		| TableNode
-		| ResourceNode
-		| AliasNode<SelectQueryNode | UnionQueryNode | TableNode | ResourceNode>;
-	interface FromNode {
-		1: ExtendedFromTypeNodes;
-	}
-	interface InnerJoinNode {
-		1: ExtendedFromTypeNodes;
-		2?: OnNode;
-	}
-	interface LeftJoinNode {
-		1: ExtendedFromTypeNodes;
-		2?: OnNode;
-	}
-	interface RightJoinNode {
-		1: ExtendedFromTypeNodes;
-		2?: OnNode;
-	}
-	interface FullJoinNode {
-		1: ExtendedFromTypeNodes;
-		2?: OnNode;
+	interface FromTypeNode {
+		ResourceNode: ResourceNode;
 	}
 }
 
