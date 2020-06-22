@@ -274,55 +274,64 @@ export class OData2AbstractSQL {
 		method: SupportedMethod,
 		bodyKeys: string[],
 		bindVarsLength: number,
+		methods?: OData2AbstractSQL['methods'],
 	): {
 		tree: AbstractSqlQuery;
 		extraBodyVars: _.Dictionary<any>;
 		extraBindVars: ODataBinds;
 	} {
-		this.reset();
-		this.bindVarsLength = bindVarsLength;
-		let tree: AbstractSqlQuery;
-		if (_.isEmpty(path)) {
-			tree = ['$serviceroot'];
-		} else if (['$metadata', '$serviceroot'].includes(path.resource)) {
-			tree = [path.resource];
-		} else {
-			const query = this.PathSegment(method, bodyKeys, path);
-			switch (method) {
-				case 'PUT':
-					// For PUT the initial pass generates the update query,
-					// so we run it through the parser a second time to get the insert query,
-					// for a full upsert query
-					this.putReset();
-					const insertQuery = this.PathSegment('PUT-INSERT', bodyKeys, path);
-					tree = [
-						'UpsertQuery',
-						insertQuery.compile('InsertQuery'),
-						query.compile('UpdateQuery'),
-					];
-					break;
-				case 'GET':
-					tree = query.compile('SelectQuery');
-					break;
-				case 'PATCH':
-				case 'MERGE':
-					tree = query.compile('UpdateQuery');
-					break;
-				case 'POST':
-					tree = query.compile('InsertQuery');
-					break;
-				case 'DELETE':
-					tree = query.compile('DeleteQuery');
-					break;
-				default:
-					throw new SyntaxError(`Unknown method "${method}"`);
+		const savedMethods = this.methods;
+		try {
+			if (methods != null) {
+				this.methods = methods;
 			}
+			this.reset();
+			this.bindVarsLength = bindVarsLength;
+			let tree: AbstractSqlQuery;
+			if (_.isEmpty(path)) {
+				tree = ['$serviceroot'];
+			} else if (['$metadata', '$serviceroot'].includes(path.resource)) {
+				tree = [path.resource];
+			} else {
+				const query = this.PathSegment(method, bodyKeys, path);
+				switch (method) {
+					case 'PUT':
+						// For PUT the initial pass generates the update query,
+						// so we run it through the parser a second time to get the insert query,
+						// for a full upsert query
+						this.putReset();
+						const insertQuery = this.PathSegment('PUT-INSERT', bodyKeys, path);
+						tree = [
+							'UpsertQuery',
+							insertQuery.compile('InsertQuery'),
+							query.compile('UpdateQuery'),
+						];
+						break;
+					case 'GET':
+						tree = query.compile('SelectQuery');
+						break;
+					case 'PATCH':
+					case 'MERGE':
+						tree = query.compile('UpdateQuery');
+						break;
+					case 'POST':
+						tree = query.compile('InsertQuery');
+						break;
+					case 'DELETE':
+						tree = query.compile('DeleteQuery');
+						break;
+					default:
+						throw new SyntaxError(`Unknown method "${method}"`);
+				}
+			}
+			return {
+				tree,
+				extraBodyVars: this.extraBodyVars,
+				extraBindVars: this.extraBindVars,
+			};
+		} finally {
+			this.methods = savedMethods;
 		}
-		return {
-			tree,
-			extraBodyVars: this.extraBodyVars,
-			extraBindVars: this.extraBindVars,
-		};
 	}
 	PathSegment(method: string, bodyKeys: string[], path: any): Query {
 		if (!path.resource) {
