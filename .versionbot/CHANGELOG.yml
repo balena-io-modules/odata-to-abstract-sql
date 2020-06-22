@@ -1,4 +1,14 @@
 - commits:
+    - subject: Allow specifying valid methods for a specific match call
+      hash: 64a9a4e6b9e287196b02682b08cb1a7c6fc169ef
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+  version: 5.1.0
+  date: 2020-06-19T17:09:05.803Z
+- commits:
     - subject: Rename to @balena/odata-to-abstract-sql
       hash: 66fd5ce1fcfbd684fc60063b2594edffa85a55e5
       body: ''
