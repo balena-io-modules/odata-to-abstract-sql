@@ -17,12 +17,12 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^7.0.0",
-    "@balena/odata-parser": "^2.0.0",
-    "@types/lodash": "^4.14.155",
+    "@balena/abstract-sql-compiler": "^7.0.2",
+    "@balena/odata-parser": "^2.0.1",
+    "@types/lodash": "^4.14.157",
     "@types/memoizee": "^0.4.4",
     "@types/randomstring": "^1.1.6",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "memoizee": "^0.4.14",
     "randomstring": "^1.1.5"
   },
@@ -38,7 +38,7 @@
     "lint-staged": "^10.2.11",
     "mocha": "^7.2.0",
     "require-npm4-to-publish": "^1.0.0",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.6"
   },
   "husky": {
     "hooks": {

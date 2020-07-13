@@ -32,6 +32,12 @@ import type {
 	ODataBinds,
 	ODataQuery,
 	SupportedMethod,
+	ExpandPropertyPath,
+	ResourceOptions,
+	OrderByOption,
+	OrderByPropertyPath,
+	FilterOption,
+	BindReference,
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
@@ -55,6 +61,9 @@ interface Resource extends AbstractSqlTable {
 	tableAlias?: string;
 	definition?: Definition;
 }
+type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
+type RequiredField<T, F extends keyof T> = Overwrite<T, Required<Pick<T, F>>>;
+type AliasedResource = RequiredField<Resource, 'tableAlias'>;
 
 export type ResourceFunction = (
 	this: OData2AbstractSQL,
@@ -94,7 +103,10 @@ const rewriteComputed = (
 	return rewrittenComputed;
 };
 
-const containsQueryOption = (opts: object): boolean => {
+const containsQueryOption = (opts?: object): boolean => {
+	if (opts == null) {
+		return false;
+	}
 	for (const key in opts) {
 		if (key[0] === '$') {
 			return true;
@@ -208,9 +220,9 @@ export const rewriteBinds = (
 };
 
 export class OData2AbstractSQL {
-	private extraBodyVars: _.Dictionary<any> = {};
+	private extraBodyVars: _.Dictionary<BindReference> = {};
 	public extraBindVars: ODataBinds = [];
-	private resourceAliases: _.Dictionary<Resource> = {};
+	private resourceAliases: _.Dictionary<AliasedResource> = {};
 	public defaultResource: Resource | undefined;
 	public bindVarsLength: number = 0;
 	private checkAlias: (alias: string) => string;
@@ -277,7 +289,7 @@ export class OData2AbstractSQL {
 		methods?: OData2AbstractSQL['methods'],
 	): {
 		tree: AbstractSqlQuery;
-		extraBodyVars: _.Dictionary<any>;
+		extraBodyVars: _.Dictionary<BindReference>;
 		extraBindVars: ODataBinds;
 	} {
 		const savedMethods = this.methods;
@@ -333,7 +345,7 @@ export class OData2AbstractSQL {
 			this.methods = savedMethods;
 		}
 	}
-	PathSegment(method: string, bodyKeys: string[], path: any): Query {
+	PathSegment(method: string, bodyKeys: string[], path: ODataQuery): Query {
 		if (!path.resource) {
 			throw new SyntaxError('Path segment must contain a resource');
 		}
@@ -362,7 +374,7 @@ export class OData2AbstractSQL {
 		);
 		let addPathKey = true;
 
-		if (hasQueryOpts && path.options.$expand) {
+		if (hasQueryOpts && path.options?.$expand) {
 			this.Expands(resource, query, path.options.$expand.properties);
 		}
 		let bindVars: ReturnType<OData2AbstractSQL['BindVars']> | undefined;
@@ -561,7 +573,7 @@ export class OData2AbstractSQL {
 	}
 	PathKey(
 		method: string,
-		path: any,
+		path: ODataQuery,
 		resource: Resource,
 		referencedField: ReferencedFieldNode,
 		bodyKeys: string[],
@@ -587,24 +599,24 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Could not match path key');
 		}
 	}
-	Bind(bind: any, _optional?: boolean): AbstractSqlType | undefined {
+	Bind(bind: BindReference, _optional?: boolean): AbstractSqlType | undefined {
 		if (bind != null && bind.bind != null) {
 			return ['Bind', bind.bind];
 		}
 	}
-	SelectFilter(filter: any, query: Query, resource: Resource) {
+	SelectFilter(filter: FilterOption, query: Query, resource: Resource) {
 		this.AddExtraFroms(query, resource, filter);
 		const where = this.BooleanMatch(filter);
 		query.where.push(where);
 	}
-	OrderBy(orderby: any, query: Query, resource: Resource) {
+	OrderBy(orderby: OrderByOption, query: Query, resource: Resource) {
 		this.AddExtraFroms(query, resource, orderby.properties);
 		query.extras.push([
 			'OrderBy',
 			...this.OrderByProperties(orderby.properties),
 		]);
 	}
-	OrderByProperties(orderings: any[]): Array<OrderByNode[1]> {
+	OrderByProperties(orderings: OrderByPropertyPath[]): Array<OrderByNode[1]> {
 		return orderings.map((ordering) => {
 			const field = this.ReferencedProperty(ordering);
 			return [ordering.order.toUpperCase(), field] as OrderByNode[1];
@@ -633,12 +645,12 @@ export class OData2AbstractSQL {
 		});
 		return _.compact(fields);
 	}
-	Resource(resourceName: string, parentResource?: Resource): Resource {
+	Resource(resourceName: string, parentResource?: Resource): AliasedResource {
 		const resourceAlias = this.resourceAliases[resourceName];
 		if (resourceAlias) {
 			return resourceAlias;
 		}
-		let resource: Resource;
+		let resource: AbstractSqlTable;
 		if (parentResource) {
 			const relationshipMapping = this.ResolveRelationship(
 				parentResource,
@@ -653,7 +665,6 @@ export class OData2AbstractSQL {
 		if (!resource) {
 			throw new SyntaxError('Could not match resource');
 		}
-		resource = { ...resource };
 		let tableAlias;
 		if (parentResource) {
 			let resourceAlias2;
@@ -669,8 +680,10 @@ export class OData2AbstractSQL {
 		} else {
 			tableAlias = resource.name;
 		}
-		resource.tableAlias = this.checkAlias(tableAlias);
-		return resource;
+		return {
+			...resource,
+			tableAlias: this.checkAlias(tableAlias),
+		};
 	}
 	FieldContainedIn(fieldName: string, resource: Resource): boolean {
 		try {
@@ -1172,7 +1185,11 @@ export class OData2AbstractSQL {
 		}
 		return ['Duration', duration];
 	}
-	Expands(resource: Resource, query: Query, expands: any): void {
+	Expands(
+		resource: Resource,
+		query: Query,
+		expands: ExpandPropertyPath[],
+	): void {
 		const defaultResource = this.defaultResource;
 		for (const expand of expands) {
 			const navigation = this.NavigateResources(resource, expand.name);
@@ -1198,9 +1215,7 @@ export class OData2AbstractSQL {
 			} else {
 				this.AddSelectFields(expand, nestedExpandQuery, expandResource);
 			}
-			if (expand.options) {
-				this.AddQueryOptions(expandResource, expand, nestedExpandQuery);
-			}
+			this.AddQueryOptions(expandResource, expand, nestedExpandQuery);
 
 			this.defaultResource = defaultResource;
 
@@ -1224,7 +1239,14 @@ export class OData2AbstractSQL {
 			]);
 		}
 	}
-	AddQueryOptions(resource: Resource, path: any, query: Query): void {
+	AddQueryOptions(
+		resource: Resource,
+		path: ResourceOptions,
+		query: Query,
+	): void {
+		if (!path.options) {
+			return;
+		}
 		if (path.options.$filter) {
 			this.SelectFilter(path.options.$filter, query, resource);
 		}
@@ -1246,7 +1268,7 @@ export class OData2AbstractSQL {
 	NavigateResources(
 		resource: Resource,
 		navigation: string,
-	): { resource: Resource; where: BooleanTypeNodes } {
+	): { resource: AliasedResource; where: BooleanTypeNodes } {
 		const relationshipMapping = this.ResolveRelationship(resource, navigation);
 		const linkedResource = this.Resource(navigation, resource);
 		const tableAlias = resource.tableAlias
@@ -1303,7 +1325,7 @@ export class OData2AbstractSQL {
 		query: Query,
 		resource: Resource,
 		extraResource: string,
-	): Resource {
+	): AliasedResource {
 		const navigation = this.NavigateResources(resource, extraResource);
 		if (
 			!query.from.some(
