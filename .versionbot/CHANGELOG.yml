@@ -1,4 +1,60 @@
 - commits:
+    - subject: Improve typings
+      hash: 4f95a8c2a53289fd7e9f1f893c94716baa4a18a6
+      body: |
+        Update abstract-sql-compiler from 7.0.0 to 7.0.2
+        Update odata-parser from 2.0.0 to 2.0.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Update dependencies
+              hash: 1d1ed656fca1f408b7250cc7144bf01ffdb8a9db
+              body: |
+                Update sbvr-types from 3.0.0 to 3.1.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Update dependencies
+                      hash: 33be8837bde82d29f182506f4b93e33157bea185
+                      body: ''
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.1.0
+                  date: 2020-06-17T21:13:53.393Z
+          version: abstract-sql-compiler-7.0.2
+          date: 2020-07-10T16:36:21.487Z
+        - commits:
+            - subject: Improve `BindNode` typing
+              hash: 66723aba86dba67d25e3d79f28f38e258c2658c6
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.0.1
+          date: 2020-07-10T16:16:25.953Z
+        - commits:
+            - subject: Improve typings
+              hash: bb94134f7231ef71ce5b1ce52d255902b8e7e1a6
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.0.1
+          date: 2020-07-10T16:33:59.426Z
+  version: 5.1.1
+  date: 2020-07-10T16:56:05.868Z
+- commits:
     - subject: Allow specifying valid methods for a specific match call
       hash: 64a9a4e6b9e287196b02682b08cb1a7c6fc169ef
       body: ''
