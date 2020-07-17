@@ -44,6 +44,24 @@ test "/pilot('TextKey')", (result) ->
 		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
 
 
+test '/pilot(id=1)', (result) ->
+	it 'should select from pilot with id', ->
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+
+test "/pilot(id='TextKey')", (result) ->
+	it 'should select from pilot with id', ->
+		expect(result).to.be.a.query.that.selects(pilotFields).from('pilot').where(['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]])
+
+
+test '/pilot__can_fly__plane(pilot=12,can_fly__plane=23)', (result) ->
+	it 'should select from pilot with id', ->
+		expect(result).to.be.a.query.that.selects(pilotCanFlyPlaneFields).from('pilot-can fly-plane').where([
+			'And',
+			['IsNotDistinctFrom', ['ReferencedField', 'pilot-can fly-plane', 'pilot'], ['Bind', 0]]
+			['IsNotDistinctFrom', ['ReferencedField', 'pilot-can fly-plane', 'can fly-plane'], ['Bind', 1]]
+		])
+
+
 test '/pilot(1)/licence', (result) ->
 	it 'should select from the licence of pilot with id', ->
 		expect(result).to.be.a.query.that.

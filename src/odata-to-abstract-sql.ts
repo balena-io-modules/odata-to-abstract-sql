@@ -131,7 +131,7 @@ class Query {
 	}
 	fromResource(
 		odataToAbstractSql: OData2AbstractSQL,
-		resource: Resource,
+		resource: AliasedResource,
 		args: {
 			extraBindVars: ODataBinds;
 			bindVarsLength: number;
@@ -147,10 +147,10 @@ class Query {
 			this.from.push([
 				'Alias',
 				definition.abstractSqlQuery,
-				resource.tableAlias!,
+				resource.tableAlias,
 			]);
 		} else if (resource.name !== resource.tableAlias) {
-			this.from.push(['Alias', ['Table', resource.name], resource.tableAlias!]);
+			this.from.push(['Alias', ['Table', resource.name], resource.tableAlias]);
 		} else {
 			this.from.push(['Table', resource.name]);
 		}
@@ -217,6 +217,31 @@ export const rewriteBinds = (
 		},
 	);
 	existingBinds.push(...definition.extraBinds);
+};
+
+const isBindReference = (maybeBind: {
+	[key: string]: unknown;
+}): maybeBind is BindReference => {
+	return (
+		maybeBind != null &&
+		'bind' in maybeBind &&
+		(typeof maybeBind.bind === 'string' || typeof maybeBind.bind === 'number')
+	);
+};
+
+const addBodyKey = (
+	resourceName: string,
+	fieldName: string,
+	bind: BindReference,
+	bodyKeys: string[],
+	extraBodyVars: _.Dictionary<BindReference>,
+) => {
+	// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
+	const qualifiedIDField = resourceName + '.' + fieldName;
+	if (!bodyKeys.includes(qualifiedIDField) && !bodyKeys.includes(fieldName)) {
+		bodyKeys.push(qualifiedIDField);
+		extraBodyVars[qualifiedIDField] = bind;
+	}
 };
 
 export class OData2AbstractSQL {
@@ -362,16 +387,10 @@ export class OData2AbstractSQL {
 		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
 		const referencedIdField: ReferencedFieldNode = [
 			'ReferencedField',
-			resource.tableAlias!,
+			resource.tableAlias,
 			resource.idField,
 		];
-		const pathKeyWhere = this.PathKey(
-			method,
-			path,
-			resource,
-			referencedIdField,
-			bodyKeys,
-		);
+		const pathKeyWhere = this.PathKey(method, path, resource, bodyKeys);
 		let addPathKey = true;
 
 		if (hasQueryOpts && path.options?.$expand) {
@@ -411,15 +430,16 @@ export class OData2AbstractSQL {
 			} else {
 				throw new Error('Cannot navigate links');
 			}
-			const linkKeyWhere = this.PathKey(
-				method,
-				path.link,
-				linkResource,
-				referencedField,
-				bodyKeys,
-			);
-			if (linkKeyWhere) {
-				query.where.push(linkKeyWhere);
+			if (path.link.key != null) {
+				if (isBindReference(path.link.key)) {
+					query.where.push([
+						comparison.eq,
+						referencedField,
+						this.Bind(path.link.key),
+					]);
+				} else {
+					throw new SyntaxError('Cannot use named keys with $links');
+				}
 			}
 			query.select.push(aliasedField);
 		} else if (
@@ -449,7 +469,7 @@ export class OData2AbstractSQL {
 				subQuery.select = bindVars.map(
 					(bindVar): ReferencedFieldNode => [
 						'ReferencedField',
-						resource.tableAlias!,
+						resource.tableAlias,
 						bindVar[0],
 					],
 				);
@@ -574,35 +594,94 @@ export class OData2AbstractSQL {
 	PathKey(
 		method: string,
 		path: ODataQuery,
-		resource: Resource,
-		referencedField: ReferencedFieldNode,
+		resource: AliasedResource,
 		bodyKeys: string[],
 	): BooleanTypeNodes | void {
-		if (path.key != null) {
+		const { key } = path;
+		if (key != null) {
 			if (method === 'PUT' || method === 'PUT-INSERT' || method === 'POST') {
-				// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
-				const qualifiedIDField = resource.resourceName + '.' + resource.idField;
-				if (
-					!bodyKeys.includes(qualifiedIDField) &&
-					!bodyKeys.includes(resource.idField)
-				) {
-					bodyKeys.push(qualifiedIDField);
-					this.extraBodyVars[qualifiedIDField] = path.key;
+				if (isBindReference(key)) {
+					addBodyKey(
+						resource.resourceName,
+						resource.idField,
+						key,
+						bodyKeys,
+						this.extraBodyVars,
+					);
+				} else {
+					for (const [fieldName, bind] of Object.entries(key)) {
+						addBodyKey(
+							resource.resourceName,
+							fieldName,
+							bind,
+							bodyKeys,
+							this.extraBodyVars,
+						);
+					}
 				}
 			}
-			for (const matcher of [this.Bind, this.NumberMatch, this.TextMatch]) {
-				const key = matcher.call(this, path.key, true);
-				if (key) {
-					return [comparison.eq, referencedField, key];
-				}
+			if (isBindReference(key)) {
+				const bind = this.Bind(key);
+				const referencedField: ReferencedFieldNode = [
+					'ReferencedField',
+					resource.tableAlias,
+					resource.idField,
+				];
+				return [comparison.eq, referencedField, bind];
 			}
-			throw new SyntaxError('Could not match path key');
+			const fieldNames = Object.keys(key);
+			const sqlFieldNames = fieldNames.map(odataNameToSqlName).sort();
+
+			const fields = sqlFieldNames.map((fieldName) => {
+				const resourceField = resource.fields.find(
+					(f) => f.fieldName === fieldName,
+				);
+				if (resourceField == null) {
+					throw new SyntaxError('Specified non-existent field for path key');
+				}
+				return resourceField;
+			});
+			if (
+				!(
+					fields.length === 1 &&
+					(fields[0].index === 'UNIQUE' || fields[0].index === 'PRIMARY KEY')
+				) &&
+				!resource.indexes.some((index) => {
+					return (
+						(index.type === 'UNIQUE' || index.type === 'PRIMARY KEY') &&
+						sqlFieldNames.length === index.fields.length &&
+						_.isEqual(index.fields.slice().sort(), sqlFieldNames)
+					);
+				})
+			) {
+				throw new SyntaxError(
+					'Specified fields for path key that are not directly unique',
+				);
+			}
+
+			const namedKeys = fieldNames.map(
+				(fieldName): BooleanTypeNodes => {
+					const bind = this.Bind(key[fieldName]);
+					const referencedField = this.ReferencedField(resource, fieldName);
+					return [comparison.eq, referencedField, bind];
+				},
+			);
+			if (namedKeys.length === 1) {
+				return namedKeys[0];
+			}
+			return ['And', ...namedKeys];
 		}
 	}
-	Bind(bind: BindReference, _optional?: boolean): AbstractSqlType | undefined {
-		if (bind != null && bind.bind != null) {
+	Bind(bind: BindReference, optional: true): AbstractSqlType | undefined;
+	Bind(bind: BindReference, optional?: false): AbstractSqlType;
+	Bind(bind: BindReference, optional = false): AbstractSqlType | undefined {
+		if (isBindReference(bind)) {
 			return ['Bind', bind.bind];
 		}
+		if (optional) {
+			return;
+		}
+		throw new SyntaxError(`Could not match bind reference`);
 	}
 	SelectFilter(filter: FilterOption, query: Query, resource: Resource) {
 		this.AddExtraFroms(query, resource, filter);
@@ -1108,7 +1187,7 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Failed to match a Number entry');
 		}
 	}
-	NullMatch(match: any): AbstractSqlType | undefined {
+	NullMatch(match: any, _optional?: true): AbstractSqlType | undefined {
 		if (match === null) {
 			return ['Null'];
 		}
@@ -1230,7 +1309,7 @@ export class OData2AbstractSQL {
 			expandQuery.from.push([
 				'Alias',
 				nestedExpandQuery.compile('SelectQuery') as SelectQueryNode,
-				expandResource.tableAlias!,
+				expandResource.tableAlias,
 			]);
 			query.select.push([
 				'Alias',
