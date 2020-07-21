@@ -219,7 +219,7 @@ export const rewriteBinds = (
 	existingBinds.push(...definition.extraBinds);
 };
 
-const isBindReference = (maybeBind: {
+export const isBindReference = (maybeBind: {
 	[key: string]: unknown;
 }): maybeBind is BindReference => {
 	return (
