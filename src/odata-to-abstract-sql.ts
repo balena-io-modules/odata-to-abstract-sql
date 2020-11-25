@@ -820,9 +820,9 @@ export class OData2AbstractSQL {
 		}
 	}
 	AddSelectFields(path: any, query: Query, resource: Resource) {
-		let odataFieldNames: Array<Parameters<
-			OData2AbstractSQL['AliasSelectField']
-		>>;
+		let odataFieldNames: Array<
+			Parameters<OData2AbstractSQL['AliasSelectField']>
+		>;
 		if (
 			path.options &&
 			path.options.$select &&
@@ -834,8 +834,9 @@ export class OData2AbstractSQL {
 					resource: Resource;
 					name: string;
 				};
+				const sqlName = odataNameToSqlName(field.name);
 				const resourceField = field.resource.fields.find(
-					({ fieldName }) => fieldName === field.name,
+					({ fieldName }) => fieldName === sqlName,
 				);
 				return [field.resource, field.name, resourceField?.computed];
 			});
