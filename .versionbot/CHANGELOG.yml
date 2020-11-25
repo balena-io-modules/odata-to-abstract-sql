@@ -1,4 +1,87 @@
 - commits:
+    - subject: Update dependencies
+      hash: 7ac6abdbe98e08b361721841d0f67c6ed83ed3a1
+      body: |
+        Update abstract-sql-compiler from 7.0.2 to 7.0.4
+        Update odata-parser from 2.1.0 to 2.2.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Update sbvr-types and make use of `castType`
+              hash: 9613dfff39b35e6b33f7fd6eb042ab5c98d8414e
+              body: |
+                Update sbvr-types from 3.1.0 to 3.1.2
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add a `castType` property to type functions
+                      hash: 409077eb9d6c0315779ddd877220280c251b4eb5
+                      body: >
+                        This allows specifying the correct type to cast to when
+                        necessary
+
+                        rather than relying on the fact the currently all type
+                        functions happen
+
+                        to be integers
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.1.2
+                  date: 2020-11-25T14:49:48.878Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 394b8c4d10ef16da163e05734ffb65a84717e204
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.1.1
+                  date: 2020-11-25T14:34:09.586Z
+          version: abstract-sql-compiler-7.0.4
+          date: 2020-11-25T16:29:36.439Z
+        - commits:
+            - subject: Remove accidental `necessity` from the `AbstractSqlField` types
+              hash: f9583ff668efb8e74480b0458b14d6caa3821550
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.0.3
+          date: 2020-10-02T13:25:39.199Z
+        - commits:
+            - subject: Update dependencies
+              hash: a1906bf3447b6c8ab30ae9951883a738050d69aa
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.2.1
+          date: 2020-11-25T16:09:50.140Z
+        - commits:
+            - subject: Add support for metadata argument in $format
+              hash: eecb0df57610d3f13bfc6b168790690dc0dce038
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-parser-2.2.0
+          date: 2020-08-18T16:23:49.447Z
+  version: 5.3.1
+  date: 2020-11-25T16:58:50.449Z
+- commits:
     - subject: Export `isBindReference`
       hash: 4aa9b4f62f0ae20c250425f30c41f1c4c5117892
       body: ''
