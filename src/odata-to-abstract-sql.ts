@@ -206,6 +206,10 @@ export const rewriteBinds = (
 	existingBinds: ODataBinds,
 	inc: number = 0,
 ): void => {
+	const { extraBinds } = definition;
+	if (extraBinds.length === 0) {
+		return;
+	}
 	inc += existingBinds.length;
 	modifyAbstractSql(
 		'Bind',
@@ -216,7 +220,7 @@ export const rewriteBinds = (
 			}
 		},
 	);
-	existingBinds.push(...definition.extraBinds);
+	existingBinds.push(...extraBinds);
 };
 
 export const isBindReference = (maybeBind: {
