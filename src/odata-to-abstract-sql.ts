@@ -20,13 +20,15 @@ import type {
 	ReferencedFieldNode,
 	AliasNode,
 	BooleanTypeNodes,
-	UnionQueryNode,
 	SelectQueryNode,
 	InNode,
 	BindNode,
 	CastNode,
 	AbstractSqlField,
 	TableNode,
+	Definition as ModernDefinition,
+	ResourceNode,
+	UnionQueryNode,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -41,23 +43,24 @@ import type {
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
-export type ResourceNode = ['Resource', string];
-
-declare module '@balena/abstract-sql-compiler' {
-	interface AbstractSqlTable {
-		definition?: Definition;
-	}
-	interface FromTypeNode {
-		ResourceNode: ResourceNode;
-	}
-}
-
-export interface Definition {
+interface LegacyDefinition {
 	extraBinds: ODataBinds;
 	abstractSqlQuery: SelectQueryNode | UnionQueryNode | ResourceNode | TableNode;
 }
+export type Definition = ModernDefinition | LegacyDefinition;
+const convertToModernDefinition = (
+	definition: Definition,
+): ModernDefinition => {
+	if ('abstractSql' in definition) {
+		return definition;
+	}
+	return {
+		binds: definition.extraBinds,
+		abstractSql: definition.abstractSqlQuery,
+	};
+};
 
-interface Resource extends AbstractSqlTable {
+interface Resource extends Omit<AbstractSqlTable, 'definition'> {
 	tableAlias?: string;
 	definition?: Definition;
 }
@@ -144,11 +147,7 @@ class Query {
 				args.extraBindVars,
 				args.bindVarsLength,
 			);
-			this.from.push([
-				'Alias',
-				definition.abstractSqlQuery,
-				resource.tableAlias,
-			]);
+			this.from.push(['Alias', definition.abstractSql, resource.tableAlias]);
 		} else if (resource.name !== resource.tableAlias) {
 			this.from.push(['Alias', ['Table', resource.name], resource.tableAlias]);
 		} else {
@@ -202,25 +201,25 @@ const modifyAbstractSql = <
 	}
 };
 export const rewriteBinds = (
-	definition: NonNullable<Resource['definition']>,
+	definition: ModernDefinition,
 	existingBinds: ODataBinds,
 	inc: number = 0,
 ): void => {
-	const { extraBinds } = definition;
-	if (extraBinds.length === 0) {
+	const { binds } = definition;
+	if (binds == null || binds.length === 0) {
 		return;
 	}
 	inc += existingBinds.length;
 	modifyAbstractSql(
 		'Bind',
-		definition.abstractSqlQuery as AbstractSqlQuery,
+		definition.abstractSql as AbstractSqlQuery,
 		(bind: BindNode) => {
 			if (typeof bind[1] === 'number') {
 				(bind[1] as any) += inc;
 			}
 		},
 	);
-	existingBinds.push(...extraBinds);
+	existingBinds.push(...binds);
 };
 
 export const isBindReference = (maybeBind: {
@@ -499,12 +498,14 @@ export class OData2AbstractSQL {
 					!_.isObject(unionResource.definition)
 				) {
 					unionResource.definition = {
-						extraBinds: [],
-						abstractSqlQuery: bindVarSelectQuery,
+						binds: [],
+						abstractSql: bindVarSelectQuery,
 					};
 				} else {
-					unionResource.definition = { ...unionResource.definition };
-					if (unionResource.definition.abstractSqlQuery[0] !== 'SelectQuery') {
+					unionResource.definition = {
+						...convertToModernDefinition(unionResource.definition),
+					};
+					if (unionResource.definition.abstractSql[0] !== 'SelectQuery') {
 						throw new Error(
 							'Only select query definitions supported for inserts',
 						);
@@ -513,11 +514,11 @@ export class OData2AbstractSQL {
 					const isTable = (part: any): part is TableNode =>
 						part[0] === 'Table' && part[1] === unionResource.name;
 
-					if (isTable(unionResource.definition.abstractSqlQuery)) {
-						unionResource.definition.abstractSqlQuery = bindVarSelectQuery;
+					if (isTable(unionResource.definition.abstractSql)) {
+						unionResource.definition.abstractSql = bindVarSelectQuery;
 					} else {
 						let found = false;
-						unionResource.definition.abstractSqlQuery = unionResource.definition.abstractSqlQuery.map(
+						unionResource.definition.abstractSql = unionResource.definition.abstractSql.map(
 							(part) => {
 								if (part[0] === 'From') {
 									if (isTable(part[1])) {
@@ -1455,12 +1456,14 @@ export class OData2AbstractSQL {
 		definition: Definition,
 		extraBindVars: ODataBinds,
 		bindVarsLength: number,
-	): Definition {
-		const rewrittenDefinition = _.cloneDeep(definition);
+	): ModernDefinition {
+		const rewrittenDefinition = _.cloneDeep(
+			convertToModernDefinition(definition),
+		);
 		rewriteBinds(rewrittenDefinition, extraBindVars, bindVarsLength);
 		modifyAbstractSql(
 			'Resource',
-			rewrittenDefinition.abstractSqlQuery as AbstractSqlQuery,
+			rewrittenDefinition.abstractSql as AbstractSqlQuery,
 			(resource: ResourceNode) => {
 				const resourceName = resource[1];
 				const referencedResource = this.clientModel.tables[resourceName];
@@ -1476,7 +1479,7 @@ export class OData2AbstractSQL {
 					(resource as AbstractSqlType[]).splice(
 						0,
 						resource.length,
-						...(subDefinition.abstractSqlQuery as AbstractSqlType[]),
+						...(subDefinition.abstractSql as AbstractSqlType[]),
 					);
 				} else if (
 					referencedResource.fields.some((field) => field.computed != null)
