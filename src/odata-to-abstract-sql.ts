@@ -6,6 +6,7 @@ import type {
 	AbstractSqlModel,
 	AbstractSqlTable,
 	Relationship,
+	RelationshipInternalNode,
 	DurationNode,
 	AbstractSqlType,
 	SelectNode,
@@ -1571,7 +1572,10 @@ const getRelationships = (
 	for (const key of relationshipKeys) {
 		if (key !== '$') {
 			nestedRelationships.push(key);
-			getRelationships(relationships[key] as Relationship, nestedRelationships);
+			getRelationships(
+				(relationships as RelationshipInternalNode)[key],
+				nestedRelationships,
+			);
 		}
 	}
 	return nestedRelationships;
