@@ -185,7 +185,7 @@ export const odataNameToSqlName = memoize(
 );
 
 const modifyAbstractSql = <
-	T extends BindNode | ReferencedFieldNode | ResourceNode
+	T extends BindNode | ReferencedFieldNode | ResourceNode,
 >(
 	match: T[0],
 	abstractSql: AbstractSqlQuery,
@@ -482,14 +482,12 @@ export class OData2AbstractSQL {
 					'SelectQuery',
 					[
 						'Select',
-						resource.fields.map(
-							(field): AliasNode<CastNode> => {
-								const alias = field.fieldName;
-								const bindVar = bindVars?.find((v) => v[0] === alias);
-								const value = bindVar ? bindVar[1] : 'Null';
-								return ['Alias', ['Cast', value, field.dataType], alias];
-							},
-						),
+						resource.fields.map((field): AliasNode<CastNode> => {
+							const alias = field.fieldName;
+							const bindVar = bindVars?.find((v) => v[0] === alias);
+							const value = bindVar ? bindVar[1] : 'Null';
+							return ['Alias', ['Cast', value, field.dataType], alias];
+						}),
 					],
 				];
 
@@ -519,8 +517,8 @@ export class OData2AbstractSQL {
 						unionResource.definition.abstractSql = bindVarSelectQuery;
 					} else {
 						let found = false;
-						unionResource.definition.abstractSql = unionResource.definition.abstractSql.map(
-							(part) => {
+						unionResource.definition.abstractSql =
+							unionResource.definition.abstractSql.map((part) => {
 								if (part[0] === 'From') {
 									if (isTable(part[1])) {
 										found = true;
@@ -534,8 +532,7 @@ export class OData2AbstractSQL {
 									}
 								}
 								return part;
-							},
-						) as SelectQueryNode;
+							}) as SelectQueryNode;
 						if (!found) {
 							throw new Error(
 								'Could not replace table entry in definition for insert',
@@ -665,13 +662,11 @@ export class OData2AbstractSQL {
 				);
 			}
 
-			const namedKeys = fieldNames.map(
-				(fieldName): BooleanTypeNodes => {
-					const bind = this.Bind(key[fieldName]);
-					const referencedField = this.ReferencedField(resource, fieldName);
-					return [comparison.eq, referencedField, bind];
-				},
-			);
+			const namedKeys = fieldNames.map((fieldName): BooleanTypeNodes => {
+				const bind = this.Bind(key[fieldName]);
+				const referencedField = this.ReferencedField(resource, fieldName);
+				return [comparison.eq, referencedField, bind];
+			});
 			if (namedKeys.length === 1) {
 				return namedKeys[0];
 			}
@@ -713,21 +708,21 @@ export class OData2AbstractSQL {
 		resourceName: string,
 		match: Array<[string, [string, string]]>,
 	): Array<[string, 'Default' | BindNode]> {
-		const fields = match.map((field):
-			| [string, 'Default' | BindNode]
-			| undefined => {
-			const [fieldName, [, mappedFieldName]] = field;
-			if (
-				bodyKeys.includes(fieldName) ||
-				bodyKeys.includes(resourceName + '.' + fieldName)
-			) {
-				return [mappedFieldName, ['Bind', resourceName, fieldName]];
-			}
-			// The body doesn't contain a bind var for this field.
-			if (method === 'PUT') {
-				return [mappedFieldName, 'Default'];
-			}
-		});
+		const fields = match.map(
+			(field): [string, 'Default' | BindNode] | undefined => {
+				const [fieldName, [, mappedFieldName]] = field;
+				if (
+					bodyKeys.includes(fieldName) ||
+					bodyKeys.includes(resourceName + '.' + fieldName)
+				) {
+					return [mappedFieldName, ['Bind', resourceName, fieldName]];
+				}
+				// The body doesn't contain a bind var for this field.
+				if (method === 'PUT') {
+					return [mappedFieldName, 'Default'];
+				}
+			},
+		);
 		return _.compact(fields);
 	}
 	Resource(resourceName: string, parentResource?: Resource): AliasedResource {
