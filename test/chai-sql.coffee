@@ -133,6 +133,9 @@ exports.operandToAbstractSQLFactory = (binds = [], defaultResource = 'pilot', de
 				mapping = [alias, _.last(fieldParts)]
 			else
 				mapping = [resource, odataNameToSqlName(operand)]
+			# Data type check by field names that are dates
+			if (mapping[1] == 'created at' || mapping[1] == 'modified at' || mapping[1] == 'hire date')
+				return ['DateTrunc', ['EmbeddedText', 'milliseconds'], ['ReferencedField'].concat(mapping)]
 			return ['ReferencedField'].concat(mapping)
 		if Array.isArray(operand)
 			return operandToAbstractSQL(operand...)

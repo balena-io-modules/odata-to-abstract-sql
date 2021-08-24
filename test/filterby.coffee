@@ -1,5 +1,5 @@
 expect = require('chai').expect
-{ operandToAbstractSQLFactory, operandToOData, aliasFields, pilotFields, pilotCanFlyPlaneFields, teamFields, $count } = require('./chai-sql')
+{ operandToAbstractSQLFactory, operandToOData, aliasFields, licenceFields, pilotFields, pilotCanFlyPlaneFields, teamFields, $count } = require('./chai-sql')
 test = require('./test')
 _ = require('lodash')
 
@@ -190,6 +190,31 @@ run ->
 					['Equals', ['ReferencedField', 'pilot', 'id'], ['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot']]
 					abstractsql
 				])
+
+run ->
+	{ odata } = createExpression('created_at', 'gt', new Date() )
+	test '/pilot?$filter=' + odata, (result) ->
+		it 'should select from pilot where "' + odata + '"', ->
+			expect(result).to.be.a.query.that.
+				selects(pilotFields).
+				where(['GreaterThan', ['DateTrunc', ['EmbeddedText', 'milliseconds'], ['ReferencedField', 'pilot', 'created at']], ['Bind', 0]])
+
+run ->
+	{ odata } = createExpression('created_at', 'gt', new Date() )
+	test '/pilot(1)/licence?$filter=' + odata, (result) ->
+		it 'should select from the licence of pilot with id and created_at greaterThan', ->
+			expect(result).to.be.a.query.that.
+				selects(aliasFields('pilot', licenceFields)).
+				from(
+					'pilot'
+					['licence', 'pilot.licence']
+				).
+				where(['And',
+					['GreaterThan', ['DateTrunc', ['EmbeddedText', 'milliseconds'], ['ReferencedField', 'pilot.licence', 'created at']], ['Bind', 1]]
+					['Equals', ['ReferencedField', 'pilot', 'licence'], ['ReferencedField', 'pilot.licence', 'id']]
+					['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]]
+				])
+
 
 run [['Number', 1]], ->
 	{ odata, abstractsql } = createExpression(['plane/id', null, 'pilot.pilot-can fly-plane'], 'eq', 10)
