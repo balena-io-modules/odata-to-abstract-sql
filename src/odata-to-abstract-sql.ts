@@ -1080,6 +1080,29 @@ export class OData2AbstractSQL {
 			// It's the result of a lambda
 			return prop;
 		} else {
+			// Natively created timestamps in postgres have a microseconds precision
+			// js has only milliseconds precision, thus retrieved timestamps may fail on eq, ne, gt, lt comparisons
+			// furthermore retrieved timestamps should be truncated on database and not on the db abstraction layer
+			// thus SBVR Date Time fields have to be truncated to millisecond precision
+			// getting schema dataType from field mapping
+			let fieldDefinition;
+			const mapping = this.ResourceMapping(prop.resource);
+			if (mapping[prop.name]) {
+				fieldDefinition = prop.resource.fields.find(
+					(f) => f.fieldName === mapping[prop.name][1],
+				);
+
+				// when date time field from schema => hardcoded DateTrunc
+				// following abstractsql to sql compiler have to check engine to translate to proper eninge based sql query
+				if (fieldDefinition?.dataType === 'Date Time') {
+					return [
+						'DateTrunc',
+						['EmbeddedText', 'milliseconds'],
+						this.ReferencedField(prop.resource, prop.name),
+					];
+				}
+			}
+
 			return this.ReferencedField(prop.resource, prop.name);
 		}
 	}
