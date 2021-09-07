@@ -1,4 +1,15 @@
 - commits:
+    - subject: Convert tests to type checked javascript
+      hash: a5ba8586c03c85918d69f051b499e2e8f0751e4f
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.4.4
+  date: 2021-09-07T14:57:14.139Z
+- commits:
     - subject: >-
         Add SBVR Date TIme Type to DateTrunc Wrapper JS Date format has only
         milliseconds precision, postgresql stores TIMESTAMPS with microseconds
