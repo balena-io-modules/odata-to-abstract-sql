@@ -1,8 +1,8 @@
 {
-	"*.coffee": [
-		"balena-lint"
-	],
 	"*.ts": [
 		"balena-lint --typescript --fix"
 	],
+	"*.js": [
+		"balena-lint --typescript --fix"
+	]
 }
