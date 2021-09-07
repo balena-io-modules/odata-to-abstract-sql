@@ -2,18 +2,22 @@
 	"compilerOptions": {
 		"module": "commonjs",
 		"target": "es2018",
+		"strict": true,
 		"noImplicitAny": true,
 		"noUnusedParameters": true,
 		"noUnusedLocals": true,
 		"preserveConstEnums": true,
 		"removeComments": true,
 		"sourceMap": true,
-		"strict": true,
 		"declaration": true,
 		"skipLibCheck": true,
-		"outDir": "out"
+		"outDir": "out",
+		"allowJs": true
 	},
 	"include": [
-		"src/*.ts"
+		"src/**/*"
+	],
+	"exclude": [
+		"node_modules"
 	]
 }
