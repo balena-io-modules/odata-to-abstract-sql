@@ -1,4 +1,15 @@
 - commits:
+    - subject: Fix `isBindReference` check for non-null non-object types
+      hash: a1d356e93d8b6f4e137e70ebf5c1719b88e20ea5
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.4.5
+  date: 2021-11-26T16:03:43.668Z
+- commits:
     - subject: Convert tests to type checked javascript
       hash: a5ba8586c03c85918d69f051b499e2e8f0751e4f
       body: ''
