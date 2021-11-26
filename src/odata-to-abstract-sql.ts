@@ -228,6 +228,7 @@ export const isBindReference = (maybeBind: {
 }): maybeBind is BindReference => {
 	return (
 		maybeBind != null &&
+		typeof maybeBind === 'object' &&
 		'bind' in maybeBind &&
 		(typeof maybeBind.bind === 'string' || typeof maybeBind.bind === 'number')
 	);
