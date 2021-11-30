@@ -71,7 +71,10 @@ type AliasedResource = RequiredField<Resource, 'tableAlias'>;
 
 export type ResourceFunction = (
 	this: OData2AbstractSQL,
-	property: any,
+	property: {
+		method: ['call', { method: string; args: any[] }];
+		[key: string]: any;
+	},
 ) => BooleanTypeNodes | { resource: Resource; name: string };
 
 const comparison = {
@@ -1110,7 +1113,7 @@ export class OData2AbstractSQL {
 
 	Method(
 		prop: unknown & {
-			method: Array<string | { method: string }>;
+			method: ['call', { method: string; args: any[] }];
 		},
 	): BooleanTypeNodes | { resource: Resource; name: string } {
 		if (!prop.method) {
