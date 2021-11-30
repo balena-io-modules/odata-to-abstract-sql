@@ -1,4 +1,15 @@
 - commits:
+    - subject: Improve `ResourceFunction` typings
+      hash: b511221bb08ad74b72020093f618ba49db5be765
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.4.6
+  date: 2021-11-30T16:42:04.591Z
+- commits:
     - subject: Fix `isBindReference` check for non-null non-object types
       hash: a1d356e93d8b6f4e137e70ebf5c1719b88e20ea5
       body: ''
