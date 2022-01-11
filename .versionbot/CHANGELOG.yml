@@ -1,4 +1,21 @@
 - commits:
+    - subject: Use a hash instead of random str when it's necessary to shorten aliases
+      hash: cb05ec69fe0e08fc4619b38a99272c3a7ea42e21
+      body: |
+        This means the prefix will be stable/reliable across runs and make it
+        easier to compare the output generating from different runs
+
+        Update @balena/abstract-sql-compiler from 7.14.1 to 7.17.0
+        Update @balena/lf-to-abstract-sql from 4.3.0 to 4.4.1
+        Update @balena/sbvr-parser from 1.2.5 to 1.3.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.4.7
+  date: 2022-01-11T17:40:53.504Z
+- commits:
     - subject: Improve `ResourceFunction` typings
       hash: b511221bb08ad74b72020093f618ba49db5be765
       body: ''
