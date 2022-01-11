@@ -1019,6 +1019,7 @@ const lambdaTest = function (methodName) {
 		];
 		// All is implemented as where none fail
 		if (methodName === 'all') {
+			// @ts-expect-error the types should be fine but it's not feasible to do in js
 			where = ['Not', where];
 		}
 
@@ -1085,6 +1086,7 @@ const lambdaTest = function (methodName) {
 
 		// All is implemented as where none fail
 		if (methodName === 'all') {
+			// @ts-expect-error the types should be fine but it's not feasible to do in js
 			innerWhere = ['Not', innerWhere];
 		}
 
