@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use the full alias for the prefix hash
+      hash: d60132e2eed1408735c1ee6dae12d69548cb1796
+      body: |
+        This simplifies the code and also avoids an issue where we not using
+        enough of the prefix for the hash
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.4.8
+  date: 2022-01-13T13:11:52.889Z
+- commits:
     - subject: Use a hash instead of random str when it's necessary to shorten aliases
       hash: cb05ec69fe0e08fc4619b38a99272c3a7ea42e21
       body: |
