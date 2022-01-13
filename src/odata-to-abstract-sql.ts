@@ -265,7 +265,6 @@ export class OData2AbstractSQL {
 		private methods: _.Dictionary<ResourceFunction> = {},
 	) {
 		const MAX_ALIAS_LENGTH = 63;
-		const ALIAS_HASH_LENGTH = 7; // 6 for the hash + 1 for the $ separator
 		const shortAliases = generateShortAliases(clientModel);
 		this.checkAlias = memoize((alias: string) => {
 			let aliasLength = alias.length;
@@ -308,8 +307,7 @@ export class OData2AbstractSQL {
 				return alias;
 			}
 
-			const hashStr =
-				stringHash(alias.slice(0, ALIAS_HASH_LENGTH)).toString(36) + '$';
+			const hashStr = stringHash(alias).toString(36) + '$';
 			return (
 				hashStr + alias.slice(hashStr.length + alias.length - MAX_ALIAS_LENGTH)
 			);
