@@ -150,6 +150,7 @@ class Query {
 			bindVarsLength: number;
 		} = odataToAbstractSql,
 		bypassDefinition?: boolean,
+		isModifyOperation?: boolean,
 	): void {
 		const tableRef = odataToAbstractSql.getTableReference(
 			resource,
@@ -157,6 +158,7 @@ class Query {
 			args.bindVarsLength,
 			bypassDefinition,
 			resource.tableAlias,
+			isModifyOperation,
 		);
 		this.from.push(tableRef);
 	}
@@ -400,7 +402,13 @@ export class OData2AbstractSQL {
 		const query = new Query();
 		// For non-GETs we bypass definitions for the actual update/insert as we need to write to the base table
 		const bypassDefinition = method !== 'GET';
-		query.fromResource(this, resource, this, bypassDefinition);
+		query.fromResource(
+			this,
+			resource,
+			this,
+			bypassDefinition,
+			bypassDefinition,
+		);
 
 		// We can't use the ReferencedField rule as resource.idField is the model name (using spaces),
 		// not the resource name (with underscores), meaning that the attempts to map fail for a custom id field with spaces.
@@ -468,7 +476,7 @@ export class OData2AbstractSQL {
 			method === 'PATCH' ||
 			method === 'MERGE'
 		) {
-			const resourceMapping = this.ResourceMapping(resource);
+			const resourceMapping = this.ResourceMapping(resource, true);
 			bindVars = this.BindVars(
 				method,
 				bodyKeys,
@@ -488,22 +496,33 @@ export class OData2AbstractSQL {
 				subQuery.select = bindVars.map(
 					(bindVar): ReferencedFieldNode => [
 						'ReferencedField',
-						resource.tableAlias,
+						'$insert',
 						bindVar[0],
 					],
 				);
 
+				subQuery.from.push([
+					'Alias',
+					[
+						'SelectQuery',
+						[
+							'Select',
+							(resource.modifyFields ?? resource.fields).map(
+								(field): AliasNode<CastNode> => {
+									const alias = field.fieldName;
+									const bindVar = bindVars?.find((v) => v[0] === alias);
+									const value = bindVar?.[1] ?? ['Null'];
+									return ['Alias', ['Cast', value, field.dataType], alias];
+								},
+							),
+						],
+					],
+					'$insert',
+				]);
+
 				const bindVarSelectQuery: SelectQueryNode = [
 					'SelectQuery',
-					[
-						'Select',
-						resource.fields.map((field): AliasNode<CastNode> => {
-							const alias = field.fieldName;
-							const bindVar = bindVars?.find((v) => v[0] === alias);
-							const value = bindVar?.[1] ?? ['Null'];
-							return ['Alias', ['Cast', value, field.dataType], alias];
-						}),
-					],
+					['Select', [['ReferencedField', '$insert', '*']]],
 				];
 
 				const unionResource = { ...resource };
@@ -516,38 +535,44 @@ export class OData2AbstractSQL {
 						abstractSql: bindVarSelectQuery,
 					};
 				} else {
-					unionResource.definition = {
-						...convertToModernDefinition(unionResource.definition),
-					};
-					if (unionResource.definition.abstractSql[0] !== 'SelectQuery') {
+					const rewrittenBindVars: ModernDefinition['binds'] = [];
+					const definition: Definition = (unionResource.definition =
+						this.rewriteDefinition(
+							unionResource.definition,
+							rewrittenBindVars,
+							0,
+						));
+					definition.binds = rewrittenBindVars;
+
+					if (
+						definition.abstractSql[0] !== 'SelectQuery' &&
+						definition.abstractSql[0] !== 'Table'
+					) {
 						throw new Error(
-							'Only select query definitions supported for inserts',
+							'Only SelectQuery or Table definitions supported for inserts',
 						);
 					}
+					const tableName = unionResource.modifyName ?? unionResource.name;
+					const isTableBeingModified = (part: any): part is TableNode =>
+						isTableNode(part) && part[1] === tableName;
 
-					const isTable = (part: any): part is TableNode =>
-						isTableNode(part) && part[1] === unionResource.name;
-
-					if (isTable(unionResource.definition.abstractSql)) {
-						unionResource.definition.abstractSql = bindVarSelectQuery;
+					if (isTableBeingModified(definition.abstractSql)) {
+						definition.abstractSql = bindVarSelectQuery;
 					} else {
 						let found = false;
 						const replaceInsertTableNodeWithBinds = (
 							part: SelectQueryNode[number],
 						): SelectQueryNode[number] => {
 							if (isFromNode(part)) {
-								if (isTable(part[1])) {
+								if (isTableBeingModified(part[1])) {
 									found = true;
-									return [
-										'From',
-										['Alias', bindVarSelectQuery, unionResource.name],
-									];
+									return ['From', ['Alias', bindVarSelectQuery, tableName]];
 								} else if (
 									isAliasNode(part[1]) &&
 									part[1][2] === unionResource.tableAlias
 								) {
 									const aliasedNode = part[1][1];
-									if (isTable(aliasedNode)) {
+									if (isTableBeingModified(aliasedNode)) {
 										found = true;
 										return [
 											'From',
@@ -569,10 +594,9 @@ export class OData2AbstractSQL {
 							}
 							return part;
 						};
-						unionResource.definition.abstractSql =
-							unionResource.definition.abstractSql.map(
-								replaceInsertTableNodeWithBinds,
-							) as SelectQueryNode;
+						definition.abstractSql = definition.abstractSql.map(
+							replaceInsertTableNodeWithBinds,
+						) as SelectQueryNode;
 						if (!found) {
 							throw new Error(
 								'Could not replace table entry in definition for insert',
@@ -580,14 +604,16 @@ export class OData2AbstractSQL {
 						}
 					}
 				}
+				const whereQuery = new Query();
 				if (hasQueryOpts) {
-					this.AddQueryOptions(resource, path, subQuery);
+					this.AddQueryOptions(resource, path, whereQuery);
 				}
-				subQuery.fromResource(this, unionResource);
+				whereQuery.fromResource(this, unionResource, this, false, true);
 				addPathKey = false;
 				if (pathKeyWhere != null) {
-					subQuery.where.push(pathKeyWhere);
+					whereQuery.where.push(pathKeyWhere);
 				}
+				subQuery.where.push(['Exists', whereQuery.compile('SelectQuery')]);
 
 				query.extras.push([
 					'Values',
@@ -598,7 +624,7 @@ export class OData2AbstractSQL {
 			}
 		} else if (path.count) {
 			this.AddCountField(path, query);
-		} else {
+		} else if (method === 'GET') {
 			this.AddSelectFields(path, query, resource);
 		}
 
@@ -815,10 +841,17 @@ export class OData2AbstractSQL {
 			throw e;
 		}
 	}
-	ResourceMapping(resource: Resource): Dictionary<[string, string]> {
+	ResourceMapping(
+		resource: Resource,
+		modifyFields = false,
+	): Dictionary<[string, string]> {
 		const tableAlias = resource.tableAlias ?? resource.name;
 		const resourceMappings: Dictionary<[string, string]> = {};
-		for (const { fieldName } of resource.fields) {
+		const fields =
+			modifyFields === true && resource.modifyFields
+				? resource.modifyFields
+				: resource.fields;
+		for (const { fieldName } of fields) {
 			resourceMappings[sqlNameToODataName(fieldName)] = [tableAlias, fieldName];
 		}
 		return resourceMappings;
@@ -1518,6 +1551,7 @@ export class OData2AbstractSQL {
 		bindVarsLength: number,
 		bypassDefinition: boolean = false,
 		tableAlias?: string,
+		isModifyOperation?: boolean,
 	): FromTypeNodes | AliasNode<FromTypeNodes> {
 		const maybeAlias = (
 			tableRef: FromTypeNodes | AliasNode<FromTypeNodes>,
@@ -1576,7 +1610,12 @@ export class OData2AbstractSQL {
 				return maybeAlias(computedFieldQuery.compile('SelectQuery'));
 			}
 		}
-		return maybeAlias(['Table', resource.name]);
+		return maybeAlias([
+			'Table',
+			isModifyOperation && resource.modifyName
+				? resource.modifyName
+				: resource.name,
+		]);
 	}
 
 	rewriteDefinition(
