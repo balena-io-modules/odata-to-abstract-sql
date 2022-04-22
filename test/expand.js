@@ -213,7 +213,7 @@ test('/pilot?$expand=licence($filter=id eq 1)', function (result) {
 			);
 		})
 		.value();
-	return it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () =>
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
@@ -256,7 +256,7 @@ test('/pilot?$expand=licence($filter=is_of__pilot/id eq 1)', function (result) {
 			);
 		})
 		.value();
-	return it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () =>
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
@@ -275,7 +275,7 @@ test('/pilot?$expand=licence($orderby=id)', function (result) {
 		.find({ 0: 'SelectQuery' })
 		.value()
 		.push(['OrderBy', ['DESC', ['ReferencedField', 'pilot.licence', 'id']]]);
-	return it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () =>
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
@@ -294,7 +294,7 @@ test('/pilot?$expand=licence($top=10)', function (result) {
 		.find({ 0: 'SelectQuery' })
 		.value()
 		.push(['Limit', ['Number', 10]]);
-	return it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () =>
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
@@ -313,7 +313,7 @@ test('/pilot?$expand=licence($skip=10)', function (result) {
 		.find({ 0: 'SelectQuery' })
 		.value()
 		.push(['Offset', ['Number', 10]]);
-	return it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () =>
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
@@ -334,7 +334,7 @@ test('/pilot?$expand=licence($select=id)', function (result) {
 		.value();
 	select[1] = _.filter(select[1], { 2: 'id' });
 
-	return it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () =>
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
@@ -442,7 +442,7 @@ test('/pilot?$expand=licence/$count($filter=id gt 5)', function (result) {
 			);
 		})
 		.value();
-	return it('should select from pilot.*, count(*) licence for id gt 5', () =>
+	it('should select from pilot.*, count(*) licence for id gt 5', () =>
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
@@ -504,7 +504,7 @@ test('/pilot?$expand=licence/$count($top=5)', (result) =>
 	})();
 
 	const url = '/pilot?' + expandString;
-	return test(url, function (result) {
+	test(url, function (result) {
 		var recurse = function (i, parentAlias) {
 			let aliasedFields;
 			const alias = shortenAlias(`${parentAlias}.trained-pilot`);
@@ -525,7 +525,7 @@ test('/pilot?$expand=licence/$count($top=5)', (result) =>
 				fields: aliasedFields,
 			});
 		};
-		return it('should select from pilot.*, aggregated pilot', () =>
+		it('should select from pilot.*, aggregated pilot', () =>
 			expect(result)
 				.to.be.a.query.that.selects([
 					recurse(recursions, 'pilot'),

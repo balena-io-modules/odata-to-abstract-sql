@@ -214,12 +214,12 @@ test('/pilot(1)', 'PUT', (result) =>
 			['Bind', 0],
 		];
 		it('should be an upsert', () => expect(result).to.be.a.query.that.upserts);
-		it('that inserts', () =>
+		it('that inserts', () => {
 			expect(result[1])
 				.to.be.a.query.that.inserts.fields('id')
 				.values(
 					'SelectQuery',
-					['Select', [['ReferencedField', 'pilot', 'id']]],
+					['Select', [['ReferencedField', '$insert', 'id']]],
 					[
 						'From',
 						[
@@ -252,20 +252,42 @@ test('/pilot(1)', 'PUT', (result) =>
 									],
 								],
 							],
-							'pilot',
+							'$insert',
 						],
 					],
 					[
 						'Where',
 						[
-							'IsNotDistinctFrom',
-							['ReferencedField', 'pilot', 'id'],
-							['Bind', 0],
+							'Exists',
+							[
+								'SelectQuery',
+								['Select', []],
+								[
+									'From',
+									[
+										'Alias',
+										[
+											'SelectQuery',
+											['Select', [['ReferencedField', '$insert', '*']]],
+										],
+										'pilot',
+									],
+								],
+								[
+									'Where',
+									[
+										'IsNotDistinctFrom',
+										['ReferencedField', 'pilot', 'id'],
+										['Bind', 0],
+									],
+								],
+							],
 						],
 					],
 				)
-				.from('pilot'));
-		return it('and updates', () =>
+				.from('pilot');
+		});
+		it('and updates', () => {
 			expect(result[2])
 				.to.be.a.query.that.updates.fields(
 					'created at',
@@ -296,7 +318,8 @@ test('/pilot(1)', 'PUT', (result) =>
 					'Default',
 				)
 				.from('pilot')
-				.where(whereClause));
+				.where(whereClause);
+		});
 	}),
 );
 
@@ -321,7 +344,7 @@ test('/pilot(1)', 'PUT', (result) =>
 		{ is_experienced: true, favourite_colour: null },
 		testFunc,
 	);
-	return test(
+	test(
 		'/pilot(1)',
 		'MERGE',
 		{ is_experienced: true, favourite_colour: null },
@@ -348,7 +371,7 @@ test('/pilot__can_fly__plane(1)', 'DELETE', (result) =>
 			])),
 );
 
-test('/pilot__can_fly__plane(1)', 'PUT', (result) =>
+test('/pilot__can_fly__plane(1)', 'PUT', (result) => {
 	describe('should upsert the pilot__can_fly__plane with id 1', function () {
 		const whereClause = [
 			'IsNotDistinctFrom',
@@ -356,12 +379,12 @@ test('/pilot__can_fly__plane(1)', 'PUT', (result) =>
 			['Bind', 0],
 		];
 		it('should be an upsert', () => expect(result).to.be.a.query.that.upserts);
-		it('that inserts', () =>
+		it('that inserts', () => {
 			expect(result[1])
 				.to.be.a.query.that.inserts.fields('id')
 				.values(
 					'SelectQuery',
-					['Select', [['ReferencedField', 'pilot-can fly-plane', 'id']]],
+					['Select', [['ReferencedField', '$insert', 'id']]],
 					[
 						'From',
 						[
@@ -383,20 +406,42 @@ test('/pilot__can_fly__plane(1)', 'PUT', (result) =>
 									],
 								],
 							],
-							'pilot-can fly-plane',
+							'$insert',
 						],
 					],
 					[
 						'Where',
 						[
-							'IsNotDistinctFrom',
-							['ReferencedField', 'pilot-can fly-plane', 'id'],
-							['Bind', 0],
+							'Exists',
+							[
+								'SelectQuery',
+								['Select', []],
+								[
+									'From',
+									[
+										'Alias',
+										[
+											'SelectQuery',
+											['Select', [['ReferencedField', '$insert', '*']]],
+										],
+										'pilot-can fly-plane',
+									],
+								],
+								[
+									'Where',
+									[
+										'IsNotDistinctFrom',
+										['ReferencedField', 'pilot-can fly-plane', 'id'],
+										['Bind', 0],
+									],
+								],
+							],
 						],
 					],
 				)
-				.from('pilot-can fly-plane'));
-		return it('and updates', () =>
+				.from('pilot-can fly-plane');
+		});
+		it('and updates', () => {
 			expect(result[2])
 				.to.be.a.query.that.updates.fields(
 					'created at',
@@ -411,13 +456,14 @@ test('/pilot__can_fly__plane(1)', 'PUT', (result) =>
 					'id',
 				])
 				.from('pilot-can fly-plane')
-				.where(whereClause));
-	}),
-);
+				.where(whereClause);
+		});
+	});
+});
 
 (function () {
 	const testFunc = (result) =>
-		it('should update the pilot__can_fly__plane with id 1', () =>
+		it('should update the pilot__can_fly__plane with id 1', () => {
 			expect(result)
 				.to.be.a.query.that.updates.fields('pilot')
 				.values(['Bind', 'pilot-can fly-plane', 'pilot'])
@@ -426,9 +472,10 @@ test('/pilot__can_fly__plane(1)', 'PUT', (result) =>
 					'IsNotDistinctFrom',
 					['ReferencedField', 'pilot-can fly-plane', 'id'],
 					['Bind', 0],
-				]));
+				]);
+		});
 	test('/pilot__can_fly__plane(1)', 'PATCH', { pilot: 2 }, testFunc);
-	return test('/pilot__can_fly__plane(1)', 'MERGE', { pilot: 2 }, testFunc);
+	test('/pilot__can_fly__plane(1)', 'MERGE', { pilot: 2 }, testFunc);
 })();
 
 test(

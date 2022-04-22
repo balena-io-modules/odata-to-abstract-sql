@@ -126,21 +126,21 @@ const operandTest = (lhs, op, rhs) =>
 	run(function () {
 		const { odata, abstractsql } = createExpression(lhs, op, rhs);
 		test('/pilot?$filter=' + odata, (result) =>
-			it('should select from pilot where "' + odata + '"', () =>
+			it('should select from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects(pilotFields)
 					.from('pilot')
-					.where(abstractsql),
-			),
+					.where(abstractsql);
+			}),
 		);
 
 		return test('/pilot/$count?$filter=' + odata, (result) =>
-			it('should count(*) from pilot where "' + odata + '"', () =>
+			it('should count(*) from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects($count)
 					.from('pilot')
-					.where(abstractsql),
-			),
+					.where(abstractsql);
+			}),
 		);
 	});
 
@@ -148,7 +148,7 @@ const navigatedOperandTest = (lhs, op, rhs) =>
 	run(function () {
 		const { odata, abstractsql } = createExpression(lhs, op, rhs);
 		test('/pilot?$filter=' + odata, (result) =>
-			it('should select from pilot where "' + odata + '"', () =>
+			it('should select from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects(pilotFields)
 					.from('pilot', ['licence', 'pilot.licence'])
@@ -160,11 +160,11 @@ const navigatedOperandTest = (lhs, op, rhs) =>
 							['ReferencedField', 'pilot.licence', 'id'],
 						],
 						abstractsql,
-					]),
-			),
+					]);
+			}),
 		);
 		return test('/pilot/$count?$filter=' + odata, (result) =>
-			it('should count(*) from pilot where "' + odata + '"', () =>
+			it('should count(*) from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects($count)
 					.from('pilot', ['licence', 'pilot.licence'])
@@ -176,8 +176,8 @@ const navigatedOperandTest = (lhs, op, rhs) =>
 							['ReferencedField', 'pilot.licence', 'id'],
 						],
 						abstractsql,
-					]),
-			),
+					]);
+			}),
 		);
 	});
 
@@ -243,7 +243,7 @@ run(function () {
 		10,
 	);
 	return test('/pilot?$filter=' + odata, (result) =>
-		it('should select from pilot where "' + odata + '"', () =>
+		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
 				.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
@@ -255,15 +255,15 @@ run(function () {
 						['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
 					],
 					abstractsql,
-				]),
-		),
+				]);
+		}),
 	);
 });
 
 run(function () {
 	const { odata } = createExpression('created_at', 'gt', new Date());
 	return test('/pilot?$filter=' + odata, (result) =>
-		it('should select from pilot where "' + odata + '"', () =>
+		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
 				.where([
@@ -274,15 +274,15 @@ run(function () {
 						['ReferencedField', 'pilot', 'created at'],
 					],
 					['Bind', 0],
-				]),
-		),
+				]);
+		}),
 	);
 });
 
 run(function () {
 	const { odata } = createExpression('created_at', 'gt', new Date());
 	return test('/pilot(1)/licence?$filter=' + odata, (result) =>
-		it('should select from the licence of pilot with id and created_at greaterThan', () =>
+		it('should select from the licence of pilot with id and created_at greaterThan', () => {
 			expect(result)
 				.to.be.a.query.that.selects(aliasFields('pilot', licenceFields))
 				.from('pilot', ['licence', 'pilot.licence'])
@@ -307,7 +307,8 @@ run(function () {
 						['ReferencedField', 'pilot', 'id'],
 						['Bind', 0],
 					],
-				])),
+				]);
+		}),
 	);
 });
 
@@ -317,8 +318,8 @@ run([['Number', 1]], function () {
 		'eq',
 		10,
 	);
-	return test('/pilot(1)/can_fly__plane?$filter=' + odata, (result) =>
-		it('should select from pilot where "' + odata + '"', () =>
+	return test('/pilot(1)/can_fly__plane?$filter=' + odata, (result) => {
+		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(
 					aliasFields('pilot', pilotCanFlyPlaneFields),
@@ -346,9 +347,9 @@ run([['Number', 1]], function () {
 						['ReferencedField', 'pilot', 'id'],
 						['Bind', 0],
 					],
-				]),
-		),
-	);
+				]);
+		});
+	});
 });
 
 run(function () {
@@ -372,24 +373,12 @@ run(function () {
 		],
 		abstractsql,
 	];
-	const insertTest = (result) =>
+	const insertTest = (result) => {
 		expect(result)
 			.to.be.a.query.that.inserts.fields('name')
 			.values(
 				'SelectQuery',
-				['Select', [['ReferencedField', 'pilot', 'name']]],
-				[
-					'From',
-					[
-						'Alias',
-						['Table', 'pilot-can fly-plane'],
-						'pilot.pilot-can fly-plane',
-					],
-				],
-				[
-					'From',
-					['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
-				],
+				['Select', [['ReferencedField', '$insert', 'name']]],
 				[
 					'From',
 					[
@@ -422,12 +411,50 @@ run(function () {
 								],
 							],
 						],
-						'pilot',
+						'$insert',
 					],
 				],
-				['Where', filterWhere],
+				[
+					'Where',
+					[
+						'Exists',
+						[
+							'SelectQuery',
+							['Select', []],
+							[
+								'From',
+								[
+									'Alias',
+									['Table', 'pilot-can fly-plane'],
+									'pilot.pilot-can fly-plane',
+								],
+							],
+							[
+								'From',
+								[
+									'Alias',
+									['Table', 'plane'],
+									'pilot.pilot-can fly-plane.plane',
+								],
+							],
+							[
+								'From',
+								[
+									'Alias',
+									[
+										'SelectQuery',
+										['Select', [['ReferencedField', '$insert', '*']]],
+									],
+									'pilot',
+								],
+							],
+							['Where', filterWhere],
+						],
+					],
+				],
 			)
 			.from('pilot');
+	};
 	const updateWhere = [
 		'In',
 		['ReferencedField', 'pilot', 'id'],
@@ -452,7 +479,7 @@ run(function () {
 	];
 
 	test('/pilot?$filter=' + odata, (result) =>
-		it('should select from pilot where "' + odata + '"', () =>
+		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
 				.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
@@ -469,18 +496,18 @@ run(function () {
 						['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
 					],
 					abstractsql,
-				]),
-		),
+				]);
+		}),
 	);
 
 	test(`/pilot?$filter=${odata}`, 'PATCH', { name: 'Peter' }, (result) =>
-		it('should update pilot where "' + odata + '"', () =>
+		it('should update pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.updates.fields('name')
 				.values(['Bind', 'pilot', 'name'])
 				.from('pilot')
-				.where(updateWhere),
-		),
+				.where(updateWhere);
+		}),
 	);
 
 	test(`/pilot?$filter=${odata}`, 'POST', { name: 'Peter' }, (result) =>
@@ -489,8 +516,9 @@ run(function () {
 
 	test(`/pilot?$filter=${odata}`, 'PUT', { name: 'Peter' }, (result) =>
 		describe(`should select from pilot where '${odata}'`, function () {
-			it('should be an upsert', () =>
-				expect(result).to.be.a.query.that.upserts);
+			it('should be an upsert', () => {
+				expect(result).to.be.a.query.that.upserts;
+			});
 			it('that inserts', () => insertTest(result[1]));
 			return it('and updates', () =>
 				expect(result[2])
@@ -528,7 +556,7 @@ run(function () {
 	);
 
 	return test('/pilot?$filter=' + odata, 'DELETE', (result) =>
-		it('should delete from pilot where "' + odata + '"', () =>
+		it('should delete from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.deletes.from('pilot')
 				.where([
@@ -572,15 +600,15 @@ run(function () {
 							],
 						],
 					],
-				]),
-		),
+				]);
+		}),
 	);
 });
 
 run([['Number', 1]], function () {
 	const name = 'Peter';
 	const { odata, abstractsql } = createExpression('name', 'eq', `'${name}'`);
-	const insertTest = (result) =>
+	const insertTest = (result) => {
 		expect(result)
 			.to.be.a.query.that.inserts.fields('id', 'name')
 			.values(
@@ -588,8 +616,8 @@ run([['Number', 1]], function () {
 				[
 					'Select',
 					[
-						['ReferencedField', 'pilot', 'id'],
-						['ReferencedField', 'pilot', 'name'],
+						['ReferencedField', '$insert', 'id'],
+						['ReferencedField', '$insert', 'name'],
 					],
 				],
 				[
@@ -624,23 +652,45 @@ run([['Number', 1]], function () {
 								],
 							],
 						],
-						'pilot',
+						'$insert',
 					],
 				],
 				[
 					'Where',
 					[
-						'And',
-						abstractsql,
+						'Exists',
 						[
-							'IsNotDistinctFrom',
-							['ReferencedField', 'pilot', 'id'],
-							['Bind', 0],
+							'SelectQuery',
+							['Select', []],
+							[
+								'From',
+								[
+									'Alias',
+									[
+										'SelectQuery',
+										['Select', [['ReferencedField', '$insert', '*']]],
+									],
+									'pilot',
+								],
+							],
+							[
+								'Where',
+								[
+									'And',
+									abstractsql,
+									[
+										'IsNotDistinctFrom',
+										['ReferencedField', 'pilot', 'id'],
+										['Bind', 0],
+									],
+								],
+							],
 						],
 					],
 				],
 			)
 			.from('pilot');
+	};
 	const updateWhere = [
 		'And',
 		['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]],
@@ -663,12 +713,13 @@ run([['Number', 1]], function () {
 	);
 
 	test('/pilot(1)?$filter=' + odata, 'PATCH', { name }, (result) =>
-		it('should update the pilot with id 1', () =>
+		it('should update the pilot with id 1', () => {
 			expect(result)
 				.to.be.a.query.that.updates.fields('name')
 				.values(['Bind', 'pilot', 'name'])
 				.from('pilot')
-				.where(updateWhere)),
+				.where(updateWhere);
+		}),
 	);
 
 	return test('/pilot(1)?$filter=' + odata, 'PUT', { name }, (result) =>
@@ -676,7 +727,7 @@ run([['Number', 1]], function () {
 			it('should be an upsert', () =>
 				expect(result).to.be.a.query.that.upserts);
 			it('that inserts', () => insertTest(result[1]));
-			return it('and updates', () =>
+			return it('and updates', () => {
 				expect(result[2])
 					.to.be.a.query.that.updates.fields(
 						'created at',
@@ -707,7 +758,8 @@ run([['Number', 1]], function () {
 						'Default',
 					)
 					.from('pilot')
-					.where(updateWhere));
+					.where(updateWhere);
+			});
 		}),
 	);
 });
@@ -716,13 +768,12 @@ run(function () {
 	const licence = 1;
 	const { odata, abstractsql } = createExpression('licence/id', 'eq', licence);
 	return test('/pilot?$filter=' + odata, 'POST', { licence }, (result) =>
-		it('should insert into pilot where "' + odata + '"', () =>
+		it('should insert into pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.inserts.fields('licence')
 				.values(
 					'SelectQuery',
-					['Select', [['ReferencedField', 'pilot', 'licence']]],
-					['From', ['Alias', ['Table', 'licence'], 'pilot.licence']],
+					['Select', [['ReferencedField', '$insert', 'licence']]],
 					[
 						'From',
 						[
@@ -755,24 +806,46 @@ run(function () {
 									],
 								],
 							],
-							'pilot',
+							'$insert',
 						],
 					],
 					[
 						'Where',
 						[
-							'And',
+							'Exists',
 							[
-								'Equals',
-								['ReferencedField', 'pilot', 'licence'],
-								['ReferencedField', 'pilot.licence', 'id'],
+								'SelectQuery',
+								['Select', []],
+								['From', ['Alias', ['Table', 'licence'], 'pilot.licence']],
+								[
+									'From',
+									[
+										'Alias',
+										[
+											'SelectQuery',
+											['Select', [['ReferencedField', '$insert', '*']]],
+										],
+										'pilot',
+									],
+								],
+								[
+									'Where',
+									[
+										'And',
+										[
+											'Equals',
+											['ReferencedField', 'pilot', 'licence'],
+											['ReferencedField', 'pilot.licence', 'id'],
+										],
+										abstractsql,
+									],
+								],
 							],
-							abstractsql,
 						],
 					],
 				)
-				.from('pilot'),
-		),
+				.from('pilot');
+		}),
 	);
 });
 
@@ -784,14 +857,13 @@ run(function () {
 		'eq',
 		`'${name}'`,
 	);
-	return test(`/pilot?$filter=${odata}`, 'POST', { licence }, (result) =>
-		it('should insert into pilot where "' + odata + '"', () =>
+	test(`/pilot?$filter=${odata}`, 'POST', { licence }, (result) =>
+		it('should insert into pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.inserts.fields('licence')
 				.values(
 					'SelectQuery',
-					['Select', [['ReferencedField', 'pilot', 'licence']]],
-					['From', ['Alias', ['Table', 'licence'], 'pilot.licence']],
+					['Select', [['ReferencedField', '$insert', 'licence']]],
 					[
 						'From',
 						[
@@ -824,24 +896,46 @@ run(function () {
 									],
 								],
 							],
-							'pilot',
+							'$insert',
 						],
 					],
 					[
 						'Where',
 						[
-							'And',
+							'Exists',
 							[
-								'Equals',
-								['ReferencedField', 'pilot', 'licence'],
-								['ReferencedField', 'pilot.licence', 'id'],
+								'SelectQuery',
+								['Select', []],
+								['From', ['Alias', ['Table', 'licence'], 'pilot.licence']],
+								[
+									'From',
+									[
+										'Alias',
+										[
+											'SelectQuery',
+											['Select', [['ReferencedField', '$insert', '*']]],
+										],
+										'pilot',
+									],
+								],
+								[
+									'Where',
+									[
+										'And',
+										[
+											'Equals',
+											['ReferencedField', 'pilot', 'licence'],
+											['ReferencedField', 'pilot.licence', 'id'],
+										],
+										abstractsql,
+									],
+								],
 							],
-							abstractsql,
 						],
 					],
 				)
-				.from('pilot'),
-		),
+				.from('pilot');
+		}),
 	);
 });
 
@@ -937,8 +1031,8 @@ run(() =>
 );
 
 run(() =>
-	test('/pilot?$filter=can_fly__plane/$count eq 10', (result) =>
-		it('should select from pilot where ...', () =>
+	test('/pilot?$filter=can_fly__plane/$count eq 10', (result) => {
+		it('should select from pilot where ...', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
 				.from('pilot')
@@ -965,7 +1059,9 @@ run(() =>
 						],
 					],
 					['Bind', 0],
-				]))),
+				]);
+		});
+	}),
 );
 
 const lambdaTest = function (methodName) {
@@ -1028,11 +1124,12 @@ const lambdaTest = function (methodName) {
 				methodName +
 				"(d:d/plane/name eq 'Concorde')",
 			(result) =>
-				it('should select from pilot where ...', () =>
+				it('should select from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects(pilotFields)
 						.from('pilot')
-						.where(where)),
+						.where(where);
+				}),
 		);
 
 		return test(
@@ -1040,11 +1137,12 @@ const lambdaTest = function (methodName) {
 				methodName +
 				"(d:d/plane/name eq 'Concorde')",
 			(result) =>
-				it('should select count(*) from pilot where ...', () =>
+				it('should select count(*) from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects($count)
 						.from('pilot')
-						.where(where)),
+						.where(where);
+				}),
 		);
 	});
 
@@ -1105,11 +1203,12 @@ const lambdaTest = function (methodName) {
 				methodName +
 				"(d:d/name eq 'Concorde')",
 			(result) =>
-				it('should select from pilot where ...', () =>
+				it('should select from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects(pilotFields)
 						.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
-						.where(where)),
+						.where(where);
+				}),
 		);
 
 		return test(
@@ -1117,11 +1216,12 @@ const lambdaTest = function (methodName) {
 				methodName +
 				"(d:d/name eq 'Concorde')",
 			(result) =>
-				it('should select count(*) from pilot where ...', () =>
+				it('should select count(*) from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects($count)
 						.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
-						.where(where)),
+						.where(where);
+				}),
 		);
 	});
 };
@@ -1147,12 +1247,12 @@ run(function () {
 		'POST',
 		{ favourite_colour: favouriteColour },
 		(result) =>
-			it('should insert into team where "' + odata + '"', () =>
+			it('should insert into team where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.inserts.fields('favourite colour')
 					.values(
 						'SelectQuery',
-						['Select', [['ReferencedField', 'team', 'favourite colour']]],
+						['Select', [['ReferencedField', '$insert', 'favourite colour']]],
 						[
 							'From',
 							[
@@ -1172,13 +1272,34 @@ run(function () {
 										],
 									],
 								],
-								'team',
+								'$insert',
 							],
 						],
-						['Where', abstractsql],
+						[
+							'Where',
+							[
+								'Exists',
+								[
+									'SelectQuery',
+									['Select', []],
+									[
+										'From',
+										[
+											'Alias',
+											[
+												'SelectQuery',
+												['Select', [['ReferencedField', '$insert', '*']]],
+											],
+											'team',
+										],
+									],
+									['Where', abstractsql],
+								],
+							],
+						],
 					)
-					.from('team'),
-			),
+					.from('team');
+			}),
 	);
 });
 
@@ -1190,7 +1311,7 @@ run(function () {
 		`'${planeName}'`,
 	);
 	return test('/team?$filter=' + odata, (result) =>
-		it('should select from team where "' + odata + '"', () =>
+		it('should select from team where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(teamFields)
 				.from(
@@ -1229,7 +1350,7 @@ run(function () {
 						],
 					],
 					abstractsql,
-				]),
-		),
+				]);
+		}),
 	);
 });
