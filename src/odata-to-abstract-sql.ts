@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as memoize from 'memoizee';
 import stringHash = require('string-hash');
-import type {
+import {
 	AbstractSqlQuery,
 	AbstractSqlModel,
 	AbstractSqlTable,
@@ -30,6 +30,9 @@ import type {
 	Definition as ModernDefinition,
 	ResourceNode,
 	UnionQueryNode,
+	isAliasNode,
+	isFromNode,
+	isTableNode,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -514,7 +517,7 @@ export class OData2AbstractSQL {
 					}
 
 					const isTable = (part: any): part is TableNode =>
-						part[0] === 'Table' && part[1] === unionResource.name;
+						isTableNode(part) && part[1] === unionResource.name;
 
 					if (isTable(unionResource.definition.abstractSql)) {
 						unionResource.definition.abstractSql = bindVarSelectQuery;
@@ -522,14 +525,14 @@ export class OData2AbstractSQL {
 						let found = false;
 						unionResource.definition.abstractSql =
 							unionResource.definition.abstractSql.map((part) => {
-								if (part[0] === 'From') {
+								if (isFromNode(part)) {
 									if (isTable(part[1])) {
 										found = true;
 										return [
 											'From',
 											['Alias', bindVarSelectQuery, unionResource.name],
 										];
-									} else if (part[1][0] === 'Alias' && isTable(part[1][1])) {
+									} else if (isAliasNode(part[1]) && isTable(part[1][1])) {
 										found = true;
 										return ['From', ['Alias', bindVarSelectQuery, part[1][2]]];
 									}
@@ -1437,8 +1440,8 @@ export class OData2AbstractSQL {
 		if (
 			!query.from.some(
 				(from) =>
-					(from[0] === 'Table' && from[1] === navigation.resource.tableAlias) ||
-					(from[0] === 'Alias' && from[2] === navigation.resource.tableAlias),
+					(isTableNode(from) && from[1] === navigation.resource.tableAlias) ||
+					(isAliasNode(from) && from[2] === navigation.resource.tableAlias),
 			)
 		) {
 			query.fromResource(this, navigation.resource);
