@@ -1,5 +1,71 @@
 - commits:
     - subject: Update dependencies
+      hash: 19c112c863b63bdd8d86a04b704fb136077d01a9
+      body: |
+        Update @balena/abstract-sql-compiler from 7.19.0 to 7.20.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Expose `isAliasNode` helper
+              hash: 6f59b2d31e4dee5eef008e755d4ee2cb42dd50ba
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.20.0
+          title: "'Expose  helper'"
+          date: 2022-05-19T17:25:29.766Z
+        - commits:
+            - subject: Update dependencies
+              hash: 923dd2d492246b99cc62d51a25dd96464e7c1e87
+              body: |
+                Update @balena/sbvr-types from 3.4.5 to 3.4.7
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Update dependencies
+                      hash: e416444d436c0e01474b624408635a811259f9a1
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                    - subject: Remove circleci
+                      hash: 15cbb6de080f6f5a7898d1626d9948b371d971b2
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.4.7
+                  title: "'Remove circleci/update deps'"
+                  date: 2022-04-08T13:33:49.743Z
+                - commits:
+                    - subject: Avoid creating a new Date object when we already have one
+                      hash: 07eb756eca00a506b618dc197b67dcc7a9ea3733
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-3.4.6
+                  date: 2021-09-21T14:01:00.590Z
+          version: abstract-sql-compiler-7.19.1
+          title: "'Update dependencies'"
+          date: 2022-04-08T13:57:15.961Z
+  version: 5.4.10
+  title: "'Update dependencies'"
+  date: 2022-05-19T18:23:14.608Z
+- commits:
+    - subject: Update dependencies
       hash: a80855150955d687b565a33633fe69b4e5e10ebd
       body: |
         Update @balena/abstract-sql-compiler from 7.17.0 to 7.19.0
