@@ -30,6 +30,7 @@ import {
 	Definition as ModernDefinition,
 	ResourceNode,
 	UnionQueryNode,
+	FromTypeNodes,
 	isAliasNode,
 	isFromNode,
 	isTableNode,
@@ -148,19 +149,17 @@ class Query {
 		} = odataToAbstractSql,
 		bypassDefinition?: boolean,
 	): void {
-		if (bypassDefinition !== true && resource.definition) {
-			const definition = odataToAbstractSql.rewriteDefinition(
-				resource.definition,
-				args.extraBindVars,
-				args.bindVarsLength,
-			);
-			this.from.push(['Alias', definition.abstractSql, resource.tableAlias]);
-		} else if (resource.name !== resource.tableAlias) {
-			this.from.push(['Alias', ['Table', resource.name], resource.tableAlias]);
-		} else {
-			this.from.push(['Table', resource.name]);
-		}
+		const tableRef = odataToAbstractSql.getTableReference(
+			resource,
+			args.extraBindVars,
+			args.bindVarsLength,
+			bypassDefinition,
+			resource.tableAlias,
+		);
+		this.from.push(tableRef);
 	}
+	compile(queryType: 'SelectQuery'): SelectQueryNode;
+	compile(queryType: string): AbstractSqlQuery;
 	compile(queryType: string): AbstractSqlQuery {
 		const compiled: AbstractSqlType[] = [];
 		let where = this.where;
@@ -237,6 +236,13 @@ export const isBindReference = (maybeBind: {
 		typeof maybeBind === 'object' &&
 		'bind' in maybeBind &&
 		(typeof maybeBind.bind === 'string' || typeof maybeBind.bind === 'number')
+	);
+};
+
+const isDynamicResource = (resource: Resource): boolean => {
+	return (
+		resource.definition != null ||
+		resource.fields.some((f) => f.computed != null)
 	);
 };
 
@@ -471,7 +477,7 @@ export class OData2AbstractSQL {
 			// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
 			// we make sure to always apply it. This means that the definition will still be applied for these queries
 			if (
-				(hasQueryOpts || resource.definition || pathKeyWhere != null) &&
+				(hasQueryOpts || isDynamicResource(resource) || pathKeyWhere != null) &&
 				(method === 'POST' || method === 'PUT-INSERT')
 			) {
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
@@ -523,22 +529,47 @@ export class OData2AbstractSQL {
 						unionResource.definition.abstractSql = bindVarSelectQuery;
 					} else {
 						let found = false;
-						unionResource.definition.abstractSql =
-							unionResource.definition.abstractSql.map((part) => {
-								if (isFromNode(part)) {
-									if (isTable(part[1])) {
+						const replaceInsertTableNodeWithBinds = (
+							part: SelectQueryNode[number],
+						): SelectQueryNode[number] => {
+							if (isFromNode(part)) {
+								if (isTable(part[1])) {
+									found = true;
+									return [
+										'From',
+										['Alias', bindVarSelectQuery, unionResource.name],
+									];
+								} else if (
+									isAliasNode(part[1]) &&
+									part[1][2] === unionResource.name
+								) {
+									const aliasedNode = part[1][1];
+									if (isTable(aliasedNode)) {
 										found = true;
 										return [
 											'From',
 											['Alias', bindVarSelectQuery, unionResource.name],
 										];
-									} else if (isAliasNode(part[1]) && isTable(part[1][1])) {
-										found = true;
-										return ['From', ['Alias', bindVarSelectQuery, part[1][2]]];
+									} else if (aliasedNode[0] === 'SelectQuery') {
+										return [
+											'From',
+											[
+												'Alias',
+												aliasedNode.map(
+													replaceInsertTableNodeWithBinds,
+												) as SelectQueryNode,
+												unionResource.name,
+											],
+										];
 									}
 								}
-								return part;
-							}) as SelectQueryNode;
+							}
+							return part;
+						};
+						unionResource.definition.abstractSql =
+							unionResource.definition.abstractSql.map(
+								replaceInsertTableNodeWithBinds,
+							) as SelectQueryNode;
 						if (!found) {
 							throw new Error(
 								'Could not replace table entry in definition for insert',
@@ -576,7 +607,7 @@ export class OData2AbstractSQL {
 		// we make sure to always apply it. This means that the definition will still be applied for these queries, for insert queries
 		// this is handled when we set the 'Values'
 		if (
-			(hasQueryOpts || resource.definition) &&
+			(hasQueryOpts || isDynamicResource(resource)) &&
 			(method === 'PUT' ||
 				method === 'PATCH' ||
 				method === 'MERGE' ||
@@ -1477,6 +1508,69 @@ export class OData2AbstractSQL {
 			.join('-');
 	}
 
+	getTableReference(
+		resource: Resource,
+		extraBindVars: ODataBinds,
+		bindVarsLength: number,
+		bypassDefinition: boolean = false,
+		tableAlias?: string,
+	): FromTypeNodes | AliasNode<FromTypeNodes> {
+		const maybeAlias = (
+			tableRef: FromTypeNodes | AliasNode<FromTypeNodes>,
+		): FromTypeNodes | AliasNode<FromTypeNodes> => {
+			if (tableAlias == null) {
+				return tableRef;
+			}
+			if (isTableNode(tableRef) && tableRef[1] === tableAlias) {
+				// Alias if the table name doesn't match the desired alias
+				return tableRef;
+			} else if (isAliasNode(tableRef)) {
+				if (tableRef[2] === tableAlias) {
+					return tableRef;
+				}
+				return ['Alias', tableRef[1], tableAlias];
+			} else {
+				return ['Alias', tableRef, tableAlias];
+			}
+		};
+		if (bypassDefinition !== true) {
+			if (resource.definition) {
+				const definition = this.rewriteDefinition(
+					resource.definition,
+					extraBindVars,
+					bindVarsLength,
+				);
+				return maybeAlias(definition.abstractSql);
+			}
+			if (resource.fields.some((f) => f.computed != null)) {
+				const computedFieldQuery = new Query();
+				computedFieldQuery.select = resource.fields.map((field) =>
+					this.AliasSelectField(
+						resource,
+						sqlNameToODataName(field.fieldName),
+						field.computed,
+						field.fieldName,
+					),
+				);
+				computedFieldQuery.fromResource(
+					this,
+					{
+						tableAlias: resource.name,
+						...resource,
+					},
+					{
+						extraBindVars,
+						bindVarsLength,
+					},
+					true,
+				);
+
+				return maybeAlias(computedFieldQuery.compile('SelectQuery'));
+			}
+		}
+		return maybeAlias(['Table', resource.name]);
+	}
+
 	rewriteDefinition(
 		definition: Definition,
 		extraBindVars: ODataBinds,
@@ -1495,46 +1589,12 @@ export class OData2AbstractSQL {
 				if (!referencedResource) {
 					throw new Error(`Could not resolve resource ${resourceName}`);
 				}
-				if (referencedResource.definition) {
-					const subDefinition = this.rewriteDefinition(
-						referencedResource.definition,
-						extraBindVars,
-						bindVarsLength,
-					);
-					(resource as AbstractSqlType[]).splice(
-						0,
-						resource.length,
-						...(subDefinition.abstractSql as AbstractSqlType[]),
-					);
-				} else if (
-					referencedResource.fields.some((field) => field.computed != null)
-				) {
-					const computedFieldQuery = new Query();
-					computedFieldQuery.select = referencedResource.fields.map((field) =>
-						this.AliasSelectField(
-							referencedResource,
-							sqlNameToODataName(field.fieldName),
-							field.computed,
-							field.fieldName,
-						),
-					);
-					computedFieldQuery.fromResource(this, {
-						...referencedResource,
-						tableAlias: referencedResource.name,
-					});
-
-					(resource as AbstractSqlType[]).splice(
-						0,
-						resource.length,
-						...computedFieldQuery.compile('SelectQuery'),
-					);
-				} else {
-					resource.splice(
-						0,
-						resource.length,
-						...['Table', referencedResource.name],
-					);
-				}
+				const tableRef = this.getTableReference(
+					referencedResource,
+					extraBindVars,
+					bindVarsLength,
+				);
+				(resource as AbstractSqlType[]).splice(0, resource.length, ...tableRef);
 			},
 		);
 		return rewrittenDefinition;
