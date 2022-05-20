@@ -1,4 +1,16 @@
 - commits:
+    - subject: Improve support for computed fields by respecting them in more places
+      hash: 3346e579e5e0b2b7b01066b3d95bd5b6e6281c63
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.4.11
+  title: "'Improve computed fields'"
+  date: 2022-05-19T19:26:50.059Z
+- commits:
     - subject: Update dependencies
       hash: 19c112c863b63bdd8d86a04b704fb136077d01a9
       body: |
