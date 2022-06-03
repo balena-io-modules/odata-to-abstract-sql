@@ -1,4 +1,16 @@
 - commits:
+    - subject: Use nullish coalescing when sensible
+      hash: c69dff4d46792c4c858f869646adca9272210364
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.4.12
+  title: "'Use nullish coalescing when sensible'"
+  date: 2022-06-03T15:45:18.251Z
+- commits:
     - subject: Improve support for computed fields by respecting them in more places
       hash: 3346e579e5e0b2b7b01066b3d95bd5b6e6281c63
       body: ""
