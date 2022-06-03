@@ -221,7 +221,7 @@ export const rewriteBinds = (
 		definition.abstractSql as AbstractSqlQuery,
 		(bind: BindNode) => {
 			if (typeof bind[1] === 'number') {
-				(bind[1] as any) += inc;
+				bind[1] += inc;
 			}
 		},
 	);
@@ -497,7 +497,7 @@ export class OData2AbstractSQL {
 						resource.fields.map((field): AliasNode<CastNode> => {
 							const alias = field.fieldName;
 							const bindVar = bindVars?.find((v) => v[0] === alias);
-							const value = bindVar ? bindVar[1] : 'Null';
+							const value = bindVar?.[1] ?? 'Null';
 							return ['Alias', ['Cast', value, field.dataType], alias];
 						}),
 					],
@@ -814,9 +814,7 @@ export class OData2AbstractSQL {
 		}
 	}
 	ResourceMapping(resource: Resource): _.Dictionary<[string, string]> {
-		const tableAlias = resource.tableAlias
-			? resource.tableAlias
-			: resource.name;
+		const tableAlias = resource.tableAlias ?? resource.name;
 		const resourceMappings: _.Dictionary<[string, string]> = {};
 		for (const { fieldName } of resource.fields) {
 			resourceMappings[sqlNameToODataName(fieldName)] = [tableAlias, fieldName];
@@ -933,9 +931,7 @@ export class OData2AbstractSQL {
 				resource,
 				resourceField,
 			);
-			const tableAlias = resource.tableAlias
-				? resource.tableAlias
-				: resource.name;
+			const tableAlias = resource.tableAlias ?? resource.name;
 			if (
 				relationshipMapping.length > 1 &&
 				relationshipMapping[0] === resource.idField
@@ -1412,12 +1408,8 @@ export class OData2AbstractSQL {
 	): { resource: AliasedResource; where: BooleanTypeNodes } {
 		const relationshipMapping = this.ResolveRelationship(resource, navigation);
 		const linkedResource = this.Resource(navigation, resource);
-		const tableAlias = resource.tableAlias
-			? resource.tableAlias
-			: resource.name;
-		const linkedTableAlias = linkedResource.tableAlias
-			? linkedResource.tableAlias
-			: linkedResource.name;
+		const tableAlias = resource.tableAlias ?? resource.name;
+		const linkedTableAlias = linkedResource.tableAlias ?? linkedResource.name;
 		return {
 			resource: linkedResource,
 			where: [
