@@ -1536,14 +1536,19 @@ export class OData2AbstractSQL {
 			}
 			if (resource.fields.some((f) => f.computed != null)) {
 				const computedFieldQuery = new Query();
-				computedFieldQuery.select = resource.fields.map((field) =>
-					this.AliasSelectField(
-						resource,
-						sqlNameToODataName(field.fieldName),
-						field.computed,
-						field.fieldName,
-					),
-				);
+				computedFieldQuery.select = [
+					['Field', '*'],
+					...resource.fields
+						.filter(({ computed }) => computed != null)
+						.map((field) =>
+							this.AliasSelectField(
+								resource,
+								sqlNameToODataName(field.fieldName),
+								field.computed,
+								field.fieldName,
+							),
+						),
+				];
 				computedFieldQuery.fromResource(
 					this,
 					{
