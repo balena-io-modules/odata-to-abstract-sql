@@ -1,4 +1,18 @@
 - commits:
+    - subject: Avoid unnecessary loop when adding computed fields to `SELECT *`
+      hash: c0d3a54057a62eb39e385451f2e169e08a562e45
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested: []
+  version: 5.4.14
+  title: "'Avoid unnecessary loop when adding computed fields to '"
+  date: 2022-06-25T19:59:58.381Z
+- commits:
     - subject: Use `SELECT *, $computedFields` for adding computed fields
       hash: b6ed24d0a4ad0a4d8aa71db00dc58280590ce9dd
       body: |
