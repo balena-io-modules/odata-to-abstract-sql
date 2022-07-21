@@ -747,8 +747,8 @@ export class OData2AbstractSQL {
 		resourceName: string,
 		match: Array<[string, [string, string]]>,
 	): Array<[string, 'Default' | BindNode]> {
-		const fields = match.map(
-			(field): [string, 'Default' | BindNode] | undefined => {
+		return match
+			.map((field): [string, 'Default' | BindNode] | undefined => {
 				const [fieldName, [, mappedFieldName]] = field;
 				if (
 					bodyKeys.includes(fieldName) ||
@@ -760,9 +760,8 @@ export class OData2AbstractSQL {
 				if (method === 'PUT') {
 					return [mappedFieldName, 'Default'];
 				}
-			},
-		);
-		return _.compact(fields);
+			})
+			.filter((f): f is NonNullable<typeof f> => f != null);
 	}
 	Resource(resourceName: string, parentResource?: Resource): AliasedResource {
 		const resourceAlias = this.resourceAliases[resourceName];
