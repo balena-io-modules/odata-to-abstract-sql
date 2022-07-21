@@ -508,7 +508,7 @@ export class OData2AbstractSQL {
 				const unionResource = { ...resource };
 				if (
 					unionResource.definition == null ||
-					!_.isObject(unionResource.definition)
+					typeof unionResource.definition !== 'object'
 				) {
 					unionResource.definition = {
 						binds: [],
@@ -1312,7 +1312,7 @@ export class OData2AbstractSQL {
 		}
 	}
 	DurationMatch(match: DurationNode[1]): AbstractSqlType | undefined {
-		if (!_.isObject(match)) {
+		if (match == null || typeof match !== 'object') {
 			return;
 		}
 		const duration = _(match)
