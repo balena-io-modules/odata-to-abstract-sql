@@ -48,6 +48,8 @@ import type {
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
+type Dictionary<T> = Record<string, T>;
+
 interface LegacyDefinition {
 	extraBinds: ODataBinds;
 	abstractSqlQuery: SelectQueryNode | UnionQueryNode | ResourceNode | TableNode;
@@ -251,7 +253,7 @@ const addBodyKey = (
 	fieldName: string,
 	bind: BindReference,
 	bodyKeys: string[],
-	extraBodyVars: _.Dictionary<BindReference>,
+	extraBodyVars: Dictionary<BindReference>,
 ) => {
 	// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
 	const qualifiedIDField = resourceName + '.' + fieldName;
@@ -262,16 +264,16 @@ const addBodyKey = (
 };
 
 export class OData2AbstractSQL {
-	private extraBodyVars: _.Dictionary<BindReference> = {};
+	private extraBodyVars: Dictionary<BindReference> = {};
 	public extraBindVars: ODataBinds = [];
-	private resourceAliases: _.Dictionary<AliasedResource> = {};
+	private resourceAliases: Dictionary<AliasedResource> = {};
 	public defaultResource: Resource | undefined;
 	public bindVarsLength: number = 0;
 	private checkAlias: (alias: string) => string;
 
 	constructor(
 		private clientModel: AbstractSqlModel,
-		private methods: _.Dictionary<ResourceFunction> = {},
+		private methods: Dictionary<ResourceFunction> = {},
 	) {
 		const MAX_ALIAS_LENGTH = 63;
 		const shortAliases = generateShortAliases(clientModel);
@@ -330,7 +332,7 @@ export class OData2AbstractSQL {
 		methods?: OData2AbstractSQL['methods'],
 	): {
 		tree: AbstractSqlQuery;
-		extraBodyVars: _.Dictionary<BindReference>;
+		extraBodyVars: Dictionary<BindReference>;
 		extraBindVars: ODataBinds;
 	} {
 		const savedMethods = this.methods;
@@ -813,9 +815,9 @@ export class OData2AbstractSQL {
 			throw e;
 		}
 	}
-	ResourceMapping(resource: Resource): _.Dictionary<[string, string]> {
+	ResourceMapping(resource: Resource): Dictionary<[string, string]> {
 		const tableAlias = resource.tableAlias ?? resource.name;
-		const resourceMappings: _.Dictionary<[string, string]> = {};
+		const resourceMappings: Dictionary<[string, string]> = {};
 		for (const { fieldName } of resource.fields) {
 			resourceMappings[sqlNameToODataName(fieldName)] = [tableAlias, fieldName];
 		}
@@ -1598,7 +1600,7 @@ export class OData2AbstractSQL {
 }
 
 const addAliases = (
-	shortAliases: _.Dictionary<string>,
+	shortAliases: Dictionary<string>,
 	origAliasParts: string[],
 ) => {
 	const trie = {};
@@ -1662,7 +1664,7 @@ const getRelationships = (
 };
 
 const generateShortAliases = (clientModel: AbstractSqlModel) => {
-	const shortAliases: _.Dictionary<string> = {};
+	const shortAliases: Dictionary<string> = {};
 
 	const aliasParts = _(getRelationships(clientModel.relationships))
 		.union(Object.keys(clientModel.synonyms))
