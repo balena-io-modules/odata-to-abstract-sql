@@ -1,4 +1,34 @@
 - commits:
+    - subject: Stop using _.compact
+      hash: 343e971b997b57e9c9f3bf2f30e68ce00d8e1dc5
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Stop using _.isObject in favor of the native methods
+      hash: 71b4c2ba6ba120413bc23d1b838bfcf9b924cc22
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Stop using Lodash's Dictionary type
+      hash: cec9d6697d796703ef7c43c46eff6256ef0f9e43
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested: []
+  version: 5.4.15
+  title: "'Reduce lodash usage'"
+  date: 2022-07-26T15:15:05.261Z
+- commits:
     - subject: Avoid unnecessary loop when adding computed fields to `SELECT *`
       hash: c0d3a54057a62eb39e385451f2e169e08a562e45
       body: ""
