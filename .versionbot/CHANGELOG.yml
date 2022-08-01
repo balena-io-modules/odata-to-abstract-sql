@@ -1,4 +1,19 @@
 - commits:
+    - subject: Respect `modifyFields`/`modifyName` in the table definition
+      hash: af30eed4c481bf4087b57bcd410e3720a0eacb3c
+      body: |
+        This is intended to be used to target tables differently for reads vs
+        writes, eg where you might read from a view/definition but want to
+        write to a physical table instead
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 5.5.0
+  title: "'Respect / in the table definition'"
+  date: 2022-08-01T12:00:58.861Z
+- commits:
     - subject: Stop using _.compact
       hash: 343e971b997b57e9c9f3bf2f30e68ce00d8e1dc5
       body: ""
