@@ -1199,7 +1199,17 @@ export class OData2AbstractSQL {
 		} else if (prop.count) {
 			const query = new Query();
 			query.select.push(['Count', '*']);
-			this.AddNavigation(query, this.defaultResource!, prop.name);
+			const aliasedResource = this.AddNavigation(
+				query,
+				this.defaultResource!,
+				prop.name,
+			);
+			if (prop.options?.$filter) {
+				const defaultResource = this.defaultResource;
+				this.defaultResource = aliasedResource;
+				this.SelectFilter(prop.options.$filter, query, aliasedResource);
+				this.defaultResource = defaultResource;
+			}
 			return query.compile('SelectQuery');
 		} else {
 			return { resource: this.defaultResource!, name: prop.name };

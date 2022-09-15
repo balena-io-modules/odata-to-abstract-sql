@@ -936,9 +936,9 @@ run(() =>
 	),
 );
 
-run(() =>
-	test('/pilot?$filter=can_fly__plane/$count eq 10', (result) =>
-		it('should select from pilot where ...', () =>
+run(() => {
+	test('/pilot?$filter=can_fly__plane/$count eq 10', (result) => {
+		it('should select from pilot where ...', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
 				.from('pilot')
@@ -965,8 +965,85 @@ run(() =>
 						],
 					],
 					['Bind', 0],
-				]))),
-);
+				]);
+		});
+	});
+
+	test(`/pilot?$filter=trained__pilot/$count($filter=is_experienced eq true) gt 1`, (result) => {
+		it('should select from pilot where ...', () => {
+			expect(result)
+				.to.be.a.query.that.selects(pilotFields)
+				.from('pilot')
+				.where([
+					'GreaterThan',
+					[
+						'SelectQuery',
+						['Select', [['Count', '*']]],
+						['From', ['Alias', ['Table', 'pilot'], 'pilot.trained-pilot']],
+						[
+							'Where',
+							[
+								'And',
+								[
+									'Equals',
+									['ReferencedField', 'pilot', 'id'],
+									[
+										'ReferencedField',
+										'pilot.trained-pilot',
+										'was trained by-pilot',
+									],
+								],
+								[
+									'IsNotDistinctFrom',
+									['ReferencedField', 'pilot.trained-pilot', 'is experienced'],
+									['Bind', 0],
+								],
+							],
+						],
+					],
+					['Bind', 1],
+				]);
+		});
+	});
+
+	test(`/team?$filter=includes__pilot/$count($filter=is_experienced eq true) gt 0`, (result) => {
+		it('should select from pilot where ...', () => {
+			expect(result)
+				.to.be.a.query.that.selects(teamFields)
+				.from('team')
+				.where([
+					'GreaterThan',
+					[
+						'SelectQuery',
+						['Select', [['Count', '*']]],
+						['From', ['Alias', ['Table', 'pilot'], 'team.includes-pilot']],
+						[
+							'Where',
+							[
+								'And',
+								[
+									'Equals',
+									[
+										'ReferencedField',
+										'team',
+										// That's b/c it's the team's `Database ID Field`
+										'favourite colour',
+									],
+									['ReferencedField', 'team.includes-pilot', 'is on-team'],
+								],
+								[
+									'IsNotDistinctFrom',
+									['ReferencedField', 'team.includes-pilot', 'is experienced'],
+									['Bind', 0],
+								],
+							],
+						],
+					],
+					['Bind', 1],
+				]);
+		});
+	});
+});
 
 const lambdaTest = function (methodName) {
 	run(function () {
