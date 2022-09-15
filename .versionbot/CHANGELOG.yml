@@ -1,4 +1,47 @@
 - commits:
+    - subject: Add support for `/$count` with nested `$filter` in $orderby & $orderby
+      hash: 4a41b94551c9d3ee23e95e34bda0a4415dc2bdad
+      body: |
+        Update @balena/odata-parser from 2.2.9 to 2.4.0
+      footer:
+        Change-type: minor
+        change-type: minor
+        See: https://github.com/balena-io/pinejs/issues/577
+        see: https://github.com/balena-io/pinejs/issues/577
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Add support for `/$count` with nested `$filter` in $orderby & $orderby
+              hash: 350c08b3a8a8877290f1c753a57e86404f0d9548
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+                See: https://github.com/balena-io/pinejs/issues/577
+                see: https://github.com/balena-io/pinejs/issues/577
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+          version: odata-parser-2.4.0
+          title: "'Add support for  with nested  in  & '"
+          date: 2022-09-15T06:56:48.376Z
+        - commits:
+            - subject: Add source map
+              hash: a6bb5e67fac1cdcc69491800ad042f003fa13556
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-parser-2.3.0
+          title: "'Add source map'"
+          date: 2022-06-06T15:59:20.389Z
+  version: 5.5.0
+  title: "'Add support for  with nested  in  & '"
+  date: 2022-09-15T08:27:08.616Z
+- commits:
     - subject: Stop using _.compact
       hash: 343e971b997b57e9c9f3bf2f30e68ce00d8e1dc5
       body: ""
