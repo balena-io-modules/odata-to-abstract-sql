@@ -1,4 +1,16 @@
 - commits:
+    - subject: Switch from balenaCI to flowzone
+      hash: 0bf98cd9124614fa5d5121212b9d7d6abf079ed5
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.5.1
+  title: ""
+  date: 2022-10-14T16:18:47.577Z
+- commits:
     - subject: Add support for `/$count` with nested `$filter` in $orderby & $orderby
       hash: 4a41b94551c9d3ee23e95e34bda0a4415dc2bdad
       body: |
@@ -226,8 +238,7 @@
             - subject: Add reference property type
               hash: d28e2456dff10b18bcc97b7232479fe78efd5eb3
               body: >
-                Property type describes if the reference is 'strict' or
-                'informative'.
+                Property type describes if the reference is 'strict' or 'informative'.
 
 
                 Behaviour change only if type is informative otherwise default 'strict'.
@@ -252,8 +263,7 @@
             - subject: Avoid the operation type optimization for HAVING clauses
               hash: 3fcf08bc02c21d9f49b78787ed516fa9a403f021
               body: >
-                Since it's possible for them to behave in a way that violates
-                the
+                Since it's possible for them to behave in a way that violates the
 
                 safety checks we'll disable them until we can add specific checks
 
@@ -494,8 +504,7 @@
             - subject: Remove now unnecessary hack for casting SERIAL types
               hash: 187bc075d237a2ced731d0a026ca25aa3e0f5540
               body: >
-                This became unnecessary when @balena/sbvr-types added the
-                concept of
+                This became unnecessary when @balena/sbvr-types added the concept of
 
                 cast types since that now specifies how to cast a SERIAL type
               footer:
@@ -659,8 +668,7 @@
             - subject: Add a `getRuleReferencedFields` which is tailored for rules
               hash: 256c36de4a1efb7a46eb9833e1c3228d17194015
               body: >
-                This works on the assumption that it is a rule query that should
-                always
+                This works on the assumption that it is a rule query that should always
 
                 return true and allows ignoring more modification cases where they
 
@@ -829,8 +837,7 @@
             - subject: Add support for table definitions
               hash: 2939656834c374e35af8867d6337b119b58cd198
               body: >
-                Static definitions will be converted to views and dynamic
-                definitions
+                Static definitions will be converted to views and dynamic definitions
 
                 will be ignored
               footer:
@@ -956,8 +963,7 @@
                     - subject: Add a `castType` property to type functions
                       hash: 409077eb9d6c0315779ddd877220280c251b4eb5
                       body: >
-                        This allows specifying the correct type to cast to when
-                        necessary
+                        This allows specifying the correct type to cast to when necessary
 
                         rather than relying on the fact the currently all type functions happen
 
@@ -1790,8 +1796,7 @@
                     - subject: Only add the destination of a link table if it's actually necessary
                       hash: 463870590602492accc12ed53753f66862d42cd6
                       body: >
-                        This can significantly speed up queries by avoiding a
-                        join when the
+                        This can significantly speed up queries by avoiding a join when the
 
                         result is unused
                       footer:
@@ -1947,8 +1952,7 @@
                             - subject: Improve aliased from handling in `getReferencedFields`
                               hash: dcfff55b813d38434208a9e07c818d1d32f521ef
                               body: >
-                                We do this by using basic scope info to prune
-                                aliased table references
+                                We do this by using basic scope info to prune aliased table references
 
                                 which also allows us to handle aliased select queries in the from
                               footer:
@@ -2825,8 +2829,7 @@
             - subject: Only add the destination of a link table if it's actually necessary
               hash: 463870590602492accc12ed53753f66862d42cd6
               body: >
-                This can significantly speed up queries by avoiding a join when
-                the
+                This can significantly speed up queries by avoiding a join when the
 
                 result is unused
               footer:
@@ -3310,8 +3313,7 @@
             - subject: Only create functions if they don't already exist
               hash: 6d828438a0d54ab7a611d4620ade9bac8ec3fc3e
               body: >
-                This matches how we handle table/trigger creation and avoids
-                issues
+                This matches how we handle table/trigger creation and avoids issues
 
                 with running create schema statements concurrently
               footer:
@@ -3616,8 +3618,7 @@
             - subject: Improve aliased from handling in `getReferencedFields`
               hash: dcfff55b813d38434208a9e07c818d1d32f521ef
               body: >
-                We do this by using basic scope info to prune aliased table
-                references
+                We do this by using basic scope info to prune aliased table references
 
                 which also allows us to handle aliased select queries in the from
               footer:
