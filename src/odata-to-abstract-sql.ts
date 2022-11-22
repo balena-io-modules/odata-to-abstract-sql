@@ -274,18 +274,19 @@ export class OData2AbstractSQL {
 	constructor(
 		private clientModel: AbstractSqlModel,
 		private methods: Dictionary<ResourceFunction> = {},
+		{ minimizeAliases = false } = {},
 	) {
 		const MAX_ALIAS_LENGTH = 63;
 		const shortAliases = generateShortAliases(clientModel);
 		this.checkAlias = memoize((alias: string) => {
 			let aliasLength = alias.length;
-			if (aliasLength <= MAX_ALIAS_LENGTH) {
+			if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
 				return alias;
 			}
 			alias = _(alias)
 				.split('.')
 				.map((part) => {
-					if (aliasLength <= MAX_ALIAS_LENGTH) {
+					if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
 						return part;
 					}
 					aliasLength -= part.length;
