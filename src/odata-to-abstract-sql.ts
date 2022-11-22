@@ -544,14 +544,14 @@ export class OData2AbstractSQL {
 									];
 								} else if (
 									isAliasNode(part[1]) &&
-									part[1][2] === unionResource.name
+									part[1][2] === unionResource.tableAlias
 								) {
 									const aliasedNode = part[1][1];
 									if (isTable(aliasedNode)) {
 										found = true;
 										return [
 											'From',
-											['Alias', bindVarSelectQuery, unionResource.name],
+											['Alias', bindVarSelectQuery, unionResource.tableAlias],
 										];
 									} else if (aliasedNode[0] === 'SelectQuery') {
 										return [
@@ -561,7 +561,7 @@ export class OData2AbstractSQL {
 												aliasedNode.map(
 													replaceInsertTableNodeWithBinds,
 												) as SelectQueryNode,
-												unionResource.name,
+												unionResource.tableAlias,
 											],
 										];
 									}
