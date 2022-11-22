@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add an option to always use minimized aliases
+      hash: dd7994b908b2eed0f084fb173b100dfe6c651913
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 5.6.0
+  title: ""
+  date: 2022-11-22T19:02:39.696Z
+- commits:
     - subject: Switch from balenaCI to flowzone
       hash: 0bf98cd9124614fa5d5121212b9d7d6abf079ed5
       body: ""
