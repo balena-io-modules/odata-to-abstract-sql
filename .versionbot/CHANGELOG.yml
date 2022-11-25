@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove package-lock.json
+      hash: 916fc55329e382480799bf070b2ac4bafc843f07
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.7.1
+  title: ""
+  date: 2022-11-25T14:54:13.165Z
+- commits:
     - subject: Update dependencies
       hash: aec2d59610504bcc670d1af913c05805aabd312a
       body: |
