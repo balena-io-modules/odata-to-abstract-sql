@@ -500,7 +500,7 @@ export class OData2AbstractSQL {
 						resource.fields.map((field): AliasNode<CastNode> => {
 							const alias = field.fieldName;
 							const bindVar = bindVars?.find((v) => v[0] === alias);
-							const value = bindVar?.[1] ?? 'Null';
+							const value = bindVar?.[1] ?? ['Null'];
 							return ['Alias', ['Cast', value, field.dataType], alias];
 						}),
 					],
