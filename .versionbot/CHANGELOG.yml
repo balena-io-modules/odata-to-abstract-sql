@@ -1,4 +1,16 @@
 - commits:
+    - subject: Switch insert casts from using legacy `'Null'` to using a `['Null']` node
+      hash: c128ca4bb6eaecedcf27415bb54c8a0fc402ffc7
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.7.2
+  title: ""
+  date: 2022-11-29T22:18:35.576Z
+- commits:
     - subject: Remove package-lock.json
       hash: 916fc55329e382480799bf070b2ac4bafc843f07
       body: ""
