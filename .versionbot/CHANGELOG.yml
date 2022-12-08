@@ -1,4 +1,18 @@
 - commits:
+    - subject: "Flowzone: Allow external contributions"
+      hash: 74dc9ac5c833d6bfe31de9500cc4692052179090
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@monarci.com>
+        signed-off-by: Josh Bowling <josh@monarci.com>
+      author: Josh Bowling
+      nested: []
+  version: 5.7.3
+  title: ""
+  date: 2022-12-08T01:10:24.930Z
+- commits:
     - subject: Switch insert casts from using legacy `'Null'` to using a `['Null']` node
       hash: c128ca4bb6eaecedcf27415bb54c8a0fc402ffc7
       body: ""
