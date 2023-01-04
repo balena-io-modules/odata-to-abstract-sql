@@ -1,4 +1,18 @@
 - commits:
+    - subject: Integrate beta version of sbvr-types supporting WebResource
+      hash: 2d045ee23367146eb53d9c1a8ea5c0bd6bde2abc
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ramiro Gonzalez <ramiro.gonzalez@balena.io>
+        signed-off-by: Ramiro Gonzalez <ramiro.gonzalez@balena.io>
+      author: Ramiro González Maciel
+      nested: []
+  version: 5.7.4
+  title: ""
+  date: 2023-01-04T01:52:11.332Z
+- commits:
     - subject: "Flowzone: Allow external contributions"
       hash: 74dc9ac5c833d6bfe31de9500cc4692052179090
       body: ""
