@@ -1,4 +1,19 @@
 - commits:
+    - subject: Respect `modifyFields`/`modifyName` in the table definition
+      hash: 9bca9989d6aed4382127fc35cbf18f03914a9324
+      body: |
+        This is intended to be used to target tables differently for reads vs
+        writes, eg where you might read from a view/definition but want to
+        write to a physical table instead
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 5.8.0
+  title: ""
+  date: 2023-01-10T16:48:19.415Z
+- commits:
     - subject: "Flowzone: Allow external contributions"
       hash: 74dc9ac5c833d6bfe31de9500cc4692052179090
       body: ""
