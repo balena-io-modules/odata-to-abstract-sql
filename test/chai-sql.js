@@ -126,7 +126,7 @@ export function operandToAbstractSQLFactory(
 		if (operand.abstractsql != null) {
 			return operand.abstractsql;
 		}
-		if (_.isBoolean(operand)) {
+		if (typeof operand === 'boolean') {
 			binds.push(['Boolean', operand]);
 			return ['Bind', binds.length - 1];
 		}
@@ -148,8 +148,8 @@ export function operandToAbstractSQLFactory(
 					.slice(1, -1)
 					.split(',')
 					.map(function (op) {
-						const n = _.parseInt(op);
-						if (_.isFinite(n)) {
+						const n = parseInt(op, 10);
+						if (Number.isFinite(n)) {
 							return operandToAbstractSQL(n);
 						}
 
@@ -173,7 +173,7 @@ export function operandToAbstractSQLFactory(
 					const sqlNameParts = sqlName.split('-');
 					mapping = _.get(
 						clientModel.relationships[previousResource],
-						sqlNameParts.join('.'),
+						sqlNameParts,
 					).$;
 					const refTable = mapping[1][0];
 					if (sqlNameParts.length > 1 && !refTable.includes('-')) {
@@ -205,7 +205,7 @@ export function operandToAbstractSQLFactory(
 		if (Array.isArray(operand)) {
 			return operandToAbstractSQL(...operand);
 		}
-		if (_.isObject(operand)) {
+		if (typeof operand === 'object') {
 			return ['Duration', operand];
 		}
 		throw new Error('Unknown operand type: ' + operand);
