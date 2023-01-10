@@ -29,10 +29,10 @@ const runExpectation = function (describe, input, method, body, expectation) {
 				({ tree, extraBodyVars } = translator.match(
 					input.tree,
 					method,
-					_.keys(body),
+					Object.keys(body),
 					0,
 				));
-				_.assign(body, extraBodyVars);
+				Object.assign(body, extraBodyVars);
 			} catch (e) {
 				expectation(e);
 				return;
