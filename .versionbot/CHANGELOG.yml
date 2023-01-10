@@ -1,4 +1,16 @@
 - commits:
+    - subject: "Tests: reduce lodash usage"
+      hash: 99e3f4f2b3c67bac49c09a695f02070a9dd133ce
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.7.4
+  title: ""
+  date: 2023-01-10T17:12:08.376Z
+- commits:
     - subject: "Flowzone: Allow external contributions"
       hash: 74dc9ac5c833d6bfe31de9500cc4692052179090
       body: ""
