@@ -15,7 +15,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@balena/abstract-sql-compiler": "7.23.1-build-web-resource-2-c89657bb01ceadfb942184d50ccb8781c1548af0-1",
+    "@balena/abstract-sql-compiler": "7.24.0",
     "@balena/odata-parser": "^2.4.2",
     "@balena/sbvr-types": "3.5.0-build-web-resource-2-8cb4ed49b088839f87f4094a1d8e2b6b0a092bf1-1",
     "@types/lodash": "^4.14.189",
