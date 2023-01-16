@@ -1,4 +1,18 @@
 - commits:
+    - subject: Integrate beta version of sbvr-types supporting WebResource
+      hash: 2d045ee23367146eb53d9c1a8ea5c0bd6bde2abc
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ramiro Gonzalez <ramiro.gonzalez@balena.io>
+        signed-off-by: Ramiro Gonzalez <ramiro.gonzalez@balena.io>
+      author: Ramiro González Maciel
+      nested: []
+  version: 5.7.5
+  title: ""
+  date: 2023-01-16T14:51:23.427Z
+- commits:
     - subject: "Tests: reduce lodash usage"
       hash: 99e3f4f2b3c67bac49c09a695f02070a9dd133ce
       body: ""
