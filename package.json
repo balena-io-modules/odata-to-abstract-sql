@@ -15,9 +15,9 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@balena/abstract-sql-compiler": "7.23.1-build-web-resource-2-b68f1f66d253df97b75fbf0f9f9b197b7640d3fc-1",
+    "@balena/abstract-sql-compiler": "7.23.1-build-web-resource-2-c89657bb01ceadfb942184d50ccb8781c1548af0-1",
     "@balena/odata-parser": "^2.4.2",
-    "@balena/sbvr-types": "3.5.0-build-web-resource-2-8eb1fd3d95c2411f2037f94e8a2bb5c46aafc707-1",
+    "@balena/sbvr-types": "3.5.0-build-web-resource-2-8cb4ed49b088839f87f4094a1d8e2b6b0a092bf1-1",
     "@types/lodash": "^4.14.189",
     "@types/memoizee": "^0.4.8",
     "@types/string-hash": "^1.1.1",
