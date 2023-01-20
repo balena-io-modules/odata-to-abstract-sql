@@ -525,10 +525,10 @@ export class OData2AbstractSQL {
 						);
 					}
 
-					const isTable = (part: any): part is TableNode =>
+					const isTableBeingModified = (part: any): part is TableNode =>
 						isTableNode(part) && part[1] === unionResource.name;
 
-					if (isTable(unionResource.definition.abstractSql)) {
+					if (isTableBeingModified(unionResource.definition.abstractSql)) {
 						unionResource.definition.abstractSql = bindVarSelectQuery;
 					} else {
 						let found = false;
@@ -536,23 +536,17 @@ export class OData2AbstractSQL {
 							part: SelectQueryNode[number],
 						): SelectQueryNode[number] => {
 							if (isFromNode(part)) {
-								if (isTable(part[1])) {
+								if (isTableBeingModified(part[1])) {
 									found = true;
 									return [
 										'From',
 										['Alias', bindVarSelectQuery, unionResource.name],
 									];
-								} else if (
-									isAliasNode(part[1]) &&
-									part[1][2] === unionResource.tableAlias
-								) {
-									const aliasedNode = part[1][1];
-									if (isTable(aliasedNode)) {
+								} else if (isAliasNode(part[1])) {
+									const [, aliasedNode, alias] = part[1];
+									if (isTableBeingModified(aliasedNode)) {
 										found = true;
-										return [
-											'From',
-											['Alias', bindVarSelectQuery, unionResource.tableAlias],
-										];
+										return ['From', ['Alias', bindVarSelectQuery, alias]];
 									} else if (aliasedNode[0] === 'SelectQuery') {
 										return [
 											'From',
@@ -561,7 +555,7 @@ export class OData2AbstractSQL {
 												aliasedNode.map(
 													replaceInsertTableNodeWithBinds,
 												) as SelectQueryNode,
-												unionResource.tableAlias,
+												alias,
 											],
 										];
 									}
