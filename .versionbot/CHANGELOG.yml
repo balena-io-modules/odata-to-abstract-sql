@@ -1,4 +1,19 @@
 - commits:
+    - subject: Always replace the table being modified in definitions, ignoring aliases
+      hash: 253fdae228cf1edd5e9137819b1bbe783c0e72b0
+      body: |
+        This avoids issues where the aliases may not map up, particularly if
+        the definition was generated and may have automatic aliases, eg if
+        using the result of an odata-to-abstract-sql generation
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.7.7
+  title: ""
+  date: 2023-01-23T15:42:11.369Z
+- commits:
     - subject: Integrate beta version of sbvr-types supporting WebResource
       hash: 8940999f5f3dda0f0f04012a6d0508c4a1028b94
       body: ""
