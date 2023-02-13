@@ -1,4 +1,90 @@
 - commits:
+    - subject: Update dependency @balena/abstract-sql-compiler to 8.0.0
+      hash: 922e80ccea867f019fae5304f31fbd0cd9f141a2
+      body: |
+        Update @balena/abstract-sql-compiler to 8.0.0
+
+        Update @balena/abstract-sql-compiler from 7.26.0 to 8.0.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Renovate Bot
+      nested:
+        - commits:
+            - subject: Add binds for affected IDs in compiled rules
+              hash: 7d4bfac3b0dbcc6f916c90837398aff1e84588bc
+              body: >
+                After every write, pine has to rerun all rules from the model to ensure
+
+                consistency. These rules run over the entire database, sometimes causing
+
+                some queries to run for too long against what should be a simple write.
+
+
+                This commit adds a mechanism to help with this issue by narrowing the
+
+                set of rows that each rule should touch to those rows that were actually
+
+                changed.
+
+
+                Implementing this mechanism safely is doable and not necessarily complex
+
+                code-wise, but requires a deep modifications from the current
+
+                architecture. This commit adds a restricted form instead where we only
+
+                narrow the rows of the root table that were changed. If any other table
+
+                was changed then narrowing is a no op.
+
+
+                It can be proved that this is always safe as long as the root table is
+
+                selected from only once and the rule is positive ("It is necessary that
+
+                each ...").
+
+
+                The implementation here adds a single binding into the rule's SQL query
+
+                which can be bound by pine for each rule where an opportunity to use
+
+                this optimization arises.
+
+
+                The implementation itself is simple: count how many times the root table
+
+                is selected from and if it is selected from exactly one, then add a
+
+                narrowing constraint in the form of:
+
+
+                $1 = '{}' OR
+
+                <root table>.id = ANY(CAST($1 AS INTEGER[]))
+
+
+                Where $1 will be bound to either '{}', which disables narrowing, or to a
+
+                list of IDs that were affected by the write.
+
+
+                This initial implementation can be extended in the future.
+              footer:
+                Change-type: major
+                change-type: major
+                Signed-off-by: Carol Schulze <carol@balena.io>
+                signed-off-by: Carol Schulze <carol@balena.io>
+              author: Carol Schulze
+              nested: []
+          version: abstract-sql-compiler-8.0.0
+          title: ""
+          date: 2023-02-13T14:04:25.744Z
+  version: 5.9.0
+  title: ""
+  date: 2023-02-13T17:49:05.607Z
+- commits:
     - subject: Cache the `ResourceMapping` result to avoid unnecessary work
       hash: 8f6051cd762950d903658c88ff0f072425229463
       body: |
