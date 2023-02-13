@@ -1,4 +1,19 @@
 - commits:
+    - subject: Cache the `ResourceMapping` result to avoid unnecessary work
+      hash: 8f6051cd762950d903658c88ff0f072425229463
+      body: |
+        This function can get called a lot so caching it should provide a
+        noticeable performance improvement and linking it to the resource makes
+        cache management simple
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.8.1
+  title: ""
+  date: 2023-02-13T16:00:44.805Z
+- commits:
     - subject: Respect `modifyFields`/`modifyName` in the table definition
       hash: af5233c9c312ab23fbe6fa7bbcc20f5007c80dc2
       body: |
