@@ -1,4 +1,34 @@
 - commits:
+    - subject: Update dependency @balena/lf-to-abstract-sql to 5.0.0
+      hash: 9ca2f6387676866929a77054aea32eab736b0c2d
+      body: |
+        Update @balena/lf-to-abstract-sql to 5.0.0
+
+        Update @balena/lf-to-abstract-sql from 4.7.0 to 5.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested:
+        - commits:
+            - subject: Expand `lfInfo` to also include the root table name
+              hash: cd6429c29d11d986d13b2f3a1c7090310e3e4d03
+              body: |
+                Also minor refactor for `lfInfo`
+              footer:
+                Change-type: major
+                change-type: major
+                Signed-off-by: Carol Schulze <carol@balena.io>
+                signed-off-by: Carol Schulze <carol@balena.io>
+              author: Carol Schulze
+              nested: []
+          version: lf-to-abstract-sql-5.0.0
+          title: ""
+          date: 2023-02-10T18:42:29.921Z
+  version: 5.9.1
+  title: ""
+  date: 2023-02-13T17:54:02.488Z
+- commits:
     - subject: Update dependency @balena/abstract-sql-compiler to 8.0.0
       hash: 922e80ccea867f019fae5304f31fbd0cd9f141a2
       body: |
