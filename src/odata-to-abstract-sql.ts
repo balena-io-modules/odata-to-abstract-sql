@@ -70,6 +70,10 @@ const convertToModernDefinition = (
 interface Resource extends Omit<AbstractSqlTable, 'definition'> {
 	tableAlias?: string;
 	definition?: Definition;
+	resourceMappings?: {
+		[odataName: string]: [tableAlias: string, fieldName: string];
+	};
+	modifyResourceMappings?: Resource['resourceMappings'];
 }
 type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
 type RequiredField<T, F extends keyof T> = Overwrite<T, Required<Pick<T, F>>>;
@@ -838,17 +842,27 @@ export class OData2AbstractSQL {
 	ResourceMapping(
 		resource: Resource,
 		modifyFields = false,
-	): Dictionary<[string, string]> {
-		const tableAlias = resource.tableAlias ?? resource.name;
-		const resourceMappings: Dictionary<[string, string]> = {};
-		const fields =
+	): NonNullable<Resource['resourceMappings']> {
+		const resourceMappingsProp =
 			modifyFields === true && resource.modifyFields
-				? resource.modifyFields
-				: resource.fields;
-		for (const { fieldName } of fields) {
-			resourceMappings[sqlNameToODataName(fieldName)] = [tableAlias, fieldName];
+				? 'modifyResourceMappings'
+				: 'resourceMappings';
+		if (resource[resourceMappingsProp] == null) {
+			const tableAlias = resource.tableAlias ?? resource.name;
+			const resourceMappings: Dictionary<[string, string]> = {};
+			const fields =
+				modifyFields === true && resource.modifyFields
+					? resource.modifyFields
+					: resource.fields;
+			for (const { fieldName } of fields) {
+				resourceMappings[sqlNameToODataName(fieldName)] = [
+					tableAlias,
+					fieldName,
+				];
+			}
+			resource[resourceMappingsProp] = resourceMappings;
 		}
-		return resourceMappings;
+		return resource[resourceMappingsProp]!;
 	}
 	ResolveRelationship(resource: string | Resource, relationship: string) {
 		let resourceName;
