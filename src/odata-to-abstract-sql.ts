@@ -48,6 +48,11 @@ import type {
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
+type RequiredAbstractSqlModelSubset = Pick<
+	AbstractSqlModel,
+	'synonyms' | 'relationships' | 'tables'
+>;
+
 type Dictionary<T> = Record<string, T>;
 
 interface LegacyDefinition {
@@ -278,7 +283,7 @@ export class OData2AbstractSQL {
 	private checkAlias: (alias: string) => string;
 
 	constructor(
-		private clientModel: AbstractSqlModel,
+		private clientModel: RequiredAbstractSqlModelSubset,
 		private methods: Dictionary<ResourceFunction> = {},
 		{ minimizeAliases = false } = {},
 	) {
@@ -1703,7 +1708,7 @@ const addAliases = (
 };
 
 const getRelationships = (
-	relationships: AbstractSqlModel['relationships'] | Relationship,
+	relationships: RequiredAbstractSqlModelSubset['relationships'] | Relationship,
 	/** For recursive usage only */
 	nestedRelationships: string[] = [],
 ): string[] => {
@@ -1720,7 +1725,7 @@ const getRelationships = (
 	return nestedRelationships;
 };
 
-const generateShortAliases = (clientModel: AbstractSqlModel) => {
+const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 	const shortAliases: Dictionary<string> = {};
 
 	const aliasParts = _(getRelationships(clientModel.relationships))
