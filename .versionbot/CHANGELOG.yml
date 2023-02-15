@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update typings to the minimal subset of the abstract sql model we need
+      hash: 2b95fdd826b153b7cbc0ad9ae6440d5788062ee3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.9.2
+  title: ""
+  date: 2023-02-15T13:59:28.133Z
+- commits:
     - subject: Update dependency @balena/lf-to-abstract-sql to 5.0.0
       hash: 9ca2f6387676866929a77054aea32eab736b0c2d
       body: |
