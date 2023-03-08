@@ -276,7 +276,7 @@ const addBodyKey = (
 
 export class OData2AbstractSQL {
 	private extraBodyVars: Dictionary<BindReference> = {};
-	public extraBindVars: ODataBinds = [];
+	public extraBindVars = [] as unknown as ODataBinds;
 	private resourceAliases: Dictionary<AliasedResource> = {};
 	public defaultResource: Resource | undefined;
 	public bindVarsLength: number = 0;
@@ -1538,7 +1538,7 @@ export class OData2AbstractSQL {
 	reset() {
 		this.putReset();
 		this.extraBodyVars = {};
-		this.extraBindVars = [];
+		this.extraBindVars = [] as unknown as ODataBinds;
 	}
 
 	putReset() {
