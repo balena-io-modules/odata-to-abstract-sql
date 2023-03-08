@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fixes ODataBindings imported types
+      hash: 07224c40f6c11a849939dcca456d18677b159991
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 5.9.3
+  title: ""
+  date: 2023-03-08T22:00:01.264Z
+- commits:
     - subject: Update typings to the minimal subset of the abstract sql model we need
       hash: 2b95fdd826b153b7cbc0ad9ae6440d5788062ee3
       body: ""
