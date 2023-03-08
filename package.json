@@ -15,7 +15,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^8.4.1",
+    "@balena/abstract-sql-compiler": "9.0.3-build-bumps-sbvr-types-with-web-resource-f305534a2038ba659999f2570430bb060d6fccd3-1",
     "@balena/odata-parser": "^3.0.0",
     "@types/lodash": "^4.14.194",
     "@types/memoizee": "^0.4.8",
@@ -28,7 +28,7 @@
     "@balena/lf-to-abstract-sql": "^5.0.0",
     "@balena/lint": "^6.2.2",
     "@balena/sbvr-parser": "^1.4.3",
-    "@balena/sbvr-types": "^4.0.0",
+    "@balena/sbvr-types": "5.1.0-build-web-resource-2-db7ff44e95a040a0b250d8c7612b126b31a3f325-1",
     "@types/chai": "^4.3.4",
     "@types/chai-things": "0.0.35",
     "@types/mocha": "^10.0.1",
