@@ -55,6 +55,10 @@ type RequiredAbstractSqlModelSubset = Pick<
 
 type Dictionary<T> = Record<string, T>;
 
+type AlreadyComputedFields = {
+	[resourceAndfieldName: string]: boolean;
+};
+
 interface LegacyDefinition {
 	extraBinds: ODataBinds;
 	abstractSqlQuery: SelectQueryNode | UnionQueryNode | ResourceNode | TableNode;
@@ -145,11 +149,21 @@ class Query {
 		FieldsNode | ValuesNode | OrderByNode | LimitNode | OffsetNode
 	> = [];
 
+	public alreadyComputedFields: AlreadyComputedFields = {};
+
+	constructor(alreadyComputedFields: AlreadyComputedFields = {}) {
+		this.alreadyComputedFields = alreadyComputedFields;
+	}
+
 	merge(otherQuery: Query): void {
 		this.select = this.select.concat(otherQuery.select);
 		this.from = this.from.concat(otherQuery.from);
 		this.where = this.where.concat(otherQuery.where);
 		this.extras = this.extras.concat(otherQuery.extras);
+		this.alreadyComputedFields = {
+			...this.alreadyComputedFields,
+			...otherQuery.alreadyComputedFields,
+		};
 	}
 	fromResource(
 		odataToAbstractSql: OData2AbstractSQL,
@@ -165,6 +179,7 @@ class Query {
 			resource,
 			args.extraBindVars,
 			args.bindVarsLength,
+			this.alreadyComputedFields,
 			bypassDefinition,
 			resource.tableAlias,
 			isModifyOperation,
@@ -252,10 +267,15 @@ export const isBindReference = (maybeBind: {
 	);
 };
 
-const isDynamicResource = (resource: Resource): boolean => {
+const isDynamicResource = (
+	resource: Resource,
+	alreadyComputedFields?: AlreadyComputedFields,
+): boolean => {
 	return (
 		resource.definition != null ||
-		resource.fields.some((f) => f.computed != null)
+		resource.fields.some(
+			(f) => f.computed != null && alreadyComputedFields?.[f.fieldName],
+		)
 	);
 };
 
@@ -400,7 +420,12 @@ export class OData2AbstractSQL {
 			this.methods = savedMethods;
 		}
 	}
-	PathSegment(method: string, bodyKeys: string[], path: ODataQuery): Query {
+	PathSegment(
+		method: string,
+		bodyKeys: string[],
+		path: ODataQuery,
+		alreadyComputedFields: AlreadyComputedFields = {},
+	): Query {
 		if (!path.resource) {
 			throw new SyntaxError('Path segment must contain a resource');
 		}
@@ -408,7 +433,7 @@ export class OData2AbstractSQL {
 
 		const resource = this.Resource(path.resource, this.defaultResource);
 		this.defaultResource = resource;
-		const query = new Query();
+		const query = new Query(alreadyComputedFields);
 		// For non-GETs we bypass definitions for the actual update/insert as we need to write to the base table
 		const bypassDefinition = method !== 'GET';
 		query.fromResource(
@@ -434,7 +459,12 @@ export class OData2AbstractSQL {
 		}
 		let bindVars: ReturnType<OData2AbstractSQL['BindVars']> | undefined;
 		if (path.property) {
-			const childQuery = this.PathSegment(method, bodyKeys, path.property);
+			const childQuery = this.PathSegment(
+				method,
+				bodyKeys,
+				path.property,
+				alreadyComputedFields,
+			);
 			query.merge(childQuery);
 			if (!path.property.resource) {
 				throw new SyntaxError('PathSegment has a property without a resource?');
@@ -497,11 +527,13 @@ export class OData2AbstractSQL {
 			// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
 			// we make sure to always apply it. This means that the definition will still be applied for these queries
 			if (
-				(hasQueryOpts || isDynamicResource(resource) || pathKeyWhere != null) &&
+				(hasQueryOpts ||
+					isDynamicResource(resource, alreadyComputedFields) ||
+					pathKeyWhere != null) &&
 				(method === 'POST' || method === 'PUT-INSERT')
 			) {
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
-				const subQuery = new Query();
+				const subQuery = new Query(alreadyComputedFields);
 				subQuery.select = bindVars.map(
 					(bindVar): ReferencedFieldNode => [
 						'ReferencedField',
@@ -516,14 +548,14 @@ export class OData2AbstractSQL {
 						'SelectQuery',
 						[
 							'Select',
-							(resource.modifyFields ?? resource.fields).map(
-								(field): AliasNode<CastNode> => {
+							(resource.modifyFields ?? resource.fields)
+								.filter((f) => f.computed == null)
+								.map((field): AliasNode<CastNode> => {
 									const alias = field.fieldName;
 									const bindVar = bindVars?.find((v) => v[0] === alias);
 									const value = bindVar?.[1] ?? ['Null'];
 									return ['Alias', ['Cast', value, field.dataType], alias];
-								},
-							),
+								}),
 						],
 					],
 					'$insert',
@@ -550,6 +582,7 @@ export class OData2AbstractSQL {
 							unionResource.definition,
 							rewrittenBindVars,
 							0,
+							alreadyComputedFields,
 						));
 					definition.binds = rewrittenBindVars;
 
@@ -607,7 +640,7 @@ export class OData2AbstractSQL {
 						}
 					}
 				}
-				const whereQuery = new Query();
+				const whereQuery = new Query(alreadyComputedFields);
 				if (hasQueryOpts) {
 					this.AddQueryOptions(resource, path, whereQuery);
 				}
@@ -639,14 +672,15 @@ export class OData2AbstractSQL {
 		// we make sure to always apply it. This means that the definition will still be applied for these queries, for insert queries
 		// this is handled when we set the 'Values'
 		if (
-			(hasQueryOpts || isDynamicResource(resource)) &&
+			(hasQueryOpts || isDynamicResource(resource, alreadyComputedFields)) &&
 			(method === 'PUT' ||
 				method === 'PATCH' ||
 				method === 'MERGE' ||
 				method === 'DELETE')
 		) {
 			// For update/delete statements we need to use a  style query
-			const subQuery = new Query();
+			const subQuery = new Query(alreadyComputedFields);
+
 			subQuery.select.push(referencedIdField);
 			subQuery.fromResource(this, resource);
 			if (hasQueryOpts) {
@@ -928,6 +962,7 @@ export class OData2AbstractSQL {
 			odataFieldNames = resource.fields.map((field) => [
 				resource,
 				sqlNameToODataName(field.fieldName),
+				query.alreadyComputedFields,
 				field.computed,
 			]);
 		}
@@ -941,10 +976,11 @@ export class OData2AbstractSQL {
 	AliasSelectField(
 		resource: Resource,
 		fieldName: string,
+		alreadyComputedFields: AlreadyComputedFields,
 		computed?: AbstractSqlQuery,
 		alias: string = fieldName,
 	) {
-		if (computed) {
+		if (computed && !alreadyComputedFields[resource + fieldName]) {
 			if (
 				resource.tableAlias != null &&
 				resource.tableAlias !== resource.name
@@ -955,6 +991,7 @@ export class OData2AbstractSQL {
 					resource.tableAlias,
 				);
 			}
+			alreadyComputedFields[resource + fieldName] = true;
 			return ['Alias', computed, alias];
 		}
 		const referencedField = this.ReferencedField(resource, fieldName);
@@ -1562,6 +1599,7 @@ export class OData2AbstractSQL {
 		resource: Resource,
 		extraBindVars: ODataBinds,
 		bindVarsLength: number,
+		alreadyComputedFields: AlreadyComputedFields,
 		bypassDefinition: boolean = false,
 		tableAlias?: string,
 		isModifyOperation?: boolean,
@@ -1590,18 +1628,20 @@ export class OData2AbstractSQL {
 					resource.definition,
 					extraBindVars,
 					bindVarsLength,
+					alreadyComputedFields,
 				);
 				return maybeAlias(definition.abstractSql);
 			}
 			const computedFields = resource.fields.filter((f) => f.computed != null);
 			if (computedFields.length > 0) {
-				const computedFieldQuery = new Query();
+				const computedFieldQuery = new Query(alreadyComputedFields);
 				computedFieldQuery.select = [
 					['Field', '*'],
 					...computedFields.map((field) =>
 						this.AliasSelectField(
 							resource,
 							sqlNameToODataName(field.fieldName),
+							alreadyComputedFields,
 							field.computed,
 							field.fieldName,
 						),
@@ -1635,6 +1675,7 @@ export class OData2AbstractSQL {
 		definition: Definition,
 		extraBindVars: ODataBinds,
 		bindVarsLength: number,
+		alreadyComputedFields: AlreadyComputedFields,
 	): ModernDefinition {
 		const rewrittenDefinition = _.cloneDeep(
 			convertToModernDefinition(definition),
@@ -1653,6 +1694,7 @@ export class OData2AbstractSQL {
 					referencedResource,
 					extraBindVars,
 					bindVarsLength,
+					alreadyComputedFields,
 				);
 				(resource as AbstractSqlType[]).splice(0, resource.length, ...tableRef);
 			},
