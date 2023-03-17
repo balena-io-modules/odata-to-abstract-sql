@@ -152,3 +152,76 @@ test('/pilot?$select=can_fly__plane/plane/id', (result) =>
 					['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
 				],
 			])));
+
+test('/copilot?$select=*', (result) =>
+	it('should select * from copilot', () =>
+		expect(result).to.be.a.query.to.deep.equal([
+			'SelectQuery',
+			[
+				'Select',
+				[
+					['Alias', ['ReferencedField', 'copilot', 'created at'], 'created_at'],
+					[
+						'Alias',
+						['ReferencedField', 'copilot', 'modified at'],
+						'modified_at',
+					],
+					['ReferencedField', 'copilot', 'id'],
+					['ReferencedField', 'copilot', 'pilot'],
+					['Alias', ['ReferencedField', 'copilot', 'is blocked'], 'is_blocked'],
+					['ReferencedField', 'copilot', 'rank'],
+				],
+			],
+			[
+				'From',
+				[
+					'Alias',
+					[
+						'SelectQuery',
+						[
+							'Select',
+							[
+								['Field', '*'],
+								['Alias', ['Boolean', false], 'is blocked'],
+								['Alias', ['Text', 'Junior'], 'rank'],
+							],
+						],
+						['From', ['Table', 'copilot']],
+					],
+					'copilot',
+				],
+			],
+		])));
+
+test('/copilot?$select=id,is_blocked,rank', (result) =>
+	it('should select * from copilot', () =>
+		expect(result).to.be.a.query.to.deep.equal([
+			'SelectQuery',
+			[
+				'Select',
+				[
+					['ReferencedField', 'copilot', 'id'],
+					['Alias', ['ReferencedField', 'copilot', 'is blocked'], 'is_blocked'],
+					['ReferencedField', 'copilot', 'rank'],
+				],
+			],
+			[
+				'From',
+				[
+					'Alias',
+					[
+						'SelectQuery',
+						[
+							'Select',
+							[
+								['Field', '*'],
+								['Alias', ['Boolean', false], 'is blocked'],
+								['Alias', ['Text', 'Junior'], 'rank'],
+							],
+						],
+						['From', ['Table', 'copilot']],
+					],
+					'copilot',
+				],
+			],
+		])));

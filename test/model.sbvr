@@ -58,3 +58,9 @@ Fact type:  pilot has hire date
 Fact type:  pilot1 was trained by pilot2
 	Synonymous Form: pilot2 trained pilot1
 	Necessity: each pilot was trained by exactly one pilot
+
+Term:	copilot
+	Concept Type:	pilot
+
+Fact Type: copilot assists pilot
+	Necessity: each copilot assists at most one pilot
