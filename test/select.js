@@ -3,6 +3,7 @@ import {
 	operandToAbstractSQLFactory,
 	aliasFields,
 	pilotFields,
+	copilotFields,
 } from './chai-sql';
 import test from './test';
 import * as _ from 'lodash';
@@ -152,3 +153,21 @@ test('/pilot?$select=can_fly__plane/plane/id', (result) =>
 					['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
 				],
 			])));
+
+test.only('/copilot?$select=*', (result) =>
+	it('should select * from copilot', () => {
+		console.log(`result:${JSON.stringify(result, null, 2)}`);
+		expect(result).to.be.a.query.that.selects(copilotFields).from('copilot');
+	}));
+
+test.only('/copilot?$select=id', (result) =>
+	it('should select * from copilot', () => {
+		console.log(`result:${JSON.stringify(result, null, 2)}`);
+		expect(result).to.be.a.query.that.selects(copilotFields).from('copilot');
+	}));
+
+test.only('/copilot?$select=is_blocked', (result) =>
+	it('should select * from copilot', () => {
+		console.log(`result:${JSON.stringify(result, null, 2)}`);
+		expect(result).to.be.a.query.that.selects(copilotFields).from('copilot');
+	}));
