@@ -1,4 +1,355 @@
 - commits:
+    - subject: Update dependencies
+      hash: 5aa3c51cbbfc66cddedebd41dacba5eabbacf709
+      body: |
+        Update @balena/abstract-sql-compiler from 8.0.0 to 8.4.0
+        Update @balena/odata-parser from 2.4.2 to 2.4.6
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add support for using field type nodes with an AggregateJSON node
+              hash: 19c2760ecf76b4097d7d3045c2eefbf74fd7c2da
+              body: |
+                This also deprecates the legacy version
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.4.0
+          title: ""
+          date: 2023-04-24T12:05:48.116Z
+        - commits:
+            - subject: Deprecate `AliasableFromTypeNodes` type as it's redundant
+              hash: 283da4816fe5e6d672e4959b05800861625dda99
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.13
+          title: ""
+          date: 2023-04-24T12:00:41.593Z
+        - commits:
+            - subject: Revert tightening of `OrderBy` to only field nodes
+              hash: 1c25d9b8d011791a9e98a5929ad48cdd9f3bab6b
+              body: |
+                It can in fact be a lot of different things and that is now also
+                reflected in the typing
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.12
+          title: ""
+          date: 2023-04-17T16:53:20.918Z
+        - commits:
+            - subject: Do not allow ON clauses for CROSS JOIN as it is invalid
+              hash: d47bf63d3a14cdbb4cb0aeb7544e41a9288699f4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Stop accepting `ExtractJSONPathAsText`/`ToJSON` as unknown node types
+              hash: 6fcb2c4257f9fc50f6b4b1070dec86ace9f71237
+              body: >
+                We know what type they return and they should be explicitly
+                accepted as
+
+                those types instead where it is valid to do so
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.11
+          title: ""
+          date: 2023-04-13T11:28:36.049Z
+        - commits:
+            - subject: Fix DateNode/AnyNode typings
+              hash: aab549e8cf4e274a2a8b93814da393451acc4238
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.10
+          title: ""
+          date: 2023-04-13T10:27:14.478Z
+        - commits:
+            - subject: Update dependencies
+              hash: 39058b2dacac51da96158d594b2d72e3238d0cbc
+              body: |
+                Update @balena/sbvr-types from 3.4.18 to 3.5.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add Big Serial type
+                      hash: 49460ad51fcbc60f81e61329c573a1af5b207a46
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Josh Bowling
+                  version: sbvr-types-3.5.0
+                  title: ""
+                  date: 2023-03-21T11:16:27.398Z
+                - commits:
+                    - subject: "Flowzone: Allow external contributions"
+                      hash: 9f7bb028bbac327e6fe0711491d7c0f2c6464f98
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: Josh Bowling <josh@monarci.com>
+                        signed-off-by: Josh Bowling <josh@monarci.com>
+                      author: Josh Bowling
+                  version: sbvr-types-3.4.19
+                  title: ""
+                  date: 2022-12-08T01:08:35.143Z
+          version: abstract-sql-compiler-8.3.9
+          title: ""
+          date: 2023-04-13T10:09:53.529Z
+        - commits:
+            - subject: Improve typings
+              hash: 43e75ef37de956d1b583bc62b307b04e0f8455c1
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.8
+          title: ""
+          date: 2023-04-12T17:26:10.992Z
+        - commits:
+            - subject: Remove typing for non-existent JSON node
+              hash: 76181d438f0f37463642704d7908c1774040c2c2
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.7
+          title: ""
+          date: 2023-04-12T16:38:07.014Z
+        - commits:
+            - subject: Tighten the `isXValue` function typings
+              hash: 91485cd9c88faaaed9b1280bc34eb3a99628057e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.6
+          title: ""
+          date: 2023-04-12T16:18:20.829Z
+        - commits:
+            - subject: Correctly treat `Value` nodes as rewritten to `Text` by the optimizer
+              hash: c9dbc4cfb3fa392e87a0775accdd6811b3c273b4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add EmbeddedTextNode typing
+              hash: d00ac00ca7af4d17b437c3d5511af8e506615db4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.5
+          title: ""
+          date: 2023-04-12T16:01:45.643Z
+        - commits:
+            - subject: Enforce the first argument of ExtractJSONPathAsText is a JSON type node
+              hash: 08865295d4cd3ded56d77a30d33c0434e1da52b9
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.4
+          title: ""
+          date: 2023-04-12T15:55:47.432Z
+        - commits:
+            - subject: Improve node typings
+              hash: 2cb83cf242052c581ee5412e3a90ed87cf5fd39e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.3
+          title: ""
+          date: 2023-04-12T15:43:13.357Z
+        - commits:
+            - subject: Add more node typings
+              hash: db162a8a4d645c2f37c968224d667ed753e534dd
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.2
+          title: ""
+          date: 2023-04-12T15:01:22.252Z
+        - commits:
+            - subject: Add more node typings
+              hash: 047954b6f66abb041bee74373f37c38d71cdc4d7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.1
+          title: ""
+          date: 2023-04-12T13:14:25.174Z
+        - commits:
+            - subject: Support boolean nodes in a ValuesNode
+              hash: d589fb6cd92a3a7570e3b2ebea14acbb84807d8a
+              body: |
+                This also deprecates the legacy use of direct true/false entries
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.0
+          title: ""
+          date: 2023-04-11T14:56:54.403Z
+        - commits:
+            - subject: Add `Between` node type
+              hash: 4880072eeab6af198df47777b6579dcacc3d7fb1
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.2.0
+          title: ""
+          date: 2023-04-11T14:19:22.378Z
+        - commits:
+            - subject: Add `BitwiseAnd`/`BitwiseShiftRight` node types
+              hash: f155d1daca54086b653fa590e3248c5ef805afff
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.1.0
+          title: ""
+          date: 2023-04-11T14:11:01.677Z
+        - commits:
+            - subject: Add `NotInNode` type
+              hash: 9870d746344033db53ec14fddc23a8580b863ad9
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add `IsDistinctFromNode`/`IsNotDistinctFromNode` types
+              hash: 09887280a6394a61a31c955602ccb2a0fe98c9b8
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add `CharacterLengthNode` type
+              hash: 1fbab42cee8128025756076dc826dacda4ea1597
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.0.2
+          title: ""
+          date: 2023-04-06T18:12:29.893Z
+        - commits:
+            - subject: Adds Cast node type to tree parsing
+              hash: cbdb559bfce3c77f9bce9e07f05777f58965f324
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otávio Jacobi
+              nested: []
+          version: abstract-sql-compiler-8.0.1
+          title: ""
+          date: 2023-04-06T17:59:29.723Z
+        - commits:
+            - subject: Improve typings
+              hash: ed5fa5675021485a775eb777f2358d8041b93ce1
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.4.6
+          title: ""
+          date: 2023-02-24T17:02:58.272Z
+        - commits:
+            - subject: Use const/let as appropriate
+              hash: 0824fe7d85eeb97941319749fc802f9bae3c9fb6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.4.5
+          title: ""
+          date: 2023-02-23T16:31:08.299Z
+        - commits:
+            - subject: Use shorthand object notation
+              hash: 611c0480681965c7af06302264eac79fea18bded
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.4.4
+          title: ""
+          date: 2023-02-23T16:26:30.639Z
+        - commits:
+            - subject: Update dependencies
+              hash: 25b153aca258347c6742cb8b4efe54c0ae199695
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.4.3
+          title: ""
+          date: 2023-02-23T16:14:13.013Z
+  version: 5.9.4
+  title: ""
+  date: 2023-04-24T16:26:44.367Z
+- commits:
     - subject: Fixes ODataBindings imported types
       hash: 07224c40f6c11a849939dcca456d18677b159991
       body: ""
@@ -68,7 +419,8 @@
             - subject: Add binds for affected IDs in compiled rules
               hash: 7d4bfac3b0dbcc6f916c90837398aff1e84588bc
               body: >
-                After every write, pine has to rerun all rules from the model to ensure
+                After every write, pine has to rerun all rules from the model to
+                ensure
 
                 consistency. These rules run over the entire database, sometimes causing
 
@@ -171,7 +523,8 @@
             - subject: Add `modifyFields`/`modifyName` to table definition
               hash: 174c07b3923bb41fe50b413829b4268c1b28172e
               body: >
-                This is intended to be used to target tables differently for reads vs
+                This is intended to be used to target tables differently for
+                reads vs
 
                 writes, eg where you might read from a view/definition but want to
 
@@ -710,7 +1063,8 @@
             - subject: Add reference property type
               hash: d28e2456dff10b18bcc97b7232479fe78efd5eb3
               body: >
-                Property type describes if the reference is 'strict' or 'informative'.
+                Property type describes if the reference is 'strict' or
+                'informative'.
 
 
                 Behaviour change only if type is informative otherwise default 'strict'.
@@ -735,7 +1089,8 @@
             - subject: Avoid the operation type optimization for HAVING clauses
               hash: 3fcf08bc02c21d9f49b78787ed516fa9a403f021
               body: >
-                Since it's possible for them to behave in a way that violates the
+                Since it's possible for them to behave in a way that violates
+                the
 
                 safety checks we'll disable them until we can add specific checks
 
@@ -976,7 +1331,8 @@
             - subject: Remove now unnecessary hack for casting SERIAL types
               hash: 187bc075d237a2ced731d0a026ca25aa3e0f5540
               body: >
-                This became unnecessary when @balena/sbvr-types added the concept of
+                This became unnecessary when @balena/sbvr-types added the
+                concept of
 
                 cast types since that now specifies how to cast a SERIAL type
               footer:
@@ -1140,7 +1496,8 @@
             - subject: Add a `getRuleReferencedFields` which is tailored for rules
               hash: 256c36de4a1efb7a46eb9833e1c3228d17194015
               body: >
-                This works on the assumption that it is a rule query that should always
+                This works on the assumption that it is a rule query that should
+                always
 
                 return true and allows ignoring more modification cases where they
 
@@ -1309,7 +1666,8 @@
             - subject: Add support for table definitions
               hash: 2939656834c374e35af8867d6337b119b58cd198
               body: >
-                Static definitions will be converted to views and dynamic definitions
+                Static definitions will be converted to views and dynamic
+                definitions
 
                 will be ignored
               footer:
@@ -1435,7 +1793,8 @@
                     - subject: Add a `castType` property to type functions
                       hash: 409077eb9d6c0315779ddd877220280c251b4eb5
                       body: >
-                        This allows specifying the correct type to cast to when necessary
+                        This allows specifying the correct type to cast to when
+                        necessary
 
                         rather than relying on the fact the currently all type functions happen
 
@@ -2268,7 +2627,8 @@
                     - subject: Only add the destination of a link table if it's actually necessary
                       hash: 463870590602492accc12ed53753f66862d42cd6
                       body: >
-                        This can significantly speed up queries by avoiding a join when the
+                        This can significantly speed up queries by avoiding a
+                        join when the
 
                         result is unused
                       footer:
@@ -2424,7 +2784,8 @@
                             - subject: Improve aliased from handling in `getReferencedFields`
                               hash: dcfff55b813d38434208a9e07c818d1d32f521ef
                               body: >
-                                We do this by using basic scope info to prune aliased table references
+                                We do this by using basic scope info to prune
+                                aliased table references
 
                                 which also allows us to handle aliased select queries in the from
                               footer:
@@ -3301,7 +3662,8 @@
             - subject: Only add the destination of a link table if it's actually necessary
               hash: 463870590602492accc12ed53753f66862d42cd6
               body: >
-                This can significantly speed up queries by avoiding a join when the
+                This can significantly speed up queries by avoiding a join when
+                the
 
                 result is unused
               footer:
@@ -3785,7 +4147,8 @@
             - subject: Only create functions if they don't already exist
               hash: 6d828438a0d54ab7a611d4620ade9bac8ec3fc3e
               body: >
-                This matches how we handle table/trigger creation and avoids issues
+                This matches how we handle table/trigger creation and avoids
+                issues
 
                 with running create schema statements concurrently
               footer:
@@ -4090,7 +4453,8 @@
             - subject: Improve aliased from handling in `getReferencedFields`
               hash: dcfff55b813d38434208a9e07c818d1d32f521ef
               body: >
-                We do this by using basic scope info to prune aliased table references
+                We do this by using basic scope info to prune aliased table
+                references
 
                 which also allows us to handle aliased select queries in the from
               footer:
