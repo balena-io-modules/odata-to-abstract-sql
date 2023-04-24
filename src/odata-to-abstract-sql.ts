@@ -34,6 +34,8 @@ import {
 	isAliasNode,
 	isFromNode,
 	isTableNode,
+	FieldNode,
+	CountNode,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -138,7 +140,12 @@ const containsQueryOption = (opts?: object): boolean => {
 };
 
 class Query {
-	public select: Array<SelectNode[1]> = [];
+	public select: Array<
+		| ReferencedFieldNode
+		| FieldNode
+		| CountNode
+		| AliasNode<SelectNode[1][number]>
+	> = [];
 	public from: Array<FromNode[1]> = [];
 	public where: Array<WhereNode[1]> = [];
 	public extras: Array<
@@ -521,6 +528,11 @@ export class OData2AbstractSQL {
 									const alias = field.fieldName;
 									const bindVar = bindVars?.find((v) => v[0] === alias);
 									const value = bindVar?.[1] ?? ['Null'];
+									if (value === 'Default') {
+										throw new Error(
+											'Cannot use default values for a filtered insert query',
+										);
+									}
 									return ['Alias', ['Cast', value, field.dataType], alias];
 								},
 							),
@@ -943,7 +955,10 @@ export class OData2AbstractSQL {
 		fieldName: string,
 		computed?: AbstractSqlQuery,
 		alias: string = fieldName,
-	) {
+	):
+		| ReferencedFieldNode
+		| AliasNode<ReferencedFieldNode>
+		| AliasNode<AbstractSqlQuery> {
 		if (computed) {
 			if (
 				resource.tableAlias != null &&
@@ -1565,10 +1580,8 @@ export class OData2AbstractSQL {
 		bypassDefinition: boolean = false,
 		tableAlias?: string,
 		isModifyOperation?: boolean,
-	): FromTypeNodes | AliasNode<FromTypeNodes> {
-		const maybeAlias = (
-			tableRef: FromTypeNodes | AliasNode<FromTypeNodes>,
-		): FromTypeNodes | AliasNode<FromTypeNodes> => {
+	): FromTypeNodes {
+		const maybeAlias = (tableRef: FromTypeNodes): FromTypeNodes => {
 			if (tableAlias == null) {
 				return tableRef;
 			}
