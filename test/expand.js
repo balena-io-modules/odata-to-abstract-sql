@@ -49,7 +49,13 @@ const createAggregate = function (args) {
 			'SelectQuery',
 			[
 				'Select',
-				[['Alias', ['AggregateJSON', [resourceAlias, '*']], odataName]],
+				[
+					[
+						'Alias',
+						['AggregateJSON', ['ReferencedField', resourceAlias, '*']],
+						odataName,
+					],
+				],
 			],
 			[
 				'From',

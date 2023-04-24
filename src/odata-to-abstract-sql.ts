@@ -1512,7 +1512,7 @@ export class OData2AbstractSQL {
 			const expandQuery = new Query();
 			expandQuery.select.push([
 				'Alias',
-				['AggregateJSON', [expandResource.tableAlias, '*']],
+				['AggregateJSON', ['ReferencedField', expandResource.tableAlias, '*']],
 				expand.name,
 			]);
 			expandQuery.from.push([
