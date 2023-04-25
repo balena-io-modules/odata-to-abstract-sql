@@ -56,6 +56,10 @@ const methodMaps = {
 	length: 'CharacterLength',
 	date: 'ToDate',
 	time: 'ToTime',
+	tolower: 'Lower',
+	toupper: 'Upper',
+	concat: 'Concatenate',
+	now: 'CurrentTimestamp',
 };
 
 const createExpression = function (lhs, op, rhs) {

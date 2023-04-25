@@ -41,9 +41,9 @@ chai.use(function ($chai, utils) {
 	const select = (function () {
 		const bodySelect = bodyClause('Select');
 		const typeSelect = queryType('SelectQuery');
-		return function () {
+		return function (...args) {
 			typeSelect.call(this);
-			return bodySelect.apply(this, arguments);
+			return bodySelect.apply(this, args);
 		};
 	})();
 	utils.addMethod(assertionPrototype, 'select', select);

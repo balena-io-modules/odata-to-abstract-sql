@@ -5,7 +5,13 @@ import { OData2AbstractSQL } from '../out/odata-to-abstract-sql';
 const translator = new OData2AbstractSQL(clientModel);
 
 const { skip } = describe;
-const runExpectation = function (describe, input, method, body, expectation) {
+const runExpectation = function (
+	describe: Mocha.SuiteFunction,
+	input: any,
+	method: any,
+	body?: any,
+	expectation?: any,
+) {
 	if (expectation == null) {
 		if (body == null) {
 			expectation = method;
@@ -42,7 +48,20 @@ const runExpectation = function (describe, input, method, body, expectation) {
 	);
 };
 
-const test = runExpectation.bind(null, describe);
+type TailParameters<T extends (...args: any) => any> = T extends (
+	arg,
+	...args: infer P
+) => any
+	? P
+	: never;
+type TestFn = (
+	...args: TailParameters<typeof runExpectation>
+) => ReturnType<typeof runExpectation>;
+interface Test extends TestFn {
+	skip: TestFn;
+	only: TestFn;
+}
+const test = runExpectation.bind(null, describe) as Test;
 test.skip = runExpectation.bind(null, describe.skip);
 test.only = runExpectation.bind(null, describe.only);
 
