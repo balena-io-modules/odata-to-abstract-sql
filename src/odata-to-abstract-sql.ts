@@ -1121,18 +1121,20 @@ export class OData2AbstractSQL {
 				}
 		}
 	}
-	AliasedFunction<T extends string>(
-		odataName: string,
-		sqlName: T,
-		match: any,
-	): [T, ...AnyTypeNodes[]] {
-		const [, ...args] = this.FunctionMatch(odataName, match);
-		return [sqlName, ...args];
-	}
-	FunctionMatch<T extends string>(
+	FunctionMatch<T extends string, U extends string>(
 		name: T,
 		match: any,
-	): [Capitalize<T>, ...AnyTypeNodes[]] {
+		sqlName: U,
+	): [U, ...AnyTypeNodes[]];
+	FunctionMatch<T extends string, U extends string>(
+		name: T,
+		match: any,
+	): [Capitalize<T>, ...AnyTypeNodes[]];
+	FunctionMatch<T extends string, U extends string>(
+		name: T,
+		match: any,
+		sqlName?: U,
+	): [U | Capitalize<T>, ...AnyTypeNodes[]] {
 		if (!Array.isArray(match) || match[0] !== 'call') {
 			throw new SyntaxError('Not a function call');
 		}
@@ -1141,7 +1143,7 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Unexpected function name');
 		}
 		const args = properties.args.map((v: any) => this.Operand(v));
-		return [_.capitalize(name) as Capitalize<T>, ...args];
+		return [sqlName ?? (_.capitalize(name) as Capitalize<T>), ...args];
 	}
 	Operand(
 		match: any,
@@ -1365,10 +1367,10 @@ export class OData2AbstractSQL {
 				case 'ceiling':
 					return this.FunctionMatch(method, match) as NumberTypeNodes;
 				case 'length':
-					return this.AliasedFunction(
+					return this.FunctionMatch(
 						'length',
-						'CharacterLength',
 						match,
+						'CharacterLength',
 					) as NumberTypeNodes;
 				default:
 					if (optional) {
@@ -1396,14 +1398,14 @@ export class OData2AbstractSQL {
 			const { method } = match[1];
 			switch (method) {
 				case 'tolower':
-					return this.AliasedFunction('tolower', 'Lower', match) as LowerNode;
+					return this.FunctionMatch('tolower', match, 'Lower') as LowerNode;
 				case 'toupper':
-					return this.AliasedFunction('toupper', 'Upper', match) as UpperNode;
+					return this.FunctionMatch('toupper', match, 'Upper') as UpperNode;
 				case 'concat':
-					return this.AliasedFunction(
+					return this.FunctionMatch(
 						'concat',
-						'Concatenate',
 						match,
+						'Concatenate',
 					) as ConcatenateNode;
 				case 'trim':
 				case 'replace':
@@ -1434,18 +1436,18 @@ export class OData2AbstractSQL {
 			const { method } = match[1];
 			switch (method) {
 				case 'now':
-					return this.AliasedFunction(
+					return this.FunctionMatch(
 						'now',
-						'CurrentTimestamp',
 						match,
+						'CurrentTimestamp',
 					) as CurrentTimestampNode;
 				case 'maxdatetime':
 				case 'mindatetime':
 					return this.FunctionMatch(method, match) as StrictDateTypeNodes;
 				case 'date':
-					return this.AliasedFunction('date', 'ToDate', match) as ToDateNode;
+					return this.FunctionMatch('date', match, 'ToDate') as ToDateNode;
 				case 'time':
-					return this.AliasedFunction('time', 'ToTime', match) as ToTimeNode;
+					return this.FunctionMatch('time', match, 'ToTime') as ToTimeNode;
 				default:
 					if (optional) {
 						return;
