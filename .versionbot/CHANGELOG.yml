@@ -1,4 +1,29 @@
 - commits:
+    - subject: Improve typings
+      hash: 78d4a48022ac0465c5d2c48db53b8ddd08e6e1bf
+      body: |
+        Update @balena/abstract-sql-compiler from 8.4.0 to 8.4.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add much finer grained typings for abstract-sql-optimizer
+              hash: 92bc7e93ca1b17401d902d66c68e090e50f70d1a
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.4.1
+          title: ""
+          date: 2023-04-25T10:03:26.380Z
+  version: 5.9.5
+  title: ""
+  date: 2023-04-25T12:16:48.086Z
+- commits:
     - subject: Update dependencies
       hash: 5aa3c51cbbfc66cddedebd41dacba5eabbacf709
       body: |
