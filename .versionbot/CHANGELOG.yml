@@ -1,4 +1,16 @@
 - commits:
+    - subject: Collapse `AliasedFunction` into `FunctionMatch`
+      hash: 98093a48aa75e5b8bd8eadc25ca37b53cc80ce2c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 5.9.6
+  title: ""
+  date: 2023-04-25T13:27:44.188Z
+- commits:
     - subject: Improve typings
       hash: 78d4a48022ac0465c5d2c48db53b8ddd08e6e1bf
       body: |
