@@ -36,6 +36,37 @@ import {
 	isTableNode,
 	FieldNode,
 	CountNode,
+	AddNode,
+	LowerNode,
+	UpperNode,
+	ConcatenateNode,
+	ReplaceNode,
+	TrimNode,
+	InsertQueryNode,
+	DeleteQueryNode,
+	UpdateQueryNode,
+	DurationTypeNodes,
+	CurrentTimestampNode,
+	SubtractNode,
+	MultiplyNode,
+	DivideNode,
+	NullNode,
+	TextTypeNodes,
+	AnyTypeNodes,
+	ToTimeNode,
+	ToDateNode,
+	SubstringNode,
+	StrictDateTypeNodes,
+	StrictBooleanTypeNodes,
+	AndNode,
+	OrNode,
+	GreaterThanNode,
+	GreaterThanOrEqualNode,
+	LessThanNode,
+	LessThanOrEqualNode,
+	IsNotDistinctFromNode,
+	IsDistinctFromNode,
+	UnknownTypeNodes,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -107,7 +138,7 @@ const operations = {
 	sub: 'Subtract',
 	mul: 'Multiply',
 	div: 'Divide',
-};
+} as const;
 
 const rewriteComputed = (
 	computed: NonNullable<AbstractSqlField['computed']>,
@@ -179,8 +210,12 @@ class Query {
 		this.from.push(tableRef);
 	}
 	compile(queryType: 'SelectQuery'): SelectQueryNode;
-	compile(queryType: string): AbstractSqlQuery;
-	compile(queryType: string): AbstractSqlQuery {
+	compile(queryType: 'InsertQuery'): InsertQueryNode;
+	compile(queryType: 'UpdateQuery'): UpdateQueryNode;
+	compile(queryType: 'DeleteQuery'): DeleteQueryNode;
+	compile(
+		queryType: 'SelectQuery' | 'InsertQuery' | 'UpdateQuery' | 'DeleteQuery',
+	): SelectQueryNode | InsertQueryNode | UpdateQueryNode | DeleteQueryNode {
 		const compiled: AbstractSqlType[] = [];
 		let where = this.where;
 		if (queryType === 'SelectQuery') {
@@ -195,7 +230,11 @@ class Query {
 			}
 			compiled.push(['Where', ...where]);
 		}
-		return [queryType, ...compiled, ...this.extras] as AbstractSqlQuery;
+		return [queryType, ...compiled, ...this.extras] as
+			| SelectQueryNode
+			| InsertQueryNode
+			| UpdateQueryNode
+			| DeleteQueryNode;
 	}
 }
 
@@ -630,10 +669,7 @@ export class OData2AbstractSQL {
 				}
 				subQuery.where.push(['Exists', whereQuery.compile('SelectQuery')]);
 
-				query.extras.push([
-					'Values',
-					subQuery.compile('SelectQuery') as SelectQueryNode,
-				]);
+				query.extras.push(['Values', subQuery.compile('SelectQuery')]);
 			} else {
 				query.extras.push(['Values', bindVars.map((b) => b[1])]);
 			}
@@ -667,7 +703,7 @@ export class OData2AbstractSQL {
 			query.where.push([
 				'In',
 				referencedIdField,
-				subQuery.compile('SelectQuery') as SelectQueryNode,
+				subQuery.compile('SelectQuery'),
 			]);
 		} else if (hasQueryOpts && method === 'GET') {
 			this.AddQueryOptions(resource, path, query);
@@ -754,9 +790,9 @@ export class OData2AbstractSQL {
 			return ['And', ...namedKeys];
 		}
 	}
-	Bind(bind: BindReference, optional: true): AbstractSqlType | undefined;
-	Bind(bind: BindReference, optional?: false): AbstractSqlType;
-	Bind(bind: BindReference, optional = false): AbstractSqlType | undefined {
+	Bind(bind: BindReference, optional: true): BindNode | undefined;
+	Bind(bind: BindReference): BindNode;
+	Bind(bind: BindReference, optional = false): BindNode | undefined {
 		if (isBindReference(bind)) {
 			return ['Bind', bind.bind];
 		}
@@ -1027,17 +1063,19 @@ export class OData2AbstractSQL {
 						case 'le':
 							const op1 = this.Operand(rest[0]);
 							const op2 = this.Operand(rest[1]);
-							return [
-								comparison[type as keyof typeof comparison],
-								op1,
-								op2,
-							] as BooleanTypeNodes;
+							return [comparison[type as keyof typeof comparison], op1, op2] as
+								| IsNotDistinctFromNode
+								| IsDistinctFromNode
+								| GreaterThanNode
+								| GreaterThanOrEqualNode
+								| LessThanNode
+								| LessThanOrEqualNode;
 						case 'and':
 						case 'or':
 							return [
 								_.capitalize(type),
 								...rest.map((v) => this.BooleanMatch(v)),
-							] as BooleanTypeNodes;
+							] as AndNode | OrNode;
 						case 'not':
 							const bool = this.BooleanMatch(rest[0]);
 							return ['Not', bool];
@@ -1055,7 +1093,10 @@ export class OData2AbstractSQL {
 								case 'startswith':
 								case 'isof':
 								case 'substringof':
-									return this.FunctionMatch(method, match) as BooleanTypeNodes;
+									return this.FunctionMatch(
+										method,
+										match,
+									) as StrictBooleanTypeNodes;
 								default:
 									if (optional) {
 										return;
@@ -1080,15 +1121,18 @@ export class OData2AbstractSQL {
 				}
 		}
 	}
-	AliasedFunction(
+	AliasedFunction<T extends string>(
 		odataName: string,
-		sqlName: string,
+		sqlName: T,
 		match: any,
-	): AbstractSqlType {
-		const fn = this.FunctionMatch(odataName, match);
-		return [sqlName, ...fn.slice(1)];
+	): [T, ...AnyTypeNodes[]] {
+		const [, ...args] = this.FunctionMatch(odataName, match);
+		return [sqlName, ...args];
 	}
-	FunctionMatch(name: string, match: any): AbstractSqlQuery {
+	FunctionMatch<T extends string>(
+		name: T,
+		match: any,
+	): [Capitalize<T>, ...AnyTypeNodes[]] {
 		if (!Array.isArray(match) || match[0] !== 'call') {
 			throw new SyntaxError('Not a function call');
 		}
@@ -1097,9 +1141,18 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Unexpected function name');
 		}
 		const args = properties.args.map((v: any) => this.Operand(v));
-		return [_.capitalize(name), ...args] as AbstractSqlQuery;
+		return [_.capitalize(name) as Capitalize<T>, ...args];
 	}
-	Operand(match: any): AbstractSqlType {
+	Operand(
+		match: any,
+	):
+		| BindNode
+		| NullNode
+		| BooleanTypeNodes
+		| NumberTypeNodes
+		| TextTypeNodes
+		| StrictDateTypeNodes
+		| DurationTypeNodes {
 		for (const matcher of [
 			this.Bind,
 			this.NullMatch,
@@ -1110,14 +1163,27 @@ export class OData2AbstractSQL {
 			this.DurationMatch,
 			this.Math,
 		]) {
-			const result = matcher.call(this, match, true);
+			const result = matcher.call<
+				OData2AbstractSQL,
+				[matcher: any, optional: true],
+				| BindNode
+				| NullNode
+				| BooleanTypeNodes
+				| NumberTypeNodes
+				| TextTypeNodes
+				| StrictDateTypeNodes
+				| DurationTypeNodes
+				| undefined
+			>(this, match, true);
 			if (result) {
 				return result;
 			}
 		}
 		throw new SyntaxError('Could not match operand');
 	}
-	Math(match: any): AbstractSqlType | undefined {
+	Math(
+		match: any,
+	): AddNode | SubtractNode | MultiplyNode | DivideNode | undefined {
 		const [type, ...rest] = match;
 		switch (type) {
 			case 'add':
@@ -1128,7 +1194,7 @@ export class OData2AbstractSQL {
 					operations[type as keyof typeof operations],
 					this.Operand(rest[0]),
 					this.Operand(rest[1]),
-				];
+				] as AddNode | SubtractNode | MultiplyNode | DivideNode;
 			default:
 				return;
 		}
@@ -1151,14 +1217,11 @@ export class OData2AbstractSQL {
 			const filter = this.BooleanMatch(lambda.expression);
 			if (lambda.method === 'any') {
 				query.where.push(filter);
-				return ['Exists', query.compile('SelectQuery') as SelectQueryNode];
+				return ['Exists', query.compile('SelectQuery')];
 			} else if (lambda.method === 'all') {
 				// We use `NOT EXISTS NOT ($filter)` to implement all, but we want to leave existing where components intact, as they are for joins
 				query.where.push(['Not', filter]);
-				return [
-					'Not',
-					['Exists', query.compile('SelectQuery') as SelectQueryNode],
-				];
+				return ['Not', ['Exists', query.compile('SelectQuery')]];
 			} else {
 				throw new SyntaxError(
 					`Lambda method does not support ${lambda.method}`,
@@ -1191,11 +1254,12 @@ export class OData2AbstractSQL {
 				// when date time field from schema => hardcoded DateTrunc
 				// following abstractsql to sql compiler have to check engine to translate to proper eninge based sql query
 				if (fieldDefinition?.dataType === 'Date Time') {
+					// TODO: If we know we're specifically looking for a boolean property then we should reject properties we know are not booleans, until then the case makes it rely on the odata query being correct
 					return [
 						'DateTrunc',
 						['EmbeddedText', 'milliseconds'],
 						this.ReferencedField(prop.resource, prop.name),
-					];
+					] as any as UnknownTypeNodes;
 				}
 			}
 
@@ -1318,31 +1382,34 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Failed to match a Number entry');
 		}
 	}
-	NullMatch(match: any, _optional?: true): AbstractSqlType | undefined {
+	NullMatch(match: any): NullNode | undefined {
 		if (match === null) {
 			return ['Null'];
 		}
 	}
-	TextMatch(match: any, optional: true): AbstractSqlType | undefined;
-	TextMatch(match: any): AbstractSqlType;
-	TextMatch(match: any, optional = false): AbstractSqlType | undefined {
+	TextMatch(match: any, optional: true): TextTypeNodes | undefined;
+	TextMatch(match: any): TextTypeNodes;
+	TextMatch(match: any, optional = false): TextTypeNodes | undefined {
 		if (typeof match === 'string') {
 			return ['Text', match];
 		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
 			switch (method) {
 				case 'tolower':
+					return this.AliasedFunction('tolower', 'Lower', match) as LowerNode;
 				case 'toupper':
-				case 'trim':
+					return this.AliasedFunction('toupper', 'Upper', match) as UpperNode;
 				case 'concat':
+					return this.AliasedFunction(
+						'concat',
+						'Concatenate',
+						match,
+					) as ConcatenateNode;
+				case 'trim':
 				case 'replace':
-					return this.FunctionMatch(method, match);
-				case 'date':
-					return this.AliasedFunction('date', 'ToDate', match);
-				case 'time':
-					return this.AliasedFunction('time', 'ToTime', match);
+					return this.FunctionMatch(method, match) as TrimNode | ReplaceNode;
 				case 'substring':
-					const fn = this.FunctionMatch(method, match);
+					const fn = this.FunctionMatch(method, match) as SubstringNode;
 					// First parameter needs to be increased by 1.
 					fn[2] = ['Add', fn[2], ['Number', 1]];
 					return fn;
@@ -1358,18 +1425,27 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Failed to match a Text entry');
 		}
 	}
-	DateMatch(match: any, optional: true): AbstractSqlType | undefined;
-	DateMatch(match: any): AbstractSqlType;
-	DateMatch(match: any, optional = false): AbstractSqlType | undefined {
+	DateMatch(match: any, optional: true): StrictDateTypeNodes | undefined;
+	DateMatch(match: any): StrictDateTypeNodes;
+	DateMatch(match: any, optional = false): StrictDateTypeNodes | undefined {
 		if (_.isDate(match)) {
 			return ['Date', match];
 		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
 			switch (method) {
 				case 'now':
+					return this.AliasedFunction(
+						'now',
+						'CurrentTimestamp',
+						match,
+					) as CurrentTimestampNode;
 				case 'maxdatetime':
 				case 'mindatetime':
-					return this.FunctionMatch(method, match);
+					return this.FunctionMatch(method, match) as StrictDateTypeNodes;
+				case 'date':
+					return this.AliasedFunction('date', 'ToDate', match) as ToDateNode;
+				case 'time':
+					return this.AliasedFunction('time', 'ToTime', match) as ToTimeNode;
 				default:
 					if (optional) {
 						return;
@@ -1382,7 +1458,7 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Failed to match a Date entry');
 		}
 	}
-	DurationMatch(match: DurationNode[1]): AbstractSqlType | undefined {
+	DurationMatch(match: DurationNode[1]): DurationTypeNodes | undefined {
 		if (match == null || typeof match !== 'object') {
 			return;
 		}
@@ -1439,7 +1515,7 @@ export class OData2AbstractSQL {
 			]);
 			expandQuery.from.push([
 				'Alias',
-				nestedExpandQuery.compile('SelectQuery') as SelectQueryNode,
+				nestedExpandQuery.compile('SelectQuery'),
 				expandResource.tableAlias,
 			]);
 			query.select.push([
@@ -1655,7 +1731,7 @@ export class OData2AbstractSQL {
 		rewriteBinds(rewrittenDefinition, extraBindVars, bindVarsLength);
 		modifyAbstractSql(
 			'Resource',
-			rewrittenDefinition.abstractSql as AbstractSqlQuery,
+			rewrittenDefinition.abstractSql,
 			(resource: ResourceNode) => {
 				const resourceName = resource[1];
 				const referencedResource = this.clientModel.tables[resourceName];
