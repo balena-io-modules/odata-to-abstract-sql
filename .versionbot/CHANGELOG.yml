@@ -1,4 +1,24 @@
 - commits:
+    - subject: Set minimum supported nodejs version to 16.13.0 and tsconfig to es2021
+      hash: 7f6f98637339f43b34ae7faa8e868129efe6d754
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Switch `AggregateJSON` to use the newer `ReferencedField` format
+      hash: e8038b15c471d801b21f39cec2c95ff6689b0595
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+  version: 6.0.0
+  title: ""
+  date: 2023-04-26T13:50:25.845Z
+- commits:
     - subject: Collapse `AliasedFunction` into `FunctionMatch`
       hash: 98093a48aa75e5b8bd8eadc25ca37b53cc80ce2c
       body: ""
