@@ -48,6 +48,10 @@
     "bail": true,
     "_": "test/*.js"
   },
+  "engines": {
+    "node": ">=16.13.0",
+    "npm": ">=8.1.0"
+  },
   "versionist": {
     "publishedAt": "2023-04-25T13:27:44.550Z"
   }
