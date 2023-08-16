@@ -1109,6 +1109,8 @@ export class OData2AbstractSQL {
 							}
 							throw new SyntaxError(`Boolean does not support ${type}`);
 					}
+				} else if (isBindReference(match)) {
+					return this.Bind(match);
 				} else {
 					try {
 						return this.ReferencedProperty(match);

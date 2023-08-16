@@ -241,6 +241,20 @@ operandTest('name', 'in', '(1,2)');
 })();
 
 run(function () {
+	const odata = operandToOData(true);
+	const abstractsql = operandToAbstractSQL(true);
+
+	return test('/pilot?$filter=' + odata, (result) =>
+		it('should select from pilot where "' + odata + '"', () => {
+			expect(result)
+				.to.be.a.query.that.selects(pilotFields)
+				.from('pilot')
+				.where(abstractsql);
+		}),
+	);
+});
+
+run(function () {
 	const { odata, abstractsql } = createExpression(
 		'can_fly__plane/id',
 		'eq',
