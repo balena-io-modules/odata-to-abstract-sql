@@ -1,4 +1,18 @@
 - commits:
+    - subject: Support bind references as boolean types
+      hash: 6eab6c354cf734861e207a58d6a289eeef043f70
+      body: |
+        This allows things like `$filter=true` and `$filter=x/any(y:true)` to
+        work
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 6.1.0
+  title: ""
+  date: 2023-08-16T15:36:29.822Z
+- commits:
     - subject: Update dependencies
       hash: d749289e311ad22e2b09793ad1dd472762bdf402
       body: |
