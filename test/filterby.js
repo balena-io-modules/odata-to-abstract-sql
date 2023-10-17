@@ -108,7 +108,7 @@ const createMethodCall = function (method, ...args) {
 			})().join(',') +
 			')',
 		abstractsql: (function () {
-			if (methodMaps.hasOwnProperty(method)) {
+			if (Object.prototype.hasOwnProperty.call(methodMaps, method)) {
 				method = methodMaps[method];
 			} else {
 				method = _.capitalize(method);
@@ -1179,10 +1179,10 @@ const lambdaTest = function (methodName) {
 		];
 		// All is implemented as where none fail
 		if (methodName === 'all') {
-			// @ts-expect-error
+			// @ts-expect-error Pushing valid AbstractSql
 			subWhere.push(['Not', filterWhere]);
 		} else {
-			// @ts-expect-error
+			// @ts-expect-error Pushing valid AbstractSql
 			subWhere.push(filterWhere);
 		}
 
@@ -1255,10 +1255,10 @@ const lambdaTest = function (methodName) {
 		];
 		// All is implemented as where none fail
 		if (methodName === 'all') {
-			// @ts-expect-error
+			// @ts-expect-error Pushing valid AbstractSql
 			subWhere.push(['Not', filterWhere]);
 		} else {
-			// @ts-expect-error
+			// @ts-expect-error Pushing valid AbstractSql
 			subWhere.push(filterWhere);
 		}
 

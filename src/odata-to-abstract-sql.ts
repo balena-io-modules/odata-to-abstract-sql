@@ -408,7 +408,7 @@ export class OData2AbstractSQL {
 			} else {
 				const query = this.PathSegment(method, bodyKeys, path);
 				switch (method) {
-					case 'PUT':
+					case 'PUT': {
 						// For PUT the initial pass generates the update query,
 						// so we run it through the parser a second time to get the insert query,
 						// for a full upsert query
@@ -420,6 +420,7 @@ export class OData2AbstractSQL {
 							query.compile('UpdateQuery'),
 						];
 						break;
+					}
 					case 'GET':
 						tree = query.compile('SelectQuery');
 						break;
@@ -1060,7 +1061,7 @@ export class OData2AbstractSQL {
 						case 'gt':
 						case 'ge':
 						case 'lt':
-						case 'le':
+						case 'le': {
 							const op1 = this.Operand(rest[0]);
 							const op2 = this.Operand(rest[1]);
 							return [comparison[type as keyof typeof comparison], op1, op2] as
@@ -1070,22 +1071,25 @@ export class OData2AbstractSQL {
 								| GreaterThanOrEqualNode
 								| LessThanNode
 								| LessThanOrEqualNode;
+						}
 						case 'and':
 						case 'or':
 							return [
 								_.capitalize(type),
 								...rest.map((v) => this.BooleanMatch(v)),
 							] as AndNode | OrNode;
-						case 'not':
+						case 'not': {
 							const bool = this.BooleanMatch(rest[0]);
 							return ['Not', bool];
-						case 'in':
+						}
+						case 'in': {
 							return [
 								'In',
 								this.Operand(rest[0]),
 								...rest[1].map((v: any) => this.Operand(v)),
 							] as InNode;
-						case 'call':
+						}
+						case 'call': {
 							const { method } = match[1];
 							switch (method) {
 								case 'contains':
@@ -1103,6 +1107,7 @@ export class OData2AbstractSQL {
 									}
 									throw new SyntaxError(`${method} is not a boolean function`);
 							}
+						}
 						default:
 							if (optional) {
 								return;
@@ -1128,7 +1133,7 @@ export class OData2AbstractSQL {
 		match: any,
 		sqlName: U,
 	): [U, ...AnyTypeNodes[]];
-	FunctionMatch<T extends string, U extends string>(
+	FunctionMatch<T extends string>(
 		name: T,
 		match: any,
 	): [Capitalize<T>, ...AnyTypeNodes[]];
@@ -1293,7 +1298,7 @@ export class OData2AbstractSQL {
 		}
 
 		const { method } = prop.method[1];
-		if (!this.methods.hasOwnProperty(method)) {
+		if (!Object.prototype.hasOwnProperty.call(this.methods, method)) {
 			throw new SyntaxError(`Method ${method} is unknown`);
 		}
 
@@ -1357,7 +1362,6 @@ export class OData2AbstractSQL {
 				case 'year':
 				case 'month':
 				case 'day':
-				case 'day':
 				case 'hour':
 				case 'minute':
 				case 'second':
@@ -1412,11 +1416,12 @@ export class OData2AbstractSQL {
 				case 'trim':
 				case 'replace':
 					return this.FunctionMatch(method, match) as TrimNode | ReplaceNode;
-				case 'substring':
+				case 'substring': {
 					const fn = this.FunctionMatch(method, match) as SubstringNode;
 					// First parameter needs to be increased by 1.
 					fn[2] = ['Add', fn[2], ['Number', 1]];
 					return fn;
+				}
 				default:
 					if (optional) {
 						return;
