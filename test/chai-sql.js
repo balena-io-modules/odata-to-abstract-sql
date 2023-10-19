@@ -2,6 +2,9 @@ import * as _ from 'lodash';
 import * as chai from 'chai';
 import * as chaiThings from 'chai-things';
 import * as fs from 'fs';
+import { createTranslator } from '@balena/lf-to-abstract-sql';
+import { SBVRParser } from '@balena/sbvr-parser';
+import * as sbvrTypes from '@balena/sbvr-types';
 
 chai.use(chaiThings);
 
@@ -83,22 +86,22 @@ chai.use(function ($chai, utils) {
 });
 
 const generateClientModel = function (input) {
-	const sbvrTypes = require('@balena/sbvr-types');
 	const typeVocab = fs.readFileSync(
 		require.resolve('@balena/sbvr-types/Type.sbvr'),
 		'utf8',
 	);
 
-	const SBVRParser = require('@balena/sbvr-parser').SBVRParser.createInstance();
-	SBVRParser.enableReusingMemoizations(SBVRParser._sideEffectingRules);
-	SBVRParser.AddCustomAttribute('Database ID Field:');
-	SBVRParser.AddCustomAttribute('Database Table Name:');
-	SBVRParser.AddBuiltInVocab(typeVocab);
+	const SBVRParserInstance = SBVRParser.createInstance();
+	SBVRParserInstance.enableReusingMemoizations(
+		SBVRParserInstance._sideEffectingRules,
+	);
+	SBVRParserInstance.AddCustomAttribute('Database ID Field:');
+	SBVRParserInstance.AddCustomAttribute('Database Table Name:');
+	SBVRParserInstance.AddBuiltInVocab(typeVocab);
 
-	const LF2AbstractSQL = require('@balena/lf-to-abstract-sql');
-	const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
+	const LF2AbstractSQLTranslator = createTranslator(sbvrTypes);
 
-	const lf = SBVRParser.matchAll(input, 'Process');
+	const lf = SBVRParserInstance.matchAll(input, 'Process');
 	return LF2AbstractSQLTranslator(lf, 'Process');
 };
 
@@ -168,7 +171,7 @@ export function operandToAbstractSQLFactory(
 			if (fieldParts.length > 1) {
 				let alias = parentAlias;
 				let previousResource = _(parentAlias).split('.').last();
-				for (let resourceName of fieldParts.slice(0, -1)) {
+				for (const resourceName of fieldParts.slice(0, -1)) {
 					const sqlName = odataNameToSqlName(resourceName);
 					const sqlNameParts = sqlName.split('-');
 					mapping = _.get(
@@ -262,13 +265,13 @@ export const shortenAlias = function (alias) {
 	while (alias.length >= 64) {
 		alias = alias
 			.replace(/(^|[^-])pilot/, '$1pi')
-			.replace(/trained\-pilot/, 'tr-pi');
+			.replace(/trained-pilot/, 'tr-pi');
 	}
 	return alias;
 };
 
-export let aliasFields = (function () {
-	var aliasField = function (resourceAlias, verb, field) {
+export const aliasFields = (function () {
+	const aliasField = function (resourceAlias, verb, field) {
 		if (field[0] === 'ReferencedField') {
 			return [
 				field[0],
@@ -292,7 +295,7 @@ export let aliasFields = (function () {
 	};
 })();
 
-export let pilotFields = [
+export const pilotFields = [
 	['Alias', ['ReferencedField', 'pilot', 'created at'], 'created_at'],
 	['Alias', ['ReferencedField', 'pilot', 'modified at'], 'modified_at'],
 	['ReferencedField', 'pilot', 'id'],
@@ -315,21 +318,21 @@ export let pilotFields = [
 	],
 ];
 
-export let licenceFields = [
+export const licenceFields = [
 	['Alias', ['ReferencedField', 'licence', 'created at'], 'created_at'],
 	['Alias', ['ReferencedField', 'licence', 'modified at'], 'modified_at'],
 	['ReferencedField', 'licence', 'id'],
 	['ReferencedField', 'licence', 'name'],
 ];
 
-export let planeFields = [
+export const planeFields = [
 	['Alias', ['ReferencedField', 'plane', 'created at'], 'created_at'],
 	['Alias', ['ReferencedField', 'plane', 'modified at'], 'modified_at'],
 	['ReferencedField', 'plane', 'id'],
 	['ReferencedField', 'plane', 'name'],
 ];
 
-export let pilotCanFlyPlaneFields = [
+export const pilotCanFlyPlaneFields = [
 	[
 		'Alias',
 		['ReferencedField', 'pilot-can fly-plane', 'created at'],
@@ -349,7 +352,7 @@ export let pilotCanFlyPlaneFields = [
 	['ReferencedField', 'pilot-can fly-plane', 'id'],
 ];
 
-export let teamFields = [
+export const teamFields = [
 	['Alias', ['ReferencedField', 'team', 'created at'], 'created_at'],
 	['Alias', ['ReferencedField', 'team', 'modified at'], 'modified_at'],
 	[
@@ -359,4 +362,4 @@ export let teamFields = [
 	],
 ];
 
-export let $count = [['Alias', ['Count', '*'], '$count']];
+export const $count = [['Alias', ['Count', '*'], '$count']];

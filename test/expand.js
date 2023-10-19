@@ -200,7 +200,7 @@ test('/pilot?$expand=licence($filter=id eq 1)', function (result) {
 	const agg = _.cloneDeep(aggregateJSON.licence);
 	_.chain(agg)
 		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error
+		// @ts-expect-error AbstractSql array being an array having .find
 		.find({ 0: 'From' })
 		.find({ 2: 'pilot.licence' })
 		.find({ 0: 'SelectQuery' })
@@ -232,7 +232,7 @@ test('/pilot?$expand=licence($filter=is_of__pilot/id eq 1)', function (result) {
 	const agg = _.cloneDeep(aggregateJSON.licence);
 	_.chain(agg)
 		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error
+		// @ts-expect-error AbstractSql array being an array having .find
 		.find({ 0: 'From' })
 		.find({ 2: 'pilot.licence' })
 		.find({ 0: 'SelectQuery' })
@@ -275,7 +275,7 @@ test('/pilot?$expand=licence($orderby=id)', function (result) {
 	const agg = _.cloneDeep(aggregateJSON.licence);
 	_.chain(agg)
 		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error
+		// @ts-expect-error AbstractSql array being an array having .find
 		.find({ 0: 'From' })
 		.find({ 2: 'pilot.licence' })
 		.find({ 0: 'SelectQuery' })
@@ -294,7 +294,7 @@ test('/pilot?$expand=licence($top=10)', function (result) {
 	const agg = _.cloneDeep(aggregateJSON.licence);
 	_.chain(agg)
 		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error
+		// @ts-expect-error AbstractSql array being an array having .find
 		.find({ 0: 'From' })
 		.find({ 2: 'pilot.licence' })
 		.find({ 0: 'SelectQuery' })
@@ -313,7 +313,7 @@ test('/pilot?$expand=licence($skip=10)', function (result) {
 	const agg = _.cloneDeep(aggregateJSON.licence);
 	_.chain(agg)
 		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error
+		// @ts-expect-error AbstractSql array being an array having .find
 		.find({ 0: 'From' })
 		.find({ 2: 'pilot.licence' })
 		.find({ 0: 'SelectQuery' })
@@ -332,7 +332,7 @@ test('/pilot?$expand=licence($select=id)', function (result) {
 	const agg = _.cloneDeep(aggregateJSON.licence);
 	const select = _.chain(agg)
 		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error
+		// @ts-expect-error AbstractSql array being an array having .find
 		.find({ 0: 'From' })
 		.find({ 2: 'pilot.licence' })
 		.find({ 0: 'SelectQuery' })
@@ -429,7 +429,7 @@ test('/pilot?$expand=licence/$count($filter=id gt 5)', function (result) {
 	const agg = _.cloneDeep(aggregateJSONCount.licence);
 	_.chain(agg)
 		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error
+		// @ts-expect-error  AbstractSql array being an array having .find
 		.find({ 0: 'From' })
 		.find({ 2: 'pilot.licence' })
 		.find({ 0: 'SelectQuery' })
@@ -491,7 +491,7 @@ test('/pilot?$expand=licence/$count($top=5)', (result) =>
 (function () {
 	const remainingPilotFields = _.reject(pilotFields, function (field) {
 		if (field.length === 2) {
-			// @ts-expect-error
+			// @ts-expect-error Assign field with stil valid AbstractSql
 			field = field[1];
 		}
 		return field[2] === 'pilot';
@@ -499,7 +499,7 @@ test('/pilot?$expand=licence/$count($top=5)', (result) =>
 	const recursions = 9;
 
 	const expandString = (function () {
-		var recurse = function (i) {
+		const recurse = function (i) {
 			if (i <= 0) {
 				return '$expand=trained__pilot';
 			}
@@ -511,7 +511,7 @@ test('/pilot?$expand=licence/$count($top=5)', (result) =>
 
 	const url = '/pilot?' + expandString;
 	test(url, function (result) {
-		var recurse = function (i, parentAlias) {
+		const recurse = function (i, parentAlias) {
 			let aliasedFields;
 			const alias = shortenAlias(`${parentAlias}.trained-pilot`);
 			if (i <= 0) {

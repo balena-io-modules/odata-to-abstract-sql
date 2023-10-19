@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { clientModel } from './chai-sql';
 import * as ODataParser from '@balena/odata-parser';
 import { OData2AbstractSQL } from '../out/odata-to-abstract-sql';
@@ -63,6 +62,7 @@ interface Test extends TestFn {
 }
 const test = runExpectation.bind(null, describe) as Test;
 test.skip = runExpectation.bind(null, describe.skip);
+// eslint-disable-next-line no-only-tests/no-only-tests
 test.only = runExpectation.bind(null, describe.only);
 
 export default test;
