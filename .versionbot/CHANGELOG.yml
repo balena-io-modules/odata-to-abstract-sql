@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @types/chai-things to v0.0.37
+      hash: bb8f58d7429e4a91ab4f179c71a5970b4d516f1b
+      body: |
+        Update @types/chai-things from 0.0.36 to 0.0.37
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 6.1.2
+  title: ""
+  date: 2023-10-20T23:51:44.598Z
+- commits:
     - subject: Update dependencies eslint, sbvrTypes, abstract-sql-compiler
       hash: f9e08b24decefe20be1d8fb1747063deb2c1cb5e
       body: |
