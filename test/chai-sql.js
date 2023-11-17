@@ -108,6 +108,20 @@ const generateClientModel = function (input) {
 const sbvrModel = fs.readFileSync(require.resolve('./model.sbvr'), 'utf8');
 export const clientModel = generateClientModel(sbvrModel);
 
+clientModel.tables['copilot'].fields.push({
+	fieldName: 'is blocked',
+	dataType: 'Boolean',
+	// The cast is needed because AbstractSqlQuery cannot express a constant value.
+	computed: ['Boolean', false],
+});
+
+clientModel.tables['copilot'].fields.push({
+	fieldName: 'rank',
+	dataType: 'Text',
+	// The cast is needed because AbstractSqlQuery cannot express a constant value.
+	computed: ['Text', 'Junior'],
+});
+
 const odataNameToSqlName = (odataName) =>
 	odataName.replace(/__/g, '-').replace(/_/g, ' ');
 
@@ -363,3 +377,13 @@ export const teamFields = [
 ];
 
 export const $count = [['Alias', ['Count', '*'], '$count']];
+
+export const copilotFields = [
+	['Alias', ['ReferencedField', 'copilot', 'created at'], 'created_at'],
+	['Alias', ['ReferencedField', 'copilot', 'modified at'], 'modified_at'],
+	['ReferencedField', 'copilot', 'id'],
+	['ReferencedField', 'copilot', 'person'],
+	['ReferencedField', 'copilot', 'assists-pilot'],
+	['Alias', ['ReferencedField', 'copilot', 'is blocked'], 'is_blocked'],
+	['ReferencedField', 'copilot', 'rank'],
+];

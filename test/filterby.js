@@ -1447,3 +1447,97 @@ run(function () {
 		}),
 	);
 });
+
+test(`/copilot?$select=id,rank&$filter=rank eq 'major'`, (result) =>
+	it(`should get and filter copilot on computed field rank`, () => {
+		expect(result).to.be.a.query.to.deep.equal([
+			'SelectQuery',
+			[
+				'Select',
+				[
+					['ReferencedField', 'copilot', 'id'],
+					['ReferencedField', 'copilot', 'rank'],
+				],
+			],
+			[
+				'From',
+				[
+					'Alias',
+					[
+						'SelectQuery',
+						[
+							'Select',
+							[
+								['Field', '*'],
+								['Alias', ['Boolean', false], 'is blocked'],
+								['Alias', ['Text', 'Junior'], 'rank'],
+							],
+						],
+						['From', ['Table', 'copilot']],
+					],
+					'copilot',
+				],
+			],
+			[
+				'Where',
+				[
+					'IsNotDistinctFrom',
+					['ReferencedField', 'copilot', 'rank'],
+					['Bind', 0],
+				],
+			],
+		]);
+	}));
+
+test(
+	`/copilot?$select=id,rank&$filter=rank eq 'major'`,
+	'PATCH',
+	{ assists__pilot: 1 },
+	(result) =>
+		it(`should PATCH copilot based on filtered computed field rank`, () => {
+			expect(result).to.be.a.query.to.deep.equal([
+				'UpdateQuery',
+				['From', ['Table', 'copilot']],
+				[
+					'Where',
+					[
+						'In',
+						['ReferencedField', 'copilot', 'id'],
+						[
+							'SelectQuery',
+							['Select', [['ReferencedField', 'copilot', 'id']]],
+							[
+								'From',
+								[
+									'Alias',
+									[
+										'SelectQuery',
+										[
+											'Select',
+											[
+												['Field', '*'],
+												['Alias', ['Boolean', false], 'is blocked'],
+												['Alias', ['Text', 'Junior'], 'rank'],
+											],
+										],
+										['From', ['Table', 'copilot']],
+									],
+									'copilot',
+								],
+							],
+							[
+								'Where',
+								[
+									'IsNotDistinctFrom',
+									['ReferencedField', 'copilot', 'rank'],
+									['Bind', 0],
+								],
+							],
+						],
+					],
+				],
+				['Fields', ['assists-pilot']],
+				['Values', [['Bind', 'copilot', 'assists__pilot']]],
+			]);
+		}),
+);
