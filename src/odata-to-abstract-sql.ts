@@ -117,6 +117,8 @@ type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
 type RequiredField<T, F extends keyof T> = Overwrite<T, Required<Pick<T, F>>>;
 type AliasedResource = RequiredField<Resource, 'tableAlias'>;
 
+type AlreadyComputedFieldsLookup = { [resourceAndFieldName: string]: boolean };
+
 export type ResourceFunction = (
 	this: OData2AbstractSQL,
 	property: {
@@ -298,10 +300,17 @@ export const isBindReference = (maybeBind: {
 	);
 };
 
-const isDynamicResource = (resource: Resource): boolean => {
+const isDynamicResource = (
+	resource: Resource,
+	alreadyComputedFieldsLookup: AlreadyComputedFieldsLookup,
+): boolean => {
 	return (
 		resource.definition != null ||
-		resource.fields.some((f) => f.computed != null)
+		resource.fields.some(
+			(f) =>
+				f.computed != null &&
+				!alreadyComputedFieldsLookup[resource.name + '$' + f.fieldName],
+		)
 	);
 };
 
@@ -327,6 +336,7 @@ export class OData2AbstractSQL {
 	public defaultResource: Resource | undefined;
 	public bindVarsLength: number = 0;
 	private checkAlias: (alias: string) => string;
+	private alreadyComputedFields: AlreadyComputedFieldsLookup = {};
 
 	constructor(
 		private clientModel: RequiredAbstractSqlModelSubset,
@@ -544,7 +554,9 @@ export class OData2AbstractSQL {
 			// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
 			// we make sure to always apply it. This means that the definition will still be applied for these queries
 			if (
-				(hasQueryOpts || isDynamicResource(resource) || pathKeyWhere != null) &&
+				(hasQueryOpts ||
+					isDynamicResource(resource, this.alreadyComputedFields) ||
+					pathKeyWhere != null) &&
 				(method === 'POST' || method === 'PUT-INSERT')
 			) {
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
@@ -563,8 +575,9 @@ export class OData2AbstractSQL {
 						'SelectQuery',
 						[
 							'Select',
-							(resource.modifyFields ?? resource.fields).map(
-								(field): AliasNode<CastNode> => {
+							(resource.modifyFields ?? resource.fields)
+								.filter((field) => field.computed == null)
+								.map((field): AliasNode<CastNode> => {
 									const alias = field.fieldName;
 									const bindVar = bindVars?.find((v) => v[0] === alias);
 									const value = bindVar?.[1] ?? ['Null'];
@@ -574,8 +587,7 @@ export class OData2AbstractSQL {
 										);
 									}
 									return ['Alias', ['Cast', value, field.dataType], alias];
-								},
-							),
+								}),
 						],
 					],
 					'$insert',
@@ -688,7 +700,8 @@ export class OData2AbstractSQL {
 		// we make sure to always apply it. This means that the definition will still be applied for these queries, for insert queries
 		// this is handled when we set the 'Values'
 		if (
-			(hasQueryOpts || isDynamicResource(resource)) &&
+			(hasQueryOpts ||
+				isDynamicResource(resource, this.alreadyComputedFields)) &&
 			(method === 'PUT' ||
 				method === 'PATCH' ||
 				method === 'MERGE' ||
@@ -992,11 +1005,18 @@ export class OData2AbstractSQL {
 		fieldName: string,
 		computed?: AbstractSqlQuery,
 		alias: string = fieldName,
+		// Setting this flag to true will ignore the lookup for alreadyComputedFields
+		// and will compile the computed Field statement into the abstract SQL statement regardless
+		forceCompilingComputedField: boolean = false,
 	):
 		| ReferencedFieldNode
 		| AliasNode<ReferencedFieldNode>
 		| AliasNode<AbstractSqlQuery> {
-		if (computed) {
+		const key = resource.name + '$' + fieldName;
+		if (
+			computed &&
+			(!this.alreadyComputedFields[key] || forceCompilingComputedField)
+		) {
 			if (
 				resource.tableAlias != null &&
 				resource.tableAlias !== resource.name
@@ -1007,6 +1027,7 @@ export class OData2AbstractSQL {
 					resource.tableAlias,
 				);
 			}
+			this.alreadyComputedFields[key] = true;
 			return ['Alias', computed, alias];
 		}
 		const referencedField = this.ReferencedField(resource, fieldName);
@@ -1639,6 +1660,7 @@ export class OData2AbstractSQL {
 		this.putReset();
 		this.extraBodyVars = {};
 		this.extraBindVars = [] as unknown as ODataBinds;
+		this.alreadyComputedFields = {};
 	}
 
 	putReset() {
@@ -1702,6 +1724,7 @@ export class OData2AbstractSQL {
 							sqlNameToODataName(field.fieldName),
 							field.computed,
 							field.fieldName,
+							true,
 						),
 					),
 				];
