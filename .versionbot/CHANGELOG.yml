@@ -1,4 +1,20 @@
 - commits:
+    - subject: Optimize Duplications of `ComputedField` queries
+      hash: 87c73d455a8495f268aa5bd0e291f3f3e8bf5777
+      body: >
+        For each modelName the a `ComputedField` is only compiled into
+        abstract-sql-query once. Afterwards it's used as ReferencedField
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 6.2.0
+  title: ""
+  date: 2023-11-24T17:37:33.674Z
+- commits:
     - subject: Update dependency @types/chai-things to v0.0.38
       hash: eefceedfe462c2b5b8b6bbf2590f1c8b4afc1983
       body: |
