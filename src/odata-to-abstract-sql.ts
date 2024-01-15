@@ -555,6 +555,9 @@ export class OData2AbstractSQL {
 				resource.resourceName,
 				Object.entries(resourceMapping),
 			);
+			if (bindVars.length === 0 && method === 'PATCH') {
+				throw new SyntaxError('PATCH requests must update at least one field');
+			}
 			query.extras.push(['Fields', bindVars.map((b) => b[0])]);
 
 			// For updates/deletes that we use a `WHERE id IN (SELECT...)` subquery to apply options and in the case of a definition
