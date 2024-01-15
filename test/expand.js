@@ -37,12 +37,12 @@ const createAggregate = function (args) {
 				'Equals',
 				['ReferencedField', parentResourceAlias, resourceField],
 				['ReferencedField', resourceAlias, 'id'],
-		  ]
+			]
 		: [
 				'Equals',
 				['ReferencedField', parentResourceAlias, 'id'],
 				['ReferencedField', resourceAlias, parentResourceField],
-		  ];
+			];
 	return [
 		'Alias',
 		[
