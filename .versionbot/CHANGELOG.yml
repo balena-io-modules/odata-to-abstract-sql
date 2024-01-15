@@ -1,4 +1,16 @@
 - commits:
+    - subject: Require at least one field to be updated for PATCH requests
+      hash: ad819432657598898a4811d9628c9ca0a0e428c6
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 6.2.3
+  title: ""
+  date: 2024-01-15T16:41:10.852Z
+- commits:
     - subject: Simplify support for MERGE as an alias for PATCH
       hash: 1da1bd4a49aab7d1bc5053c86109cb976f79c91d
       body: ""
