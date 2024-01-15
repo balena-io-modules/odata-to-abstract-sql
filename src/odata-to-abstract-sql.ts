@@ -81,6 +81,8 @@ import type {
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
+type InternalSupportedMethod = Exclude<SupportedMethod, 'MERGE'> | 'PUT-INSERT';
+
 type RequiredAbstractSqlModelSubset = Pick<
 	AbstractSqlModel,
 	'synonyms' | 'relationships' | 'tables'
@@ -394,7 +396,7 @@ export class OData2AbstractSQL {
 	}
 	match(
 		path: ODataQuery,
-		method: SupportedMethod,
+		$method: SupportedMethod,
 		bodyKeys: string[],
 		bindVarsLength: number,
 		methods?: OData2AbstractSQL['methods'],
@@ -403,6 +405,8 @@ export class OData2AbstractSQL {
 		extraBodyVars: Dictionary<BindReference>;
 		extraBindVars: ODataBinds;
 	} {
+		const method: InternalSupportedMethod =
+			$method === 'MERGE' ? 'PATCH' : $method;
 		const savedMethods = this.methods;
 		try {
 			if (methods != null) {
@@ -435,7 +439,6 @@ export class OData2AbstractSQL {
 						tree = query.compile('SelectQuery');
 						break;
 					case 'PATCH':
-					case 'MERGE':
 						tree = query.compile('UpdateQuery');
 						break;
 					case 'POST':
@@ -457,7 +460,11 @@ export class OData2AbstractSQL {
 			this.methods = savedMethods;
 		}
 	}
-	PathSegment(method: string, bodyKeys: string[], path: ODataQuery): Query {
+	PathSegment(
+		method: InternalSupportedMethod,
+		bodyKeys: string[],
+		path: ODataQuery,
+	): Query {
 		if (!path.resource) {
 			throw new SyntaxError('Path segment must contain a resource');
 		}
@@ -539,8 +546,7 @@ export class OData2AbstractSQL {
 			method === 'PUT' ||
 			method === 'PUT-INSERT' ||
 			method === 'POST' ||
-			method === 'PATCH' ||
-			method === 'MERGE'
+			method === 'PATCH'
 		) {
 			const resourceMapping = this.ResourceMapping(resource, true);
 			bindVars = this.BindVars(
@@ -702,10 +708,7 @@ export class OData2AbstractSQL {
 		if (
 			(hasQueryOpts ||
 				isDynamicResource(resource, this.alreadyComputedFields)) &&
-			(method === 'PUT' ||
-				method === 'PATCH' ||
-				method === 'MERGE' ||
-				method === 'DELETE')
+			(method === 'PUT' || method === 'PATCH' || method === 'DELETE')
 		) {
 			// For update/delete statements we need to use a  style query
 			const subQuery = new Query();
@@ -726,7 +729,7 @@ export class OData2AbstractSQL {
 		return query;
 	}
 	PathKey(
-		method: string,
+		method: InternalSupportedMethod,
 		path: ODataQuery,
 		resource: AliasedResource,
 		bodyKeys: string[],
@@ -834,7 +837,7 @@ export class OData2AbstractSQL {
 		});
 	}
 	BindVars(
-		method: string,
+		method: InternalSupportedMethod,
 		bodyKeys: string[],
 		resourceName: string,
 		match: Array<[string, [string, string]]>,
