@@ -2,6 +2,11 @@ import * as _ from 'lodash';
 import * as memoize from 'memoizee';
 import stringHash = require('string-hash');
 import {
+	isAliasNode,
+	isFromNode,
+	isTableNode,
+} from '@balena/abstract-sql-compiler';
+import type {
 	AbstractSqlQuery,
 	AbstractSqlModel,
 	AbstractSqlTable,
@@ -31,9 +36,6 @@ import {
 	ResourceNode,
 	UnionQueryNode,
 	FromTypeNodes,
-	isAliasNode,
-	isFromNode,
-	isTableNode,
 	FieldNode,
 	CountNode,
 	AddNode,
