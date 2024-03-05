@@ -34,7 +34,7 @@
     "@types/mocha": "^10.0.6",
     "chai": "^4.4.1",
     "chai-things": "~0.2.0",
-    "husky": "^8.0.3",
+    "husky": "^9.0.0",
     "lint-staged": "^15.2.0",
     "mocha": "^10.2.0",
     "require-npm4-to-publish": "^1.0.0",
