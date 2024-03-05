@@ -1,4 +1,31 @@
 - commits:
+    - subject: Update `@balena/sbvr-types` devDependencies
+      hash: 93ba82f914f8e036e79fa174a58881db294b84c6
+      body: |
+        Update `@balena/sbvr-types` from 6.1.1 to 7.0.1
+
+        Update of devDependencies => patch
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+    - subject: Fix linter issue
+      hash: d5e0d142e779f29ef316cdb20d0f91a983960e69
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 6.2.4
+  title: ""
+  date: 2024-03-05T18:23:43.575Z
+- commits:
     - subject: Require at least one field to be updated for PATCH requests
       hash: ad819432657598898a4811d9628c9ca0a0e428c6
       body: ""
