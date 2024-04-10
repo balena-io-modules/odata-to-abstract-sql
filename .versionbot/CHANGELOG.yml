@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @balena/lint to v8
+      hash: 7b0e4b7272b0cda5690b925b7de259612085940e
+      body: |
+        Update @balena/lint from 7.3.0 to 8.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 6.2.5
+  title: ""
+  date: 2024-04-10T00:24:14.349Z
+- commits:
     - subject: Update `@balena/sbvr-types` devDependencies
       hash: 93ba82f914f8e036e79fa174a58881db294b84c6
       body: |
@@ -94,7 +107,8 @@
               body: >
                 - Update @balena/lint from 6.2.2 to 7.2.4
 
-                - Delete `require-npm4-to-publish` as handled by `engines` parameter in `package.json`
+                - Delete `require-npm4-to-publish` as handled by `engines`
+                parameter in `package.json`
               footer:
                 Change-type: patch
                 change-type: patch
@@ -403,9 +417,11 @@
                                 Ensure that the input passed in for JSON types
                                 is either an object or
 
-                                an array (typeof returns 'object' for arrays as well). This change is
+                                an array (typeof returns 'object' for arrays as
+                                well). This change is
 
-                                mainly to prevent primitives from being stored as JSON.
+                                mainly to prevent primitives from being stored
+                                as JSON.
                               footer:
                                 Change-type: major
                                 change-type: major
@@ -949,7 +965,8 @@
                         Ensure that the input passed in for JSON types is either
                         an object or
 
-                        an array (typeof returns 'object' for arrays as well). This change is
+                        an array (typeof returns 'object' for arrays as well).
+                        This change is
 
                         mainly to prevent primitives from being stored as JSON.
                       footer:
@@ -1079,7 +1096,8 @@
                         Ensure that the input passed in for JSON types is either
                         an object or
 
-                        an array (typeof returns 'object' for arrays as well). This change is
+                        an array (typeof returns 'object' for arrays as well).
+                        This change is
 
                         mainly to prevent primitives from being stored as JSON.
                       footer:
@@ -1316,7 +1334,8 @@
                 Ensure that the input passed in for JSON types is either an
                 object or
 
-                an array (typeof returns 'object' for arrays as well). This change is
+                an array (typeof returns 'object' for arrays as well). This
+                change is
 
                 mainly to prevent primitives from being stored as JSON.
               footer:
@@ -1812,46 +1831,59 @@
                 After every write, pine has to rerun all rules from the model to
                 ensure
 
-                consistency. These rules run over the entire database, sometimes causing
+                consistency. These rules run over the entire database, sometimes
+                causing
 
-                some queries to run for too long against what should be a simple write.
+                some queries to run for too long against what should be a simple
+                write.
 
 
-                This commit adds a mechanism to help with this issue by narrowing the
+                This commit adds a mechanism to help with this issue by
+                narrowing the
 
-                set of rows that each rule should touch to those rows that were actually
+                set of rows that each rule should touch to those rows that were
+                actually
 
                 changed.
 
 
-                Implementing this mechanism safely is doable and not necessarily complex
+                Implementing this mechanism safely is doable and not necessarily
+                complex
 
                 code-wise, but requires a deep modifications from the current
 
-                architecture. This commit adds a restricted form instead where we only
+                architecture. This commit adds a restricted form instead where
+                we only
 
-                narrow the rows of the root table that were changed. If any other table
+                narrow the rows of the root table that were changed. If any
+                other table
 
                 was changed then narrowing is a no op.
 
 
-                It can be proved that this is always safe as long as the root table is
+                It can be proved that this is always safe as long as the root
+                table is
 
-                selected from only once and the rule is positive ("It is necessary that
+                selected from only once and the rule is positive ("It is
+                necessary that
 
                 each ...").
 
 
-                The implementation here adds a single binding into the rule's SQL query
+                The implementation here adds a single binding into the rule's
+                SQL query
 
-                which can be bound by pine for each rule where an opportunity to use
+                which can be bound by pine for each rule where an opportunity to
+                use
 
                 this optimization arises.
 
 
-                The implementation itself is simple: count how many times the root table
+                The implementation itself is simple: count how many times the
+                root table
 
-                is selected from and if it is selected from exactly one, then add a
+                is selected from and if it is selected from exactly one, then
+                add a
 
                 narrowing constraint in the form of:
 
@@ -1861,7 +1893,8 @@
                 <root table>.id = ANY(CAST($1 AS INTEGER[]))
 
 
-                Where $1 will be bound to either '{}', which disables narrowing, or to a
+                Where $1 will be bound to either '{}', which disables narrowing,
+                or to a
 
                 list of IDs that were affected by the write.
 
@@ -1916,7 +1949,8 @@
                 This is intended to be used to target tables differently for
                 reads vs
 
-                writes, eg where you might read from a view/definition but want to
+                writes, eg where you might read from a view/definition but want
+                to
 
                 write to a physical table instead
               footer:
@@ -2149,7 +2183,8 @@
                 if operands in expression can be used as numericValues.
 
 
-                In SQL statements arithmetic expressions like add/sub are supported for date values.
+                In SQL statements arithmetic expressions like add/sub are
+                supported for date values.
 
                 DateArithmetic nodes need input dependent typing.
               footer:
@@ -2457,12 +2492,14 @@
                 'informative'.
 
 
-                Behaviour change only if type is informative otherwise default 'strict'.
+                Behaviour change only if type is informative otherwise default
+                'strict'.
 
 
                 An informative reference is just an int field that points
 
-                to another tables id field - like foreign key without constraints
+                to another tables id field - like foreign key without
+                constraints
 
                 or foregein key cascades.
               footer:
@@ -2482,7 +2519,8 @@
                 Since it's possible for them to behave in a way that violates
                 the
 
-                safety checks we'll disable them until we can add specific checks
+                safety checks we'll disable them until we can add specific
+                checks
 
                 for the HAVING clause
               footer:
@@ -2889,7 +2927,8 @@
                 This works on the assumption that it is a rule query that should
                 always
 
-                return true and allows ignoring more modification cases where they
+                return true and allows ignoring more modification cases where
+                they
 
                 cannot change the result from true to false
               footer:
@@ -3186,7 +3225,8 @@
                         This allows specifying the correct type to cast to when
                         necessary
 
-                        rather than relying on the fact the currently all type functions happen
+                        rather than relying on the fact the currently all type
+                        functions happen
 
                         to be integers
                       footer:
@@ -4177,7 +4217,8 @@
                                 We do this by using basic scope info to prune
                                 aliased table references
 
-                                which also allows us to handle aliased select queries in the from
+                                which also allows us to handle aliased select
+                                queries in the from
                               footer:
                                 Change-type: minor
                                 change-type: minor
@@ -5846,7 +5887,8 @@
                 We do this by using basic scope info to prune aliased table
                 references
 
-                which also allows us to handle aliased select queries in the from
+                which also allows us to handle aliased select queries in the
+                from
               footer:
                 Change-type: minor
                 change-type: minor
