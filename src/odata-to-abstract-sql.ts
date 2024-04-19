@@ -790,7 +790,8 @@ export class OData2AbstractSQL {
 				) &&
 				!resource.indexes.some((index) => {
 					return (
-						(index.type === 'UNIQUE' || index.type === 'PRIMARY KEY') &&
+						((index.type === 'UNIQUE' && index.predicate == null) ||
+							index.type === 'PRIMARY KEY') &&
 						sqlFieldNames.length === index.fields.length &&
 						_.isEqual(index.fields.slice().sort(), sqlFieldNames)
 					);
