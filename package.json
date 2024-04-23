@@ -32,7 +32,7 @@
     "@types/chai": "^4.3.11",
     "@types/chai-things": "0.0.38",
     "@types/mocha": "^10.0.6",
-    "chai": "^4.4.1",
+    "chai": "^5.0.0",
     "chai-things": "~0.2.0",
     "husky": "^9.0.0",
     "lint-staged": "^15.2.0",
