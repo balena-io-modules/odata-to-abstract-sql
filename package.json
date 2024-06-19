@@ -28,7 +28,7 @@
     "@balena/lf-to-abstract-sql": "^5.0.1",
     "@balena/lint": "^8.0.0",
     "@balena/sbvr-parser": "^1.4.3",
-    "@balena/sbvr-types": "^7.0.1",
+    "@balena/sbvr-types": "^8.0.0",
     "@types/chai": "^4.3.11",
     "@types/chai-things": "0.0.38",
     "@types/mocha": "^10.0.6",
