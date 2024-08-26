@@ -529,7 +529,9 @@ run(function () {
 	);
 
 	test(`/pilot?$filter=${odata}`, 'POST', { name: 'Peter' }, (result) =>
-		it(`should insert pilot where '${odata}'`, () => insertTest(result)),
+		it(`should insert pilot where '${odata}'`, () => {
+			insertTest(result);
+		}),
 	);
 
 	test(`/pilot?$filter=${odata}`, 'PUT', { name: 'Peter' }, (result) =>
@@ -537,7 +539,9 @@ run(function () {
 			it('should be an upsert', () => {
 				expect(result).to.be.a.query.that.upserts;
 			});
-			it('that inserts', () => insertTest(result[1]));
+			it('that inserts', () => {
+				insertTest(result[1]);
+			});
 			return it('and updates', () =>
 				expect(result[2])
 					.to.be.a.query.that.updates.fields(
@@ -725,9 +729,9 @@ run([['Number', 1]], function () {
 	];
 
 	test('/pilot(1)?$filter=' + odata, 'POST', { name }, (result) =>
-		it('should insert into pilot where "' + odata + '"', () =>
-			insertTest(result),
-		),
+		it('should insert into pilot where "' + odata + '"', () => {
+			insertTest(result);
+		}),
 	);
 
 	test('/pilot(1)?$filter=' + odata, 'PATCH', { name }, (result) =>
@@ -744,7 +748,9 @@ run([['Number', 1]], function () {
 		describe('should upsert the pilot with id 1', function () {
 			it('should be an upsert', () =>
 				expect(result).to.be.a.query.that.upserts);
-			it('that inserts', () => insertTest(result[1]));
+			it('that inserts', () => {
+				insertTest(result[1]);
+			});
 			return it('and updates', () => {
 				expect(result[2])
 					.to.be.a.query.that.updates.fields(
