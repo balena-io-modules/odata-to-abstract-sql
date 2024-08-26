@@ -1,4 +1,16 @@
 - commits:
+    - subject: Support PUT/PATCH/DELETE requests on resources with a translated ID field
+      hash: 65b06761fca1b13e13ec99c4ed5394814feff4ef
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+      nested: []
+  version: 6.3.0
+  title: ""
+  date: 2024-08-26T16:45:57.380Z
+- commits:
     - subject: Update dependencies
       hash: 5bb046976db9be203106ebd20db6248064fc9728
       body: |
