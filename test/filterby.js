@@ -478,7 +478,7 @@ run(function () {
 		['ReferencedField', 'pilot', 'id'],
 		[
 			'SelectQuery',
-			['Select', [['ReferencedField', 'pilot', 'id']]],
+			['Select', [['Alias', ['ReferencedField', 'pilot', 'id'], '$modifyid']]],
 			['From', ['Table', 'pilot']],
 			[
 				'From',
@@ -542,7 +542,7 @@ run(function () {
 			it('that inserts', () => {
 				insertTest(result[1]);
 			});
-			return it('and updates', () =>
+			it('and updates', () => {
 				expect(result[2])
 					.to.be.a.query.that.updates.fields(
 						'created at',
@@ -573,11 +573,12 @@ run(function () {
 						'Default',
 					)
 					.from('pilot')
-					.where(updateWhere));
+					.where(updateWhere);
+			});
 		}),
 	);
 
-	return test('/pilot?$filter=' + odata, 'DELETE', (result) =>
+	test('/pilot?$filter=' + odata, 'DELETE', (result) =>
 		it('should delete from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.deletes.from('pilot')
@@ -586,7 +587,10 @@ run(function () {
 					['ReferencedField', 'pilot', 'id'],
 					[
 						'SelectQuery',
-						['Select', [['ReferencedField', 'pilot', 'id']]],
+						[
+							'Select',
+							[['Alias', ['ReferencedField', 'pilot', 'id'], '$modifyid']],
+						],
 						['From', ['Table', 'pilot']],
 						[
 							'From',
@@ -721,7 +725,10 @@ run([['Number', 1]], function () {
 			['ReferencedField', 'pilot', 'id'],
 			[
 				'SelectQuery',
-				['Select', [['ReferencedField', 'pilot', 'id']]],
+				[
+					'Select',
+					[['Alias', ['ReferencedField', 'pilot', 'id'], '$modifyid']],
+				],
 				['From', ['Table', 'pilot']],
 				['Where', abstractsql],
 			],
@@ -744,14 +751,14 @@ run([['Number', 1]], function () {
 		}),
 	);
 
-	return test('/pilot(1)?$filter=' + odata, 'PUT', { name }, (result) =>
+	test('/pilot(1)?$filter=' + odata, 'PUT', { name }, (result) =>
 		describe('should upsert the pilot with id 1', function () {
 			it('should be an upsert', () =>
 				expect(result).to.be.a.query.that.upserts);
 			it('that inserts', () => {
 				insertTest(result[1]);
 			});
-			return it('and updates', () => {
+			it('and updates', () => {
 				expect(result[2])
 					.to.be.a.query.that.updates.fields(
 						'created at',
@@ -1511,7 +1518,7 @@ test(
 						['ReferencedField', 'copilot', 'id'],
 						[
 							'SelectQuery',
-							['Select', [['ReferencedField', 'copilot', 'id']]],
+							['Select', [['ReferencedField', 'copilot', '$modifyid']]],
 							[
 								'From',
 								[
@@ -1524,6 +1531,11 @@ test(
 												['Field', '*'],
 												['Alias', ['Boolean', false], 'is blocked'],
 												['Alias', ['Text', 'Junior'], 'rank'],
+												[
+													'Alias',
+													['ReferencedField', 'copilot', 'id'],
+													'$modifyid',
+												],
 											],
 										],
 										['From', ['Table', 'copilot']],
@@ -1544,6 +1556,62 @@ test(
 				],
 				['Fields', ['assists-pilot']],
 				['Values', [['Bind', 'copilot', 'assists__pilot']]],
+			]);
+		}),
+);
+
+test(
+	`/copilot?$select=id,rank&$filter=rank eq 'major'`,
+	'DELETE',
+	{ assists__pilot: 1 },
+	(result) =>
+		it(`should DELETE copilot based on filtered computed field rank`, () => {
+			expect(result).to.be.a.query.to.deep.equal([
+				'DeleteQuery',
+				['From', ['Table', 'copilot']],
+				[
+					'Where',
+					[
+						'In',
+						['ReferencedField', 'copilot', 'id'],
+						[
+							'SelectQuery',
+							['Select', [['ReferencedField', 'copilot', '$modifyid']]],
+							[
+								'From',
+								[
+									'Alias',
+									[
+										'SelectQuery',
+										[
+											'Select',
+											[
+												['Field', '*'],
+												['Alias', ['Boolean', false], 'is blocked'],
+												['Alias', ['Text', 'Junior'], 'rank'],
+												[
+													'Alias',
+													['ReferencedField', 'copilot', 'id'],
+													'$modifyid',
+												],
+											],
+										],
+										['From', ['Table', 'copilot']],
+									],
+									'copilot',
+								],
+							],
+							[
+								'Where',
+								[
+									'IsNotDistinctFrom',
+									['ReferencedField', 'copilot', 'rank'],
+									['Bind', 0],
+								],
+							],
+						],
+					],
+				],
 			]);
 		}),
 );
