@@ -36,7 +36,10 @@ test('/pilot?$top=5&$skip=100', 'PATCH', { name }, (result) =>
 				['ReferencedField', 'pilot', 'id'],
 				[
 					'SelectQuery',
-					['Select', [['ReferencedField', 'pilot', 'id']]],
+					[
+						'Select',
+						[['Alias', ['ReferencedField', 'pilot', 'id'], '$modifyid']],
+					],
 					['From', ['Table', 'pilot']],
 					['Limit', ['Number', 5]],
 					['Offset', ['Number', 100]],
@@ -52,7 +55,10 @@ test('/pilot?$top=5&$skip=100', 'DELETE', (result) =>
 				['ReferencedField', 'pilot', 'id'],
 				[
 					'SelectQuery',
-					['Select', [['ReferencedField', 'pilot', 'id']]],
+					[
+						'Select',
+						[['Alias', ['ReferencedField', 'pilot', 'id'], '$modifyid']],
+					],
 					['From', ['Table', 'pilot']],
 					['Limit', ['Number', 5]],
 					['Offset', ['Number', 100]],

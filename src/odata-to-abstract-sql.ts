@@ -4,6 +4,8 @@ import stringHash = require('string-hash');
 import {
 	isAliasNode,
 	isFromNode,
+	isSelectNode,
+	isSelectQueryNode,
 	isTableNode,
 } from '@balena/abstract-sql-compiler';
 import type {
@@ -69,6 +71,7 @@ import type {
 	IsNotDistinctFromNode,
 	IsDistinctFromNode,
 	UnknownTypeNodes,
+	FromTypeNode,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -176,6 +179,54 @@ const containsQueryOption = (opts?: object): boolean => {
 	return false;
 };
 
+const addNestedFieldSelect = (
+	selectNode: SelectNode[1],
+	fromNode: FromNode[1],
+	fieldName: string,
+	fieldNameAlias: string,
+) => {
+	let aliasName: string | undefined;
+	let tableOrSubqueryNode: FromTypeNode[keyof FromTypeNode];
+	if (isAliasNode(fromNode)) {
+		tableOrSubqueryNode = fromNode[1];
+		aliasName = fromNode[2];
+	} else {
+		tableOrSubqueryNode = fromNode;
+	}
+	if (isTableNode(tableOrSubqueryNode)) {
+		selectNode.push([
+			'Alias',
+			['ReferencedField', aliasName ?? tableOrSubqueryNode[1], fieldName],
+			fieldNameAlias,
+		]);
+		return;
+	}
+	if (!isSelectQueryNode(tableOrSubqueryNode)) {
+		throw new Error(
+			`Adding a nested field select to a subquery containing a ${tableOrSubqueryNode[0]} is not supported`,
+		);
+	}
+	if (aliasName == null) {
+		// This should never happen but we are checking it to make TS happy.
+		throw new Error('Found unaliased SelectQueryNode');
+	}
+	const nestedSelectNode = tableOrSubqueryNode.find(isSelectNode);
+	if (nestedSelectNode == null) {
+		throw new Error(`Cannot find SelectNode in subquery`);
+	}
+	const nestedFromNode = tableOrSubqueryNode.find(isFromNode);
+	if (nestedFromNode == null) {
+		throw new Error(`Cannot find FromNode in subquery`);
+	}
+	addNestedFieldSelect(
+		nestedSelectNode[1],
+		nestedFromNode[1],
+		fieldName,
+		fieldNameAlias,
+	);
+	selectNode.push(['ReferencedField', aliasName, fieldNameAlias]);
+};
+
 class Query {
 	public select: Array<
 		| ReferencedFieldNode
@@ -214,6 +265,14 @@ class Query {
 			isModifyOperation,
 		);
 		this.from.push(tableRef);
+	}
+	addNestedFieldSelect(fieldName: string, fieldNameAlias: string): void {
+		if (this.from.length !== 1) {
+			throw new Error(
+				`Adding nested field SELECTs is only supported for queries with exactly 1 FROM clause. Found ${this.from.length}`,
+			);
+		}
+		addNestedFieldSelect(this.select, this.from[0], fieldName, fieldNameAlias);
 	}
 	compile(queryType: 'SelectQuery'): SelectQueryNode;
 	compile(queryType: 'InsertQuery'): InsertQueryNode;
@@ -717,8 +776,8 @@ export class OData2AbstractSQL {
 		) {
 			// For update/delete statements we need to use a  style query
 			const subQuery = new Query();
-			subQuery.select.push(referencedIdField);
 			subQuery.fromResource(this, resource);
+			subQuery.addNestedFieldSelect(resource.idField, '$modifyid');
 			if (hasQueryOpts) {
 				this.AddQueryOptions(resource, path, subQuery);
 			}
