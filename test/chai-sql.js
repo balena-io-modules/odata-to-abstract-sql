@@ -82,7 +82,7 @@ chai.use(function ($chai, utils) {
 	utils.addMethod(assertionPrototype, 'groupby', multiBodyClause('GroupBy'));
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'));
 	utils.addMethod(assertionPrototype, 'limit', bodyClause('Limit'));
-	return utils.addMethod(assertionPrototype, 'offset', bodyClause('Offset'));
+	utils.addMethod(assertionPrototype, 'offset', bodyClause('Offset'));
 });
 
 const generateClientModel = function (input) {
@@ -160,7 +160,7 @@ export function operandToAbstractSQLFactory(
 			if (operand === 'null') {
 				return ['Null'];
 			}
-			if (operand.charAt(0) === '(') {
+			if (operand.startsWith('(')) {
 				return operand
 					.slice(1, -1)
 					.split(',')
@@ -174,7 +174,7 @@ export function operandToAbstractSQLFactory(
 					});
 			}
 
-			if (operand.charAt(0) === "'") {
+			if (operand.startsWith("'")) {
 				binds.push([
 					'Text',
 					decodeURIComponent(operand.slice(1, operand.length - 1)),

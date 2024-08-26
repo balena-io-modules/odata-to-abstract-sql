@@ -169,7 +169,7 @@ const containsQueryOption = (opts?: object): boolean => {
 		return false;
 	}
 	for (const key in opts) {
-		if (key[0] === '$') {
+		if (key.startsWith('$')) {
 			return true;
 		}
 	}
@@ -274,7 +274,7 @@ const modifyAbstractSql = <
 export const rewriteBinds = (
 	definition: ModernDefinition,
 	existingBinds: ODataBinds,
-	inc: number = 0,
+	inc = 0,
 ): void => {
 	const { binds } = definition;
 	if (binds == null || binds.length === 0) {
@@ -338,7 +338,7 @@ export class OData2AbstractSQL {
 	public extraBindVars = [] as unknown as ODataBinds;
 	private resourceAliases: Dictionary<AliasedResource> = {};
 	public defaultResource: Resource | undefined;
-	public bindVarsLength: number = 0;
+	public bindVarsLength = 0;
 	private checkAlias: (alias: string) => string;
 	private alreadyComputedFields: AlreadyComputedFieldsLookup = {};
 
@@ -738,7 +738,7 @@ export class OData2AbstractSQL {
 		path: ODataQuery,
 		resource: AliasedResource,
 		bodyKeys: string[],
-	): BooleanTypeNodes | void {
+	): BooleanTypeNodes | undefined {
 		const { key } = path;
 		if (key != null) {
 			if (method === 'PUT' || method === 'PUT-INSERT' || method === 'POST') {
@@ -938,7 +938,7 @@ export class OData2AbstractSQL {
 			}
 			resource[resourceMappingsProp] = resourceMappings;
 		}
-		return resource[resourceMappingsProp]!;
+		return resource[resourceMappingsProp];
 	}
 	ResolveRelationship(resource: string | Resource, relationship: string) {
 		let resourceName;
@@ -962,7 +962,7 @@ export class OData2AbstractSQL {
 			.flatMap((sqlName) => this.Synonym(sqlName).split('-'))
 			.value();
 		const relationshipMapping = _.get(resourceRelations, relationshipPath);
-		if (!relationshipMapping || !relationshipMapping.$) {
+		if (!relationshipMapping?.$) {
 			throw new SyntaxError(
 				`Could not resolve relationship mapping from '${resourceName}' to '${relationshipPath}'`,
 			);
@@ -978,11 +978,7 @@ export class OData2AbstractSQL {
 		let odataFieldNames: Array<
 			Parameters<OData2AbstractSQL['AliasSelectField']>
 		>;
-		if (
-			path.options &&
-			path.options.$select &&
-			path.options.$select.properties
-		) {
+		if (path.options?.$select?.properties) {
 			this.AddExtraFroms(query, resource, path.options.$select.properties);
 			odataFieldNames = path.options.$select.properties.map((prop: any) => {
 				const field = this.Property(prop) as {
@@ -1016,7 +1012,7 @@ export class OData2AbstractSQL {
 		alias: string = fieldName,
 		// Setting this flag to true will ignore the lookup for alreadyComputedFields
 		// and will compile the computed Field statement into the abstract SQL statement regardless
-		forceCompilingComputedField: boolean = false,
+		forceCompilingComputedField = false,
 	):
 		| ReferencedFieldNode
 		| AliasNode<ReferencedFieldNode>
@@ -1527,7 +1523,7 @@ export class OData2AbstractSQL {
 			if (expand.property) {
 				this.Expands(expandResource, nestedExpandQuery, [expand.property]);
 			}
-			if (expand.options && expand.options.$expand) {
+			if (expand.options?.$expand) {
 				this.Expands(
 					expandResource,
 					nestedExpandQuery,
@@ -1611,7 +1607,9 @@ export class OData2AbstractSQL {
 		// TODO: try removing
 		try {
 			if (Array.isArray(match)) {
-				match.forEach((v) => this.AddExtraFroms(query, parentResource, v));
+				match.forEach((v) => {
+					this.AddExtraFroms(query, parentResource, v);
+				});
 			} else {
 				let nextProp = match;
 				let prop;
@@ -1619,8 +1617,7 @@ export class OData2AbstractSQL {
 					// tslint:disable-next-line:no-conditional-assignment
 					(prop = nextProp) &&
 					prop.name &&
-					prop.property &&
-					prop.property.name
+					prop.property?.name
 				) {
 					nextProp = prop.property;
 					const resourceAlias = this.resourceAliases[prop.name];
@@ -1634,7 +1631,7 @@ export class OData2AbstractSQL {
 						);
 					}
 				}
-				if (nextProp && nextProp.args) {
+				if (nextProp?.args) {
 					this.AddExtraFroms(query, parentResource, prop.args);
 				}
 			}
@@ -1693,7 +1690,7 @@ export class OData2AbstractSQL {
 		resource: Resource,
 		extraBindVars: ODataBinds,
 		bindVarsLength: number,
-		bypassDefinition: boolean = false,
+		bypassDefinition = false,
 		tableAlias?: string,
 		isModifyOperation?: boolean,
 	): FromTypeNodes {
