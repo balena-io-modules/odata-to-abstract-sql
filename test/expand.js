@@ -469,12 +469,16 @@ test('/pilot?$expand=licence&$orderby=licence/name asc', function (result) {
 				agg,
 				..._.reject(pilotFields, { 2: 'licence' }),
 			])
-			.from('pilot', ['licence', 'pilot.licence'])
-			.where([
-				'Equals',
-				['ReferencedField', 'pilot', 'licence'],
-				['ReferencedField', 'pilot.licence', 'id'],
+			.from('pilot')
+			.leftJoin([
+				['licence', 'pilot.licence'],
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'licence'],
+					['ReferencedField', 'pilot.licence', 'id'],
+				],
 			])
+			.where()
 			.orderby(['ASC', ['ReferencedField', 'pilot.licence', 'name']]);
 	});
 });
