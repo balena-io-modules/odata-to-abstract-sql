@@ -1,4 +1,31 @@
 - commits:
+    - subject: Support number references as boolean types
+      hash: 7ab64045cd94b573f51ab193be0f80712df195eb
+      body: |
+        This allows things like `$top=10` and `$skip=5` to work whilst being
+        converted to bind variables
+
+        Update @balena/odata-parser from 3.0.8 to 3.1.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Use bind vars for $top and $skip options
+              hash: f160a140209cc5c9d3abc617cf8de7a37a0abf16
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-parser-3.1.0
+          title: ""
+          date: 2024-10-03T23:27:17.856Z
+  version: 6.4.0
+  title: ""
+  date: 2024-10-04T12:00:36.654Z
+- commits:
     - subject: Support PUT/PATCH/DELETE requests on resources with a translated ID field
       hash: 65b06761fca1b13e13ec99c4ed5394814feff4ef
       body: ""
