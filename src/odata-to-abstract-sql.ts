@@ -1469,6 +1469,8 @@ export class OData2AbstractSQL {
 					}
 					throw new SyntaxError(`${method} is not a number function`);
 			}
+		} else if (isBindReference(match)) {
+			return this.Bind(match);
 		} else if (optional) {
 			return;
 		} else {

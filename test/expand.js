@@ -299,7 +299,7 @@ test('/pilot?$expand=licence($top=10)', function (result) {
 		.find({ 2: 'pilot.licence' })
 		.find({ 0: 'SelectQuery' })
 		.value()
-		.push(['Limit', ['Number', 10]]);
+		.push(['Limit', ['Bind', 0]]);
 	it('should select from pilot.*, licence.*', () =>
 		expect(result)
 			.to.be.a.query.that.selects([
@@ -318,7 +318,7 @@ test('/pilot?$expand=licence($skip=10)', function (result) {
 		.find({ 2: 'pilot.licence' })
 		.find({ 0: 'SelectQuery' })
 		.value()
-		.push(['Offset', ['Number', 10]]);
+		.push(['Offset', ['Bind', 0]]);
 	it('should select from pilot.*, licence.*', () =>
 		expect(result)
 			.to.be.a.query.that.selects([

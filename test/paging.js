@@ -7,22 +7,22 @@ test('/pilot?$top=5', (result) =>
 		expect(result)
 			.to.be.a.query.that.selects(pilotFields)
 			.from('pilot')
-			.limit(['Number', 5])));
+			.limit(['Bind', 0])));
 
 test('/pilot?$skip=100', (result) =>
 	it('should select from pilot offset by 100', () =>
 		expect(result)
 			.to.be.a.query.that.selects(pilotFields)
 			.from('pilot')
-			.offset(['Number', 100])));
+			.offset(['Bind', 0])));
 
 test('/pilot?$top=5&$skip=100', (result) =>
 	it('should select from pilot limited by 5 and offset by 100', () =>
 		expect(result)
 			.to.be.a.query.that.selects(pilotFields)
 			.from('pilot')
-			.limit(['Number', 5])
-			.offset(['Number', 100])));
+			.limit(['Bind', 0])
+			.offset(['Bind', 1])));
 
 const name = 'Peter';
 test('/pilot?$top=5&$skip=100', 'PATCH', { name }, (result) =>
@@ -41,8 +41,8 @@ test('/pilot?$top=5&$skip=100', 'PATCH', { name }, (result) =>
 						[['Alias', ['ReferencedField', 'pilot', 'id'], '$modifyid']],
 					],
 					['From', ['Table', 'pilot']],
-					['Limit', ['Number', 5]],
-					['Offset', ['Number', 100]],
+					['Limit', ['Bind', 0]],
+					['Offset', ['Bind', 1]],
 				],
 			])),
 );
@@ -60,8 +60,8 @@ test('/pilot?$top=5&$skip=100', 'DELETE', (result) =>
 						[['Alias', ['ReferencedField', 'pilot', 'id'], '$modifyid']],
 					],
 					['From', ['Table', 'pilot']],
-					['Limit', ['Number', 5]],
-					['Offset', ['Number', 100]],
+					['Limit', ['Bind', 0]],
+					['Offset', ['Bind', 1]],
 				],
 			])),
 );
