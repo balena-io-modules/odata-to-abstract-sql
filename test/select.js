@@ -5,7 +5,7 @@ import {
 	pilotFields,
 } from './chai-sql';
 import test from './test';
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 const operandToAbstractSQL = operandToAbstractSQLFactory();
 

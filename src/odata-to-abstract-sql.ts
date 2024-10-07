@@ -1,5 +1,5 @@
-import * as _ from 'lodash';
-import * as memoize from 'memoizee';
+import _ from 'lodash';
+import memoize from 'memoizee';
 import stringHash = require('string-hash');
 import {
 	isAliasNode,

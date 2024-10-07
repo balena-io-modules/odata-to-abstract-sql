@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
+		"module": "Node16",
 		"target": "es2023",
 		"strict": true,
 		"noImplicitAny": true,
