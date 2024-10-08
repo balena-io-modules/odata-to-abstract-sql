@@ -14,7 +14,7 @@ import {
 let operandToAbstractSQLFactory = $operandToAbstractSQLFactory;
 
 import test from './test';
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 let operandToAbstractSQL = null;
 

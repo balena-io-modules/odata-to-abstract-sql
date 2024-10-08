@@ -1,10 +1,10 @@
-import * as _ from 'lodash';
-import * as chai from 'chai';
-import * as chaiThings from 'chai-things';
-import * as fs from 'fs';
+import _ from 'lodash';
+import chai from 'chai';
+import chaiThings from 'chai-things';
+import fs from 'fs';
 import { createTranslator } from '@balena/lf-to-abstract-sql';
 import { SBVRParser } from '@balena/sbvr-parser';
-import * as sbvrTypes from '@balena/sbvr-types';
+import sbvrTypes from '@balena/sbvr-types';
 
 chai.use(chaiThings);
 
