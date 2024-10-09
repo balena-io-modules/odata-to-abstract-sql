@@ -72,6 +72,7 @@ import type {
 	IsDistinctFromNode,
 	UnknownTypeNodes,
 	FromTypeNode,
+	JoinTypeNodes,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -87,6 +88,8 @@ import type {
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
 type InternalSupportedMethod = Exclude<SupportedMethod, 'MERGE'> | 'PUT-INSERT';
+
+type JoinType = 'Join' | 'LeftJoin' | 'RightJoin';
 
 type RequiredAbstractSqlModelSubset = Pick<
 	AbstractSqlModel,
@@ -236,6 +239,7 @@ class Query {
 	> = [];
 	public from: Array<FromNode[1]> = [];
 	public where: Array<WhereNode[1]> = [];
+	public joins: JoinTypeNodes[] = [];
 	public extras: Array<
 		FieldsNode | ValuesNode | OrderByNode | LimitNode | OffsetNode
 	> = [];
@@ -244,6 +248,7 @@ class Query {
 		this.select = this.select.concat(otherQuery.select);
 		this.from = this.from.concat(otherQuery.from);
 		this.where = this.where.concat(otherQuery.where);
+		this.joins = this.joins.concat(otherQuery.joins);
 		this.extras = this.extras.concat(otherQuery.extras);
 	}
 	fromResource(
@@ -289,6 +294,9 @@ class Query {
 		this.from.forEach((tableName) => {
 			compiled.push(['From', tableName] as AbstractSqlQuery);
 		});
+		this.joins.forEach((joinNode) => {
+			compiled.push(joinNode);
+		});
 		if (where.length > 0) {
 			if (where.length > 1) {
 				where = [['And', ...where]];
@@ -300,6 +308,23 @@ class Query {
 			| InsertQueryNode
 			| UpdateQueryNode
 			| DeleteQueryNode;
+	}
+	addJoin(
+		odataToAbstractSql: OData2AbstractSQL,
+		type: JoinType,
+		resource: AliasedResource,
+		condition: BooleanTypeNodes,
+	): void {
+		const tableRef = odataToAbstractSql.getTableReference(
+			resource,
+			odataToAbstractSql.extraBindVars,
+			odataToAbstractSql.bindVarsLength,
+			undefined,
+			resource.tableAlias,
+			undefined,
+		);
+		const joinNode: JoinTypeNodes = [type, tableRef, ['On', condition]];
+		this.joins.push(joinNode);
 	}
 }
 
@@ -889,7 +914,7 @@ export class OData2AbstractSQL {
 		query.where.push(where);
 	}
 	OrderBy(orderby: OrderByOption, query: Query, resource: Resource) {
-		this.AddExtraFroms(query, resource, orderby.properties);
+		this.AddExtraFroms(query, resource, orderby.properties, 'LeftJoin');
 		query.extras.push([
 			'OrderBy',
 			...this.OrderByProperties(orderby.properties),
@@ -1300,7 +1325,7 @@ export class OData2AbstractSQL {
 			const query = new Query();
 			const resource = this.AddNavigation(
 				query,
-				this.defaultResource!,
+				this.defaultResource,
 				resourceName,
 			);
 			this.resourceAliases = { ...this.resourceAliases };
@@ -1421,7 +1446,7 @@ export class OData2AbstractSQL {
 			query.select.push(['Count', '*']);
 			const aliasedResource = this.AddNavigation(
 				query,
-				this.defaultResource!,
+				this.defaultResource,
 				prop.name,
 			);
 			if (prop.options?.$filter) {
@@ -1432,7 +1457,7 @@ export class OData2AbstractSQL {
 			}
 			return query.compile('SelectQuery');
 		} else {
-			return { resource: this.defaultResource!, name: prop.name };
+			return { resource: this.defaultResource, name: prop.name };
 		}
 	}
 	NumberMatch(match: any, optional: true): NumberTypeNodes | undefined;
@@ -1664,7 +1689,12 @@ export class OData2AbstractSQL {
 			],
 		};
 	}
-	AddExtraFroms(query: Query, parentResource: Resource, match: any) {
+	AddExtraFroms(
+		query: Query,
+		parentResource: Resource,
+		match: any,
+		joinType?: JoinType,
+	) {
 		// TODO: try removing
 		try {
 			if (Array.isArray(match)) {
@@ -1689,11 +1719,12 @@ export class OData2AbstractSQL {
 							query,
 							parentResource,
 							prop.name,
+							joinType,
 						);
 					}
 				}
 				if (nextProp?.args) {
-					this.AddExtraFroms(query, parentResource, prop.args);
+					this.AddExtraFroms(query, parentResource, prop.args, joinType);
 				}
 			}
 		} catch {
@@ -1704,6 +1735,7 @@ export class OData2AbstractSQL {
 		query: Query,
 		resource: Resource,
 		extraResource: string,
+		joinType?: JoinType,
 	): AliasedResource {
 		const navigation = this.NavigateResources(resource, extraResource);
 		if (
@@ -1713,8 +1745,12 @@ export class OData2AbstractSQL {
 					(isAliasNode(from) && from[2] === navigation.resource.tableAlias),
 			)
 		) {
-			query.fromResource(this, navigation.resource);
-			query.where.push(navigation.where);
+			if (joinType) {
+				query.addJoin(this, joinType, navigation.resource, navigation.where);
+			} else {
+				query.fromResource(this, navigation.resource);
+				query.where.push(navigation.where);
+			}
 			return navigation.resource;
 		} else {
 			throw new SyntaxError(
