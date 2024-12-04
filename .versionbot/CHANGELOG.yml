@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency mocha to v11
+      hash: c52717d4ab947a92b94d018713634217fac3da73
+      body: |
+        Update mocha from 10.8.2 to 11.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 7.0.1
+  title: ""
+  date: 2024-12-04T13:36:56.587Z
+- commits:
     - subject: Update dependencies
       hash: 200e20aa0e4ef4df625c398be401065b6c7b0771
       body: |
