@@ -73,9 +73,7 @@ const createExpression = function (lhs, op, rhs) {
 	if (op === 'in') {
 		return {
 			odata: operandToOData(lhs) + ' ' + op + ' ' + operandToOData(rhs),
-			abstractsql: [sqlOps[op], operandToAbstractSQL(lhs)].concat(
-				operandToAbstractSQL(rhs),
-			),
+			abstractsql: [sqlOps[op], operandToAbstractSQL(lhs), ['Bind', 0]],
 		};
 	}
 	if (rhs == null) {

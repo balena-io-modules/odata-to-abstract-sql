@@ -17,7 +17,7 @@
   "license": "BSD",
   "dependencies": {
     "@balena/abstract-sql-compiler": "^10.0.1",
-    "@balena/odata-parser": "^3.1.0",
+    "@balena/odata-parser": "4.0.0-build-in-with-single-array-bind-4b97fb54e68b9b2f5e80540a99db81cdf7abbc55-1",
     "@types/lodash": "^4.17.10",
     "@types/memoizee": "^0.4.11",
     "@types/string-hash": "^1.1.3",

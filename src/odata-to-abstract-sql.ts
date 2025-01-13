@@ -1171,7 +1171,7 @@ export class OData2AbstractSQL {
 							return [
 								'In',
 								this.Operand(rest[0]),
-								...rest[1].map((v: any) => this.Operand(v)),
+								this.Operand(rest[1]),
 							] as InNode;
 						}
 						case 'call': {
