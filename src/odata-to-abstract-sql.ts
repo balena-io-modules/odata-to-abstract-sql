@@ -72,6 +72,7 @@ import type {
 	IsDistinctFromNode,
 	UnknownTypeNodes,
 	FromTypeNode,
+	EqualsAnyNode,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -136,6 +137,7 @@ export type ResourceFunction = (
 
 const comparison = {
 	eq: 'IsNotDistinctFrom',
+	eqany: 'EqualsAny',
 	ne: 'IsDistinctFrom',
 	gt: 'GreaterThan',
 	ge: 'GreaterThanOrEqual',
@@ -1142,6 +1144,7 @@ export class OData2AbstractSQL {
 					const [type, ...rest] = match;
 					switch (type) {
 						case 'eq':
+						case 'eqany':
 						case 'ne':
 						case 'gt':
 						case 'ge':
@@ -1155,7 +1158,8 @@ export class OData2AbstractSQL {
 								| GreaterThanNode
 								| GreaterThanOrEqualNode
 								| LessThanNode
-								| LessThanOrEqualNode;
+								| LessThanOrEqualNode
+								| EqualsAnyNode;
 						}
 						case 'and':
 						case 'or':

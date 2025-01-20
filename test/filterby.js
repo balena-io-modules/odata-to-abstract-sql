@@ -50,6 +50,7 @@ const sqlOps = {
 	mul: 'Multiply',
 	div: 'Divide',
 	in: 'In',
+	eqany: 'EqualsAny',
 };
 
 const methodMaps = {
@@ -73,9 +74,7 @@ const createExpression = function (lhs, op, rhs) {
 	if (op === 'in') {
 		return {
 			odata: operandToOData(lhs) + ' ' + op + ' ' + operandToOData(rhs),
-			abstractsql: [sqlOps[op], operandToAbstractSQL(lhs)].concat(
-				operandToAbstractSQL(rhs),
-			),
+			abstractsql: [sqlOps['eqany'], operandToAbstractSQL(lhs), ['Bind', 0]],
 		};
 	}
 	if (rhs == null) {
@@ -147,6 +146,35 @@ const operandTest = (lhs, op, rhs) =>
 			}),
 		);
 	});
+
+test('/pilot?$filter=name in (null)', (result) => {
+	it('should be able to select with list with a single null', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot')
+			.where(['EqualsAny', ['ReferencedField', 'pilot', 'name'], ['Bind', 0]]);
+	});
+});
+
+test(`/pilot?$filter=name eq 'test' or name in (null, 1) or name in (null) or startswith(name,'test1') or name in (1,2,3)`, (result) => {
+	it('should be able to select with multiple conditions', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot')
+			.where([
+				'Or',
+				[
+					'IsNotDistinctFrom',
+					['ReferencedField', 'pilot', 'name'],
+					['Bind', 0],
+				],
+				['EqualsAny', ['ReferencedField', 'pilot', 'name'], ['Bind', 1]],
+				['EqualsAny', ['ReferencedField', 'pilot', 'name'], ['Bind', 2]],
+				['Startswith', ['ReferencedField', 'pilot', 'name'], ['Bind', 3]],
+				['EqualsAny', ['ReferencedField', 'pilot', 'name'], ['Bind', 4]],
+			]);
+	});
+});
 
 const navigatedOperandTest = (lhs, op, rhs) =>
 	run(function () {
