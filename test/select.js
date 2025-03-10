@@ -4,7 +4,7 @@ import {
 	aliasFields,
 	pilotFields,
 } from './chai-sql';
-import test from './test';
+import test, { itExpectsError } from './test';
 import _ from 'lodash';
 
 const operandToAbstractSQL = operandToAbstractSQLFactory();
@@ -325,4 +325,92 @@ test('/copilot?$select=id,is_blocked,rank', (result) => {
 			],
 		]);
 	});
+});
+
+test(`/pilot?$select=name,identification_method(identification_type='passport')/identification_number`, (result) => {
+	it(`should select the pilot's name & passport number when using part of the alternate key and infering the rest from the navigation`, () => {
+		expect(result)
+			.to.be.a.query.that.selects([
+				operandToAbstractSQL('name'),
+				[
+					'Alias',
+					[
+						'ReferencedField',
+						'pilot.identification method',
+						'identification number',
+					],
+					'identification_number',
+				],
+			])
+			.from('pilot')
+			.leftJoin([
+				['identification method', 'pilot.identification method'],
+				[
+					'And',
+					[
+						'Equals',
+						['ReferencedField', 'pilot', 'id'],
+						['ReferencedField', 'pilot.identification method', 'pilot'],
+					],
+					[
+						'IsNotDistinctFrom',
+						[
+							'ReferencedField',
+							'pilot.identification method',
+							'identification type',
+						],
+						['Bind', 0],
+					],
+				],
+			]);
+	});
+});
+
+test(`/pilot?$select=name,identification_method(identification_type='passport')/identification_number,identification_method(identification_type='passport')/created_at`, (result) => {
+	// TODO: This atm doens't work b/c the two JOINs are generated with differnet Bind numbers
+	itExpectsError(
+		`should select the pilot's name, passport number & passport creation date when using part of the alternate key and infering the rest from the navigation`,
+		() => {
+			expect(result)
+				.to.be.a.query.that.selects([
+					operandToAbstractSQL('name'),
+					[
+						'Alias',
+						[
+							'ReferencedField',
+							'pilot.identification method',
+							'identification number',
+						],
+						'identification_number',
+					],
+					[
+						'Alias',
+						['ReferencedField', 'pilot.identification method', 'created at'],
+						'created_at',
+					],
+				])
+				.from('pilot')
+				.leftJoin([
+					['identification method', 'pilot.identification method'],
+					[
+						'And',
+						[
+							'Equals',
+							['ReferencedField', 'pilot', 'id'],
+							['ReferencedField', 'pilot.identification method', 'pilot'],
+						],
+						[
+							'IsNotDistinctFrom',
+							[
+								'ReferencedField',
+								'pilot.identification method',
+								'identification type',
+							],
+							['Bind', 0],
+						],
+					],
+				]);
+		},
+		'expected SyntaxError: Adding JOINs on the same res… to be an instance of Array',
+	);
 });
