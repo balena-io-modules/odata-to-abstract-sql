@@ -85,13 +85,9 @@ import type {
 	OrderByPropertyPath,
 	FilterOption,
 	BindReference,
-	GenericPropertyPath,
 	PropertyPath,
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
-
-// TODO: Remove this custom error once AddExtraFroms stops silencing errors.
-class KeySyntaxError extends SyntaxError {}
 
 type InternalSupportedMethod = Exclude<SupportedMethod, 'MERGE'> | 'PUT-INSERT';
 
@@ -1763,7 +1759,6 @@ export class OData2AbstractSQL {
 							query,
 							parentResource,
 							prop.name,
-							prop.key,
 						);
 					}
 				}
@@ -1771,10 +1766,7 @@ export class OData2AbstractSQL {
 					this.AddExtraFroms(query, parentResource, prop.args);
 				}
 			}
-		} catch (e) {
-			if (e instanceof KeySyntaxError) {
-				throw e;
-			}
+		} catch {
 			// ignore
 		}
 	}
@@ -1782,7 +1774,6 @@ export class OData2AbstractSQL {
 		query: Query,
 		resource: Resource,
 		extraResource: string,
-		key?: ODataQuery['key'],
 	): AliasedResource {
 		const navigation = this.NavigateResources(resource, extraResource);
 		if (
@@ -1794,24 +1785,6 @@ export class OData2AbstractSQL {
 		) {
 			query.fromResource(this, navigation.resource);
 			query.where.push(navigation.where);
-			if (key != null) {
-				try {
-					const keyWhere = this.BaseKey(
-						navigation.resource,
-						key,
-						navigation.navigationResourceField,
-					);
-					query.where.push(keyWhere);
-				} catch (e) {
-					if (e instanceof SyntaxError) {
-						// Since there is a TODO in the AddExtraFroms to stop silencing errors, instead of
-						// silencing the new Syntax errors that can be thrown by the added BaseKey().
-						// we decided use a new custom error to detect those new errors and re-throw them.
-						throw new KeySyntaxError(e.message, { cause: e });
-					}
-					throw e;
-				}
-			}
 			return navigation.resource;
 		} else {
 			throw new SyntaxError(
