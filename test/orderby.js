@@ -338,22 +338,25 @@ test(`/pilot?$orderby=identification_method(identification_type='passport')/iden
 	it('should order pilots by their passport number when defining part of the alternate key and infering the rest from the navigation', () => {
 		expect(result)
 			.to.be.a.query.that.selects(pilotFields)
-			.from('pilot', ['identification method', 'pilot.identification method'])
-			.where([
-				'And',
+			.from('pilot')
+			.leftJoin([
+				['identification method', 'pilot.identification method'],
 				[
-					'Equals',
-					['ReferencedField', 'pilot', 'id'],
-					['ReferencedField', 'pilot.identification method', 'pilot'],
-				],
-				[
-					'IsNotDistinctFrom',
+					'And',
 					[
-						'ReferencedField',
-						'pilot.identification method',
-						'identification type',
+						'Equals',
+						['ReferencedField', 'pilot', 'id'],
+						['ReferencedField', 'pilot.identification method', 'pilot'],
 					],
-					['Bind', 0],
+					[
+						'IsNotDistinctFrom',
+						[
+							'ReferencedField',
+							'pilot.identification method',
+							'identification type',
+						],
+						['Bind', 0],
+					],
 				],
 			])
 			.orderby([

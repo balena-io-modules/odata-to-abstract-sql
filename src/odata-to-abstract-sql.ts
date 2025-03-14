@@ -1822,9 +1822,7 @@ export class OData2AbstractSQL {
 	AddJoins(
 		query: Query,
 		parentResource: Resource,
-		match:
-			| GenericPropertyPath<PropertyPath>
-			| Array<GenericPropertyPath<PropertyPath>>,
+		match: PropertyPath | PropertyPath[],
 		joinType: JoinType,
 	) {
 		if (Array.isArray(match)) {
@@ -1850,6 +1848,7 @@ export class OData2AbstractSQL {
 						parentResource,
 						prop.name,
 						joinType,
+						prop.key,
 					);
 				}
 			}
@@ -1860,6 +1859,7 @@ export class OData2AbstractSQL {
 		resource: Resource,
 		extraResource: string,
 		joinType: JoinType,
+		key?: ODataQuery['key'],
 	): AliasedResource {
 		const navigation = this.NavigateResources(resource, extraResource);
 		if (
@@ -1871,6 +1871,14 @@ export class OData2AbstractSQL {
 				);
 			})
 		) {
+			if (key != null) {
+				const keyWhere = this.BaseKey(
+					navigation.resource,
+					key,
+					navigation.navigationResourceField,
+				);
+				navigation.where = ['And', navigation.where, keyWhere];
+			}
 			query.joinResource(this, navigation.resource, joinType, navigation.where);
 		}
 		return navigation.resource;
