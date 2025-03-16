@@ -1835,23 +1835,50 @@ export class OData2AbstractSQL {
 		key?: ODataQuery['key'],
 	): AliasedResource {
 		const navigation = this.NavigateResources(resource, extraResource);
-		if (
-			!query.joins.some((join) => {
-				const from = join[1];
-				return (
-					(isTableNode(from) && from[1] === navigation.resource.tableAlias) ||
-					(isAliasNode(from) && from[2] === navigation.resource.tableAlias)
-				);
-			})
-		) {
-			if (key != null) {
-				const keyWhere = this.BaseKey(
-					navigation.resource,
-					key,
-					navigation.navigationResourceField,
-				);
-				navigation.where = ['And', navigation.where, keyWhere];
+		if (key != null) {
+			const keyWhere = this.BaseKey(
+				navigation.resource,
+				key,
+				navigation.navigationResourceField,
+			);
+			navigation.where = ['And', navigation.where, keyWhere];
+		}
+		const alreadyJoinedResource = query.joins.some((join) => {
+			const [existingJoinType, existingFrom, existingJoinOnNode] = join;
+			const sameAlias =
+				(isTableNode(existingFrom) &&
+					existingFrom[1] === navigation.resource.tableAlias) ||
+				(isAliasNode(existingFrom) &&
+					existingFrom[2] === navigation.resource.tableAlias);
+			if (!sameAlias) {
+				return false;
 			}
+
+			const existingJoinPredicate = existingJoinOnNode?.[1];
+			// NavigateResources returns an Equals node, and we nested inside an And only if a key was provided.
+			const existingJoinWithoutKey = existingJoinPredicate?.[0] === 'Equals';
+
+			if (
+				joinType === existingJoinType &&
+				// When JOINing resources w/o any additional key, the ON clauses will be equal
+				// as long as the aliases are the same. In that case we can avoid the extra cost of isEqual.
+				((key == null && existingJoinWithoutKey) ||
+					// We only need to run isEqual if both queries are using a key, otherwise we know upfront that the ONs are different.
+					(key != null &&
+						!existingJoinWithoutKey &&
+						_.isEqual(navigation.where, existingJoinPredicate)))
+			) {
+				return true;
+			}
+			// When we reach this point we have found an already existing JOIN with the
+			// same alias as the one we just created but different JOIN type or ON predicate.
+			// TODO: In this case we need to be able to generate a new alias for the newly JOINed resource.
+			// Since we atm do not support that we throw early, since otherwise the generated query would be invalid.
+			throw new Error(
+				`Adding JOINs on the same resource with different ON clauses is not supported. Found ${navigation.resource.tableAlias}`,
+			);
+		});
+		if (!alreadyJoinedResource) {
 			query.joinResource(this, navigation.resource, joinType, navigation.where);
 		}
 		return navigation.resource;

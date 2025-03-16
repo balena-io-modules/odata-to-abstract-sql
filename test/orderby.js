@@ -4,7 +4,7 @@ import {
 	pilotFields,
 	teamFields,
 } from './chai-sql';
-import test from './test';
+import test, { itExpectsError } from './test';
 
 const operandToAbstractSQL = operandToAbstractSQLFactory();
 
@@ -367,5 +367,63 @@ test(`/pilot?$orderby=identification_method(identification_type='passport')/iden
 					'identification number',
 				],
 			]);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport')/created_at desc,identification_method(identification_type='passport')/identification_number desc`, (result) => {
+	// TODO: This atm doens't work b/c the two ORDER BYs are generated with differnet Bind numbers
+	itExpectsError(
+		`should order pilots by their passport's creation date and then by its number`,
+		() => {
+			expect(result)
+				.to.be.a.query.that.selects(pilotFields)
+				.from('pilot')
+				.leftJoin([
+					['identification method', 'pilot.identification method'],
+					[
+						'And',
+						[
+							'Equals',
+							['ReferencedField', 'pilot', 'id'],
+							['ReferencedField', 'pilot.identification method', 'pilot'],
+						],
+						[
+							'IsNotDistinctFrom',
+							[
+								'ReferencedField',
+								'pilot.identification method',
+								'identification type',
+							],
+							['Bind', 0],
+						],
+					],
+				])
+				.orderby(
+					[
+						'DESC',
+						['ReferencedField', 'pilot.identification method', 'created at'],
+					],
+					[
+						'DESC',
+						[
+							'ReferencedField',
+							'pilot.identification method',
+							'identification number',
+						],
+					],
+				);
+		},
+		'expected Error: Adding JOINs on the same resource … to be an instance of Array',
+	);
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport')/identification_number desc,identification_method(identification_type='id card')/identification_number desc`, (result) => {
+	it('should order pilots by their passport number & then their ID when defining part of the alternate key and infering the rest from the navigation', () => {
+		expect(result)
+			.to.be.instanceOf(Error)
+			.and.to.have.property(
+				'message',
+				`Adding JOINs on the same resource with different ON clauses is not supported. Found pilot.identification method`,
+			);
 	});
 });
