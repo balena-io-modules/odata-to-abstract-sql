@@ -47,7 +47,7 @@ test('/pilot?$orderby=name asc', (result) => {
 	});
 });
 
-test.skip('/pilot?$orderby=p/name asc', (result) => {
+test('/pilot?$orderby=p/name asc', (result) => {
 	// TODO: This should fail
 	it('should order by name asc using a non-existing alias', () => {
 		expect(result)
@@ -307,12 +307,16 @@ test('/pilot?$select=name,licence/name&$orderby=name asc,licence/name desc', fun
 				operandToAbstractSQL('name'),
 				operandToAbstractSQL('licence/name'),
 			])
-			.from('pilot', ['licence', 'pilot.licence'])
-			.where([
-				'Equals',
-				['ReferencedField', 'pilot', 'licence'],
-				['ReferencedField', 'pilot.licence', 'id'],
+			.from('pilot')
+			.leftJoin([
+				['licence', 'pilot.licence'],
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'licence'],
+					['ReferencedField', 'pilot.licence', 'id'],
+				],
 			])
+			.where()
 			.orderby(
 				['ASC', operandToAbstractSQL('name')],
 				['DESC', operandToAbstractSQL('licence/name')],

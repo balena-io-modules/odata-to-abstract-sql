@@ -87,12 +87,11 @@ import type {
 	BindReference,
 	GenericPropertyPath,
 	PropertyPath,
+	MethodCall,
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
 type InternalSupportedMethod = Exclude<SupportedMethod, 'MERGE'> | 'PUT-INSERT';
-
-type JoinType = 'Join' | 'LeftJoin' | 'RightJoin';
 
 type RequiredAbstractSqlModelSubset = Pick<
 	AbstractSqlModel,
@@ -260,7 +259,6 @@ class Query {
 	joinResource(
 		odataToAbstractSql: OData2AbstractSQL,
 		resource: AliasedResource,
-		type: JoinType,
 		condition: BooleanTypeNodes,
 		args: {
 			extraBindVars: ODataBinds;
@@ -276,7 +274,7 @@ class Query {
 			resource.tableAlias,
 			undefined,
 		);
-		const joinNode: JoinTypeNodes = [type, tableRef, ['On', condition]];
+		const joinNode: JoinTypeNodes = ['LeftJoin', tableRef, ['On', condition]];
 		this.joins.push(joinNode);
 	}
 	addNestedFieldSelect(fieldName: string, fieldNameAlias: string): void {
@@ -905,12 +903,12 @@ export class OData2AbstractSQL {
 		throw new SyntaxError(`Could not match bind reference`);
 	}
 	SelectFilter(filter: FilterOption, query: Query, resource: Resource) {
-		this.AddExtraFroms(query, resource, filter);
+		this.AddJoins(query, resource, filter);
 		const where = this.BooleanMatch(filter);
 		query.where.push(where);
 	}
 	OrderBy(orderby: OrderByOption, query: Query, resource: Resource) {
-		this.AddJoins(query, resource, orderby.properties, 'LeftJoin');
+		this.AddJoins(query, resource, orderby.properties);
 		query.extras.push([
 			'OrderBy',
 			...this.OrderByProperties(orderby.properties),
@@ -1059,7 +1057,7 @@ export class OData2AbstractSQL {
 			Parameters<OData2AbstractSQL['AliasSelectField']>
 		>;
 		if (path.options?.$select?.properties) {
-			this.AddExtraFroms(query, resource, path.options.$select.properties);
+			this.AddJoins(query, resource, path.options.$select.properties);
 			odataFieldNames = path.options.$select.properties.map((prop: any) => {
 				const field = this.Property(prop) as {
 					resource: Resource;
@@ -1330,7 +1328,7 @@ export class OData2AbstractSQL {
 			this.resourceAliases[lambda.identifier] = resource;
 
 			this.defaultResource = resource;
-			this.AddExtraFroms(query, resource, lambda.expression);
+			this.AddJoins(query, resource, lambda.expression);
 			const filter = this.BooleanMatch(lambda.expression);
 			if (lambda.method === 'any') {
 				query.where.push(filter);
@@ -1687,12 +1685,19 @@ export class OData2AbstractSQL {
 			],
 		};
 	}
-	AddExtraFroms(query: Query, parentResource: Resource, match: any) {
+	AddJoins(
+		query: Query,
+		parentResource: Resource,
+		// This can be any node that odata-parser returns
+		match:
+			| (GenericPropertyPath<PropertyPath> | MethodCall[1])
+			| Array<GenericPropertyPath<PropertyPath> | MethodCall[1]>,
+	) {
 		// TODO: try removing
 		try {
 			if (Array.isArray(match)) {
 				match.forEach((v) => {
-					this.AddExtraFroms(query, parentResource, v);
+					this.AddJoins(query, parentResource, v);
 				});
 			} else {
 				let nextProp = match;
@@ -1700,6 +1705,8 @@ export class OData2AbstractSQL {
 				while (
 					// tslint:disable-next-line:no-conditional-assignment
 					(prop = nextProp) &&
+					// Confirm that prop is indeed a GenericPropertyPath<PropertyPath>
+					'name' in prop &&
 					prop.name &&
 					prop.property?.name
 				) {
@@ -1708,19 +1715,42 @@ export class OData2AbstractSQL {
 					if (resourceAlias) {
 						parentResource = resourceAlias;
 					} else {
-						parentResource = this.AddNavigation(
+						parentResource = this.AddJoinNavigation(
 							query,
 							parentResource,
 							prop.name,
 						);
 					}
 				}
-				if (nextProp?.args) {
-					this.AddExtraFroms(query, parentResource, prop.args);
+				if (nextProp != null && 'args' in nextProp && nextProp.args != null) {
+					this.AddJoins(query, parentResource, nextProp.args);
 				}
 			}
 		} catch {
 			// ignore
+		}
+	}
+	AddJoinNavigation(
+		query: Query,
+		resource: Resource,
+		extraResource: string,
+	): AliasedResource {
+		const navigation = this.NavigateResources(resource, extraResource);
+		if (
+			!query.joins.some((join) => {
+				const from = join[1];
+				return (
+					(isTableNode(from) && from[1] === navigation.resource.tableAlias) ||
+					(isAliasNode(from) && from[2] === navigation.resource.tableAlias)
+				);
+			})
+		) {
+			query.joinResource(this, navigation.resource, navigation.where);
+			return navigation.resource;
+		} else {
+			throw new SyntaxError(
+				`Could not navigate resources '${resource.name}' and '${extraResource}'`,
+			);
 		}
 	}
 	AddNavigation(
@@ -1744,62 +1774,6 @@ export class OData2AbstractSQL {
 				`Could not navigate resources '${resource.name}' and '${extraResource}'`,
 			);
 		}
-	}
-	AddJoins(
-		query: Query,
-		parentResource: Resource,
-		match:
-			| GenericPropertyPath<PropertyPath>
-			| Array<GenericPropertyPath<PropertyPath>>,
-		joinType: JoinType,
-	) {
-		if (Array.isArray(match)) {
-			match.forEach((v) => {
-				this.AddJoins(query, parentResource, v, joinType);
-			});
-		} else {
-			let nextProp = match;
-			let prop;
-			while (
-				// tslint:disable-next-line:no-conditional-assignment
-				(prop = nextProp) &&
-				prop.name &&
-				prop.property?.name
-			) {
-				nextProp = prop.property;
-				const resourceAlias = this.resourceAliases[prop.name];
-				if (resourceAlias) {
-					parentResource = resourceAlias;
-				} else {
-					parentResource = this.AddJoinNavigation(
-						query,
-						parentResource,
-						prop.name,
-						joinType,
-					);
-				}
-			}
-		}
-	}
-	AddJoinNavigation(
-		query: Query,
-		resource: Resource,
-		extraResource: string,
-		joinType: JoinType,
-	): AliasedResource {
-		const navigation = this.NavigateResources(resource, extraResource);
-		if (
-			!query.joins.some((join) => {
-				const from = join[1];
-				return (
-					(isTableNode(from) && from[1] === navigation.resource.tableAlias) ||
-					(isAliasNode(from) && from[2] === navigation.resource.tableAlias)
-				);
-			})
-		) {
-			query.joinResource(this, navigation.resource, joinType, navigation.where);
-		}
-		return navigation.resource;
 	}
 
 	reset() {
