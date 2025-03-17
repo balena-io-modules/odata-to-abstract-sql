@@ -1072,7 +1072,12 @@ export class OData2AbstractSQL {
 			Parameters<OData2AbstractSQL['AliasSelectField']>
 		>;
 		if (path.options?.$select?.properties) {
-			this.AddExtraFroms(query, resource, path.options.$select.properties);
+			this.AddJoins(
+				query,
+				resource,
+				path.options.$select.properties,
+				'LeftJoin',
+			);
 			odataFieldNames = path.options.$select.properties.map((prop: any) => {
 				const field = this.Property(prop) as {
 					resource: Resource;
