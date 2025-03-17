@@ -108,7 +108,6 @@ chai.use(function ($chai, utils) {
 		return this;
 	});
 	utils.addMethod(assertionPrototype, 'groupby', multiBodyClause('GroupBy'));
-	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'));
 	utils.addMethod(assertionPrototype, 'limit', bodyClause('Limit'));
 	utils.addMethod(assertionPrototype, 'offset', bodyClause('Offset'));
 });

@@ -230,48 +230,51 @@ test(`/pilot?$filter=startswith(p/name,'test1')`, (result) => {
 	});
 });
 
-const navigatedOperandTest = (lhs, op, rhs) =>
+const navigatedOperandTest = (lhs, op, rhs) => {
 	run(function () {
 		const { odata, abstractsql } = createExpression(lhs, op, rhs);
 		test('/pilot?$filter=' + odata, (result) => {
 			it('should select from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects(pilotFields)
-					.from('pilot', ['licence', 'pilot.licence'])
-					.where([
-						'And',
+					.from('pilot')
+					.leftJoin([
+						['licence', 'pilot.licence'],
 						[
 							'Equals',
 							['ReferencedField', 'pilot', 'licence'],
 							['ReferencedField', 'pilot.licence', 'id'],
 						],
-						abstractsql,
-					]);
+					])
+					.where(abstractsql);
 			});
 		});
 		test('/pilot/$count?$filter=' + odata, (result) => {
 			it('should count(*) from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects($count)
-					.from('pilot', ['licence', 'pilot.licence'])
-					.where([
-						'And',
+					.from('pilot')
+					.leftJoin([
+						['licence', 'pilot.licence'],
 						[
 							'Equals',
 							['ReferencedField', 'pilot', 'licence'],
 							['ReferencedField', 'pilot.licence', 'id'],
 						],
-						abstractsql,
-					]);
+					])
+					.where(abstractsql);
 			});
 		});
 	});
+};
 
 const methodTest = (...args) =>
 	run(() => operandTest(createMethodCall(...args)));
 
 const navigatedMethodTest = (...args) =>
-	run(() => navigatedOperandTest(createMethodCall(...args)));
+	run(() => {
+		navigatedOperandTest(createMethodCall(...args));
+	});
 
 operandTest(2, 'eq', 'name');
 operandTest(2, 'ne', 'name');
@@ -344,16 +347,16 @@ run(function () {
 		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
-				.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
-				.where([
-					'And',
+				.from('pilot')
+				.leftJoin([
+					['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
 					[
 						'Equals',
 						['ReferencedField', 'pilot', 'id'],
 						['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
 					],
-					abstractsql,
-				]);
+				])
+				.where(abstractsql);
 		});
 	});
 });
@@ -422,18 +425,17 @@ run([['Number', 1]], function () {
 				.to.be.a.query.that.selects(
 					aliasFields('pilot', pilotCanFlyPlaneFields),
 				)
-				.from(
-					'pilot',
-					['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
+				.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+				.leftJoin([
 					['plane', 'pilot.pilot-can fly-plane.plane'],
-				)
-				.where([
-					'And',
 					[
 						'Equals',
 						['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
 						['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
 					],
+				])
+				.where([
+					'And',
 					abstractsql,
 					[
 						'Equals',
@@ -457,20 +459,32 @@ run(function () {
 		10,
 	);
 
-	const filterWhere = [
-		'And',
+	const pilotPilotCanFlyPlaneLeftJoin = [
+		'LeftJoin',
+		['Alias', ['Table', 'pilot-can fly-plane'], 'pilot.pilot-can fly-plane'],
 		[
-			'Equals',
-			['ReferencedField', 'pilot', 'id'],
-			['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+			'On',
+			[
+				'Equals',
+				['ReferencedField', 'pilot', 'id'],
+				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+			],
 		],
-		[
-			'Equals',
-			['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
-			['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
-		],
-		abstractsql,
 	];
+
+	const pilotPilotCanFlyPlanePlaneLeftJoin = [
+		'LeftJoin',
+		['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+		[
+			'On',
+			[
+				'Equals',
+				['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
+				['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
+			],
+		],
+	];
+
 	const insertTest = (result) => {
 		expect(result)
 			.to.be.a.query.that.inserts.fields('name')
@@ -523,22 +537,6 @@ run(function () {
 								'From',
 								[
 									'Alias',
-									['Table', 'pilot-can fly-plane'],
-									'pilot.pilot-can fly-plane',
-								],
-							],
-							[
-								'From',
-								[
-									'Alias',
-									['Table', 'plane'],
-									'pilot.pilot-can fly-plane.plane',
-								],
-							],
-							[
-								'From',
-								[
-									'Alias',
 									[
 										'SelectQuery',
 										['Select', [['ReferencedField', '$insert', '*']]],
@@ -546,7 +544,9 @@ run(function () {
 									'pilot',
 								],
 							],
-							['Where', filterWhere],
+							pilotPilotCanFlyPlaneLeftJoin,
+							pilotPilotCanFlyPlanePlaneLeftJoin,
+							['Where', abstractsql],
 						],
 					],
 				],
@@ -560,19 +560,9 @@ run(function () {
 			'SelectQuery',
 			['Select', [['Alias', ['ReferencedField', 'pilot', 'id'], '$modifyid']]],
 			['From', ['Table', 'pilot']],
-			[
-				'From',
-				[
-					'Alias',
-					['Table', 'pilot-can fly-plane'],
-					'pilot.pilot-can fly-plane',
-				],
-			],
-			[
-				'From',
-				['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
-			],
-			['Where', filterWhere],
+			pilotPilotCanFlyPlaneLeftJoin,
+			pilotPilotCanFlyPlanePlaneLeftJoin,
+			['Where', abstractsql],
 		],
 	];
 
@@ -580,21 +570,26 @@ run(function () {
 		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
-				.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
-				.where([
-					'And',
+				.from('pilot')
+				.leftJoin(
 					[
-						'Equals',
-						['ReferencedField', 'pilot', 'id'],
-						['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+						['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
+						[
+							'Equals',
+							['ReferencedField', 'pilot', 'id'],
+							['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+						],
 					],
 					[
-						'Equals',
-						['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
-						['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
+						['plane', 'pilot.pilot-can fly-plane.plane'],
+						[
+							'Equals',
+							['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
+							['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
+						],
 					],
-					abstractsql,
-				]);
+				)
+				.where(abstractsql);
 		});
 	});
 
@@ -673,26 +668,26 @@ run(function () {
 						],
 						['From', ['Table', 'pilot']],
 						[
-							'From',
+							'LeftJoin',
 							[
 								'Alias',
 								['Table', 'pilot-can fly-plane'],
 								'pilot.pilot-can fly-plane',
 							],
-						],
-						[
-							'From',
-							['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
-						],
-						[
-							'Where',
 							[
-								'And',
+								'On',
 								[
 									'Equals',
 									['ReferencedField', 'pilot', 'id'],
 									['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
 								],
+							],
+						],
+						[
+							'LeftJoin',
+							['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+							[
+								'On',
 								[
 									'Equals',
 									[
@@ -702,9 +697,9 @@ run(function () {
 									],
 									['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
 								],
-								abstractsql,
 							],
 						],
+						['Where', abstractsql],
 					],
 				]);
 		});
@@ -928,7 +923,6 @@ run(function () {
 							[
 								'SelectQuery',
 								['Select', []],
-								['From', ['Alias', ['Table', 'licence'], 'pilot.licence']],
 								[
 									'From',
 									[
@@ -941,17 +935,18 @@ run(function () {
 									],
 								],
 								[
-									'Where',
+									'LeftJoin',
+									['Alias', ['Table', 'licence'], 'pilot.licence'],
 									[
-										'And',
+										'On',
 										[
 											'Equals',
 											['ReferencedField', 'pilot', 'licence'],
 											['ReferencedField', 'pilot.licence', 'id'],
 										],
-										abstractsql,
 									],
 								],
+								['Where', abstractsql],
 							],
 						],
 					],
@@ -1018,7 +1013,6 @@ run(function () {
 							[
 								'SelectQuery',
 								['Select', []],
-								['From', ['Alias', ['Table', 'licence'], 'pilot.licence']],
 								[
 									'From',
 									[
@@ -1031,17 +1025,18 @@ run(function () {
 									],
 								],
 								[
-									'Where',
+									'LeftJoin',
+									['Alias', ['Table', 'licence'], 'pilot.licence'],
 									[
-										'And',
+										'On',
 										[
 											'Equals',
 											['ReferencedField', 'pilot', 'licence'],
 											['ReferencedField', 'pilot.licence', 'id'],
 										],
-										abstractsql,
 									],
 								],
+								['Where', abstractsql],
 							],
 						],
 					],
@@ -1064,13 +1059,13 @@ run(() =>
 	operandTest(createMethodCall('substring', 'name', 1, 2), 'eq', "'et'"),
 );
 run(() => operandTest(createMethodCall('tolower', 'name'), 'eq', "'pete'"));
-run(() =>
+run(() => {
 	navigatedOperandTest(
 		createMethodCall('tolower', 'licence/name'),
 		'eq',
 		"'pete'",
-	),
-);
+	);
+});
 run(() => operandTest(createMethodCall('toupper', 'name'), 'eq', "'PETE'"));
 run(function () {
 	const concat = createMethodCall('concat', 'name', "'%20'");
@@ -1463,11 +1458,6 @@ const lambdaTest = function (methodName) {
 					['ReferencedField', 'pilot', 'id'],
 					['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
 				],
-				[
-					'Equals',
-					['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
-					['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
-				],
 			];
 			const filterWhere = getFilterWhereForBind(bindNumber);
 
@@ -1493,8 +1483,20 @@ const lambdaTest = function (methodName) {
 						],
 					],
 					[
-						'From',
+						'LeftJoin',
 						['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+						[
+							'On',
+							[
+								'Equals',
+								[
+									'ReferencedField',
+									'pilot.pilot-can fly-plane',
+									'can fly-plane',
+								],
+								['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
+							],
+						],
 					],
 					['Where', subWhere],
 				],
@@ -1659,16 +1661,6 @@ const lambdaTest = function (methodName) {
 			return innerWhere;
 		};
 
-		const where = [
-			'And',
-			[
-				'Equals',
-				['ReferencedField', 'pilot', 'id'],
-				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
-			],
-			getPlaneWhereForBind(0),
-		];
-
 		test(
 			'/pilot?$filter=can_fly__plane/plane/' +
 				methodName +
@@ -1677,11 +1669,21 @@ const lambdaTest = function (methodName) {
 				it('should select from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects(pilotFields)
-						.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+						.from('pilot')
+						.leftJoin([
+							['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
+							[
+								'Equals',
+								['ReferencedField', 'pilot', 'id'],
+								['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+							],
+						])
 						.where(where);
 				});
 			},
 		);
+
+		const where = getPlaneWhereForBind(0);
 
 		test(
 			'/pilot/$count?$filter=can_fly__plane/plane/' +
@@ -1691,27 +1693,39 @@ const lambdaTest = function (methodName) {
 				it('should select count(*) from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects($count)
-						.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+						.from('pilot')
+						.leftJoin([
+							['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
+							[
+								'Equals',
+								['ReferencedField', 'pilot', 'id'],
+								['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+							],
+						])
 						.where(where);
 				});
 			},
 		);
 
 		const twoPartWhere = [
-			'And',
-			[
-				'Equals',
-				['ReferencedField', 'pilot', 'id'],
-				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
-			],
-			['Or', getPlaneWhereForBind(0), getPlaneWhereForBind(1)],
+			'Or',
+			getPlaneWhereForBind(0),
+			getPlaneWhereForBind(1),
 		];
 
 		test(`/pilot?$filter=can_fly__plane/plane/${methodName}(d:d/name eq 'Concorde') or can_fly__plane/plane/${methodName}(d:d/name eq '747')`, (result) => {
 			it('should select from pilot where ...', () => {
 				expect(result)
 					.to.be.a.query.that.selects(pilotFields)
-					.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+					.from('pilot')
+					.leftJoin([
+						['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
+						[
+							'Equals',
+							['ReferencedField', 'pilot', 'id'],
+							['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+						],
+					])
 					.where(twoPartWhere);
 			});
 		});
@@ -1720,7 +1734,15 @@ const lambdaTest = function (methodName) {
 			it('should select count(*) from pilot where ...', () => {
 				expect(result)
 					.to.be.a.query.that.selects($count)
-					.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+					.from('pilot')
+					.leftJoin([
+						['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
+						[
+							'Equals',
+							['ReferencedField', 'pilot', 'id'],
+							['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+						],
+					])
 					.where(twoPartWhere);
 			});
 		});
@@ -1734,7 +1756,15 @@ const lambdaTest = function (methodName) {
 				it(`should select from pilot when filtering using a non-existing alias inside an ${methodName}`, () => {
 					expect(result)
 						.to.be.a.query.that.selects(pilotFields)
-						.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+						.from('pilot')
+						.leftJoin([
+							['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
+							[
+								'Equals',
+								['ReferencedField', 'pilot', 'id'],
+								['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+							],
+						])
 						.where(where);
 				});
 			},
@@ -1920,43 +1950,46 @@ run(function () {
 		it('should select from team where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(teamFields)
-				.from(
-					'team',
-					['pilot', 'team.includes-pilot'],
-					['pilot-can fly-plane', 'team.includes-pilot.pilot-can fly-plane'],
-					['plane', 'team.includes-pilot.pilot-can fly-plane.plane'],
+				.from('team')
+				.leftJoin(
+					[
+						['pilot', 'team.includes-pilot'],
+						[
+							'Equals',
+							['ReferencedField', 'team', 'favourite colour'],
+							['ReferencedField', 'team.includes-pilot', 'is on-team'],
+						],
+					],
+					[
+						['pilot-can fly-plane', 'team.includes-pilot.pilot-can fly-plane'],
+						[
+							'Equals',
+							['ReferencedField', 'team.includes-pilot', 'id'],
+							[
+								'ReferencedField',
+								'team.includes-pilot.pilot-can fly-plane',
+								'pilot',
+							],
+						],
+					],
+					[
+						['plane', 'team.includes-pilot.pilot-can fly-plane.plane'],
+						[
+							'Equals',
+							[
+								'ReferencedField',
+								'team.includes-pilot.pilot-can fly-plane',
+								'can fly-plane',
+							],
+							[
+								'ReferencedField',
+								'team.includes-pilot.pilot-can fly-plane.plane',
+								'id',
+							],
+						],
+					],
 				)
-				.where([
-					'And',
-					[
-						'Equals',
-						['ReferencedField', 'team', 'favourite colour'],
-						['ReferencedField', 'team.includes-pilot', 'is on-team'],
-					],
-					[
-						'Equals',
-						['ReferencedField', 'team.includes-pilot', 'id'],
-						[
-							'ReferencedField',
-							'team.includes-pilot.pilot-can fly-plane',
-							'pilot',
-						],
-					],
-					[
-						'Equals',
-						[
-							'ReferencedField',
-							'team.includes-pilot.pilot-can fly-plane',
-							'can fly-plane',
-						],
-						[
-							'ReferencedField',
-							'team.includes-pilot.pilot-can fly-plane.plane',
-							'id',
-						],
-					],
-					abstractsql,
-				]);
+				.where(abstractsql);
 		});
 	});
 });
