@@ -1206,11 +1206,6 @@ const lambdaTest = function (methodName) {
 				['ReferencedField', 'pilot', 'id'],
 				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
 			],
-			[
-				'Equals',
-				['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
-				['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
-			],
 		];
 		const filterWhere = [
 			'IsNotDistinctFrom',
@@ -1240,8 +1235,16 @@ const lambdaTest = function (methodName) {
 					],
 				],
 				[
-					'From',
+					'LeftJoin',
 					['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+					[
+						'On',
+						[
+							'Equals',
+							['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
+							['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
+						],
+					],
 				],
 				['Where', subWhere],
 			],

@@ -1348,7 +1348,7 @@ export class OData2AbstractSQL {
 			this.resourceAliases[lambda.identifier] = resource;
 
 			this.defaultResource = resource;
-			this.AddExtraFroms(query, resource, lambda.expression);
+			this.AddJoins(query, resource, lambda.expression, 'LeftJoin');
 			const filter = this.BooleanMatch(lambda.expression);
 			if (lambda.method === 'any') {
 				query.where.push(filter);
