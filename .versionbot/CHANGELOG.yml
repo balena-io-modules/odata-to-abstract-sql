@@ -1,4 +1,16 @@
 - commits:
+    - subject: "tests: Remove unnecessary returns & add curly braces"
+      hash: 9ad21e94dc29b333542caa92a1b465d89579e2ef
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 7.1.1
+  title: ""
+  date: 2025-03-18T13:55:56.178Z
+- commits:
     - subject: "feat: add `EqualsAny` as an operand type"
       hash: 4cbc758f569c544536e452c5006941301c7d481a
       body: |
@@ -1596,6 +1608,7 @@
                                                               hash: be8fc31c3754186dd4c43ca8d4c056b0def7ffbd
                                                               body: >
                                                                 
+                                                                
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1617,11 +1630,12 @@
                                                               hash: 46a369117c9d1222089498a8794c32d14edef85b
                                                               body: >
                                                                 
-                                                                As engine and
-                                                                npm is now required
-                                                                as part of
-                                                                package.json we can
-                                                                drop this dependency
+                                                                
+                                                                As engine and npm is
+                                                                now required as part
+                                                                of package.json we
+                                                                can drop this
+                                                                dependency
                                                               footer:
                                                                 Change-type: patch
                                                                 change-type: patch
@@ -1652,6 +1666,7 @@
                                                             - subject: Assert that JSON input typeof is object
                                                               hash: 1819ee97811e20da93c6e0f227db6a62ada8c00e
                                                               body: >
+                                                                
                                                                 
                                                                 Ensure that the
                                                                 input passed in for
@@ -1752,9 +1767,9 @@
                                                               hash: 19c2760ecf76b4097d7d3045c2eefbf74fd7c2da
                                                               body: >
                                                                 
-                                                                This also
-                                                                deprecates the
-                                                                legacy version
+                                                                
+                                                                This also deprecates
+                                                                the legacy version
                                                               footer:
                                                                 Change-type: minor
                                                                 change-type: minor
@@ -1780,10 +1795,11 @@
                                                               hash: 1c25d9b8d011791a9e98a5929ad48cdd9f3bab6b
                                                               body: >
                                                                 
-                                                                It can in fact
-                                                                be a lot of
-                                                                different things and
-                                                                that is now also
+                                                                
+                                                                It can in fact be a
+                                                                lot of different
+                                                                things and that is
+                                                                now also
 
                                                                 reflected in the
                                                                 typing
@@ -1808,11 +1824,11 @@
                                                               hash: 6fcb2c4257f9fc50f6b4b1070dec86ace9f71237
                                                               body: >
                                                                 
-                                                                We know what
-                                                                type they return and
-                                                                they should be
-                                                                explicitly accepted
-                                                                as
+                                                                
+                                                                We know what type
+                                                                they return and they
+                                                                should be explicitly
+                                                                accepted as
 
                                                                 those types instead
                                                                 where it is valid to
@@ -1841,6 +1857,7 @@
                                                             - subject: Update dependencies
                                                               hash: 39058b2dacac51da96158d594b2d72e3238d0cbc
                                                               body: >
+                                                                
                                                                 
                                                                 Update
                                                                 @balena/sbvr-types
@@ -1986,10 +2003,11 @@
                                                               hash: d589fb6cd92a3a7570e3b2ebea14acbb84807d8a
                                                               body: >
                                                                 
-                                                                This also
-                                                                deprecates the
-                                                                legacy use of direct
-                                                                true/false entries
+                                                                
+                                                                This also deprecates
+                                                                the legacy use of
+                                                                direct true/false
+                                                                entries
                                                               footer:
                                                                 Change-type: minor
                                                                 change-type: minor
