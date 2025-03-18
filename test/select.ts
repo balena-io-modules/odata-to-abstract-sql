@@ -18,9 +18,13 @@ test('/pilot?$select=name', (result) => {
 });
 
 test('/pilot?$select=p/name', (result) => {
-	// TODO: This should fail
-	it('should select name from pilot using a non-existing alias', () => {
-		expect(result).to.be.a.query.that.selects([pilotName]).from('pilot');
+	it('should fait to select name from pilot using a non-existing alias', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'p'`,
+			);
 	});
 });
 
@@ -84,34 +88,24 @@ test('/pilot?$select=was_trained_by__pilot/name', (result) => {
 });
 
 test('/pilot?$select=p/was_trained_by__pilot/name', (result) => {
-	// TODO: This should fail
-	it('generates invalid select name from pilot query when using a non-existing alias', () => {
+	it('should fail to select name from pilot query when using a non-existing alias', () => {
 		expect(result)
-			.to.be.a.query.that.selects(
-				aliasFields('pilot', [pilotName], 'was trained by'),
-			)
-			.from('pilot')
-			.where();
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'p'`,
+			);
 	});
 });
 
 test('/pilot?$select=was_trained_by__pilot/p/name', (result) => {
-	// TODO: This should fail
-	it('should select name from pilot when using an invalid path', () => {
+	it('should fail to select name from pilot when using an invalid path', () => {
 		expect(result)
-			.to.be.a.query.that.selects(
-				aliasFields('pilot', [pilotName], 'was trained by'),
-			)
-			.from('pilot')
-			.leftJoin([
-				['pilot', 'pilot.was trained by-pilot'],
-				[
-					'Equals',
-					['ReferencedField', 'pilot', 'was trained by-pilot'],
-					['ReferencedField', 'pilot.was trained by-pilot', 'id'],
-				],
-			])
-			.where();
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'p'`,
+			);
 	});
 });
 

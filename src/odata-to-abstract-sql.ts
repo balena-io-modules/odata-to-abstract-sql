@@ -1721,45 +1721,43 @@ export class OData2AbstractSQL {
 		// This can be any node that odata-parser returns
 		match: (PropertyPath | MethodCall[1]) | Array<PropertyPath | MethodCall[1]>,
 	) {
-		// TODO: try removing
-		try {
-			if (Array.isArray(match)) {
-				match.forEach((v) => {
-					this.AddJoins(query, parentResource, v);
-				});
-			} else {
-				let nextProp = match;
-				let prop;
-				while (
-					// tslint:disable-next-line:no-conditional-assignment
-					(prop = nextProp) &&
-					// Confirm that prop is indeed a GenericPropertyPath<PropertyPath>
-					'name' in prop &&
-					prop.name &&
-					prop.property?.name
-				) {
-					nextProp = prop.property;
-					const resourceAlias = this.resourceAliases[prop.name];
-					if (resourceAlias) {
-						parentResource = resourceAlias;
-					} else {
-						parentResource = this.AddJoinNavigation(
-							query,
-							parentResource,
-							prop.name,
-							prop.key,
-						);
-					}
-				}
-				if (nextProp != null && 'args' in nextProp && nextProp.args != null) {
-					this.AddJoins(query, parentResource, nextProp.args);
+		if (Array.isArray(match)) {
+			match.forEach((v) => {
+				this.AddJoins(query, parentResource, v);
+			});
+		} else {
+			let nextProp = match;
+			let prop;
+			while (
+				// tslint:disable-next-line:no-conditional-assignment
+				(prop = nextProp) &&
+				// Confirm that prop is indeed a GenericPropertyPath<PropertyPath>
+				typeof prop === 'object' &&
+				'name' in prop &&
+				prop.name &&
+				prop.property?.name
+			) {
+				nextProp = prop.property;
+				const resourceAlias = this.resourceAliases[prop.name];
+				if (resourceAlias) {
+					parentResource = resourceAlias;
+				} else {
+					parentResource = this.AddJoinNavigation(
+						query,
+						parentResource,
+						prop.name,
+						prop.key,
+					);
 				}
 			}
-		} catch (e) {
-			if (e instanceof KeySyntaxError) {
-				throw e;
+			if (
+				nextProp != null &&
+				typeof nextProp === 'object' &&
+				'args' in nextProp &&
+				nextProp.args != null
+			) {
+				this.AddJoins(query, parentResource, nextProp.args);
 			}
-			// ignore
 		}
 	}
 	AddJoinNavigation(
@@ -1796,23 +1794,24 @@ export class OData2AbstractSQL {
 					existingFrom[2] === navigation.resource.tableAlias)
 			);
 		});
-		if (existingJoin != null) {
-			const existingJoinPredicate = existingJoin[2]?.[1];
-			if (!_.isEqual(navigation.where, existingJoinPredicate)) {
-				// When we reach this point we have found an already existing JOIN with the
-				// same alias as the one we just created but different ON predicate.
-				// TODO: In this case we need to be able to generate a new alias for the newly JOINed resource.
-				// Since we atm do not support that we throw early, since otherwise the generated query would be invalid.
-				throw new KeySyntaxError(
-					`Adding JOINs on the same resource with different ON clauses is not supported. Found ${navigation.resource.tableAlias}`,
-				);
-			}
 
-			throw new SyntaxError(
-				`Could not navigate resources '${resource.name}' and '${extraResource}'`,
+		if (existingJoin == null) {
+			query.joinResource(this, navigation.resource, navigation.where);
+		} else if (
+			!_.isEqual(
+				navigation.where,
+				// existingJoinPredicate
+				existingJoin[2]?.[1],
+			)
+		) {
+			// When we reach this point we have found an already existing JOIN with the
+			// same alias as the one we just created but different ON predicate.
+			// TODO: In this case we need to be able to generate a new alias for the newly JOINed resource.
+			// Since we atm do not support that we throw early, since otherwise the generated query would be invalid.
+			throw new KeySyntaxError(
+				`Adding JOINs on the same resource with different ON clauses is not supported. Found ${navigation.resource.tableAlias}`,
 			);
 		}
-		query.joinResource(this, navigation.resource, navigation.where);
 		return navigation.resource;
 	}
 	AddNavigation(
@@ -1828,14 +1827,11 @@ export class OData2AbstractSQL {
 					(isAliasNode(from) && from[2] === navigation.resource.tableAlias),
 			)
 		) {
+			// Add a FROM for the extraResource only if there isn't already one
 			query.fromResource(this, navigation.resource);
 			query.where.push(navigation.where);
-			return navigation.resource;
-		} else {
-			throw new SyntaxError(
-				`Could not navigate resources '${resource.name}' and '${extraResource}'`,
-			);
 		}
+		return navigation.resource;
 	}
 
 	reset() {
