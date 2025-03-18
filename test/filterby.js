@@ -128,23 +128,23 @@ const createMethodCall = function (method, ...args) {
 const operandTest = (lhs, op, rhs) =>
 	run(function () {
 		const { odata, abstractsql } = createExpression(lhs, op, rhs);
-		test('/pilot?$filter=' + odata, (result) =>
+		test('/pilot?$filter=' + odata, (result) => {
 			it('should select from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects(pilotFields)
 					.from('pilot')
 					.where(abstractsql);
-			}),
-		);
+			});
+		});
 
-		return test('/pilot/$count?$filter=' + odata, (result) =>
+		test('/pilot/$count?$filter=' + odata, (result) => {
 			it('should count(*) from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects($count)
 					.from('pilot')
 					.where(abstractsql);
-			}),
-		);
+			});
+		});
 	});
 
 test('/pilot?$filter=name in (null)', (result) => {
@@ -179,7 +179,7 @@ test(`/pilot?$filter=name eq 'test' or name in (null, 1) or name in (null) or st
 const navigatedOperandTest = (lhs, op, rhs) =>
 	run(function () {
 		const { odata, abstractsql } = createExpression(lhs, op, rhs);
-		test('/pilot?$filter=' + odata, (result) =>
+		test('/pilot?$filter=' + odata, (result) => {
 			it('should select from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects(pilotFields)
@@ -193,9 +193,9 @@ const navigatedOperandTest = (lhs, op, rhs) =>
 						],
 						abstractsql,
 					]);
-			}),
-		);
-		return test('/pilot/$count?$filter=' + odata, (result) =>
+			});
+		});
+		test('/pilot/$count?$filter=' + odata, (result) => {
 			it('should count(*) from pilot where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.selects($count)
@@ -209,8 +209,8 @@ const navigatedOperandTest = (lhs, op, rhs) =>
 						],
 						abstractsql,
 					]);
-			}),
-		);
+			});
+		});
 	});
 
 const methodTest = (...args) =>
@@ -243,9 +243,7 @@ operandTest('name', 'in', '(1,2)');
 		// null is quoted as otherwise we hit issues with coffeescript defaulting values
 		'null',
 	];
-	return operands.map((lhs) =>
-		operands.map((rhs) => operandTest(lhs, 'eq', rhs)),
-	);
+	operands.map((lhs) => operands.map((rhs) => operandTest(lhs, 'eq', rhs)));
 })();
 
 (function () {
@@ -255,15 +253,15 @@ operandTest('name', 'in', '(1,2)');
 	operandTest(left, 'or', right);
 	operandTest('is_experienced');
 	operandTest('not', 'is_experienced');
-	return operandTest('not', left);
+	operandTest('not', left);
 })();
 
 (function () {
 	const mathOps = ['add', 'sub', 'mul', 'div'];
-	return mathOps.map((mathOp) =>
+	mathOps.map((mathOp) =>
 		run(function () {
 			const mathOpOdata = createExpression('age', mathOp, 2);
-			return operandTest(mathOpOdata, 'gt', 10);
+			operandTest(mathOpOdata, 'gt', 10);
 		}),
 	);
 })();
@@ -272,14 +270,14 @@ run(function () {
 	const odata = operandToOData(true);
 	const abstractsql = operandToAbstractSQL(true);
 
-	return test('/pilot?$filter=' + odata, (result) =>
+	test('/pilot?$filter=' + odata, (result) => {
 		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
 				.from('pilot')
 				.where(abstractsql);
-		}),
-	);
+		});
+	});
 });
 
 run(function () {
@@ -288,7 +286,7 @@ run(function () {
 		'eq',
 		10,
 	);
-	return test('/pilot?$filter=' + odata, (result) =>
+	test('/pilot?$filter=' + odata, (result) => {
 		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
@@ -302,13 +300,13 @@ run(function () {
 					],
 					abstractsql,
 				]);
-		}),
-	);
+		});
+	});
 });
 
 run(function () {
 	const { odata } = createExpression('created_at', 'gt', new Date());
-	return test('/pilot?$filter=' + odata, (result) =>
+	test('/pilot?$filter=' + odata, (result) => {
 		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
@@ -321,13 +319,13 @@ run(function () {
 					],
 					['Bind', 0],
 				]);
-		}),
-	);
+		});
+	});
 });
 
 run(function () {
 	const { odata } = createExpression('created_at', 'gt', new Date());
-	return test('/pilot(1)/licence?$filter=' + odata, (result) =>
+	test('/pilot(1)/licence?$filter=' + odata, (result) => {
 		it('should select from the licence of pilot with id and created_at greaterThan', () => {
 			expect(result)
 				.to.be.a.query.that.selects(aliasFields('pilot', licenceFields))
@@ -354,8 +352,8 @@ run(function () {
 						['Bind', 0],
 					],
 				]);
-		}),
-	);
+		});
+	});
 });
 
 run([['Number', 1]], function () {
@@ -364,7 +362,7 @@ run([['Number', 1]], function () {
 		'eq',
 		10,
 	);
-	return test('/pilot(1)/can_fly__plane?$filter=' + odata, (result) => {
+	test('/pilot(1)/can_fly__plane?$filter=' + odata, (result) => {
 		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(
@@ -524,7 +522,7 @@ run(function () {
 		],
 	];
 
-	test('/pilot?$filter=' + odata, (result) =>
+	test('/pilot?$filter=' + odata, (result) => {
 		it('should select from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(pilotFields)
@@ -543,26 +541,26 @@ run(function () {
 					],
 					abstractsql,
 				]);
-		}),
-	);
+		});
+	});
 
-	test(`/pilot?$filter=${odata}`, 'PATCH', { name: 'Peter' }, (result) =>
+	test(`/pilot?$filter=${odata}`, 'PATCH', { name: 'Peter' }, (result) => {
 		it('should update pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.updates.fields('name')
 				.values(['Bind', 'pilot', 'name'])
 				.from('pilot')
 				.where(updateWhere);
-		}),
-	);
+		});
+	});
 
-	test(`/pilot?$filter=${odata}`, 'POST', { name: 'Peter' }, (result) =>
+	test(`/pilot?$filter=${odata}`, 'POST', { name: 'Peter' }, (result) => {
 		it(`should insert pilot where '${odata}'`, () => {
 			insertTest(result);
-		}),
-	);
+		});
+	});
 
-	test(`/pilot?$filter=${odata}`, 'PUT', { name: 'Peter' }, (result) =>
+	test(`/pilot?$filter=${odata}`, 'PUT', { name: 'Peter' }, (result) => {
 		describe(`should select from pilot where '${odata}'`, function () {
 			it('should be an upsert', () => {
 				expect(result).to.be.a.query.that.upserts;
@@ -603,10 +601,10 @@ run(function () {
 					.from('pilot')
 					.where(updateWhere);
 			});
-		}),
-	);
+		});
+	});
 
-	test('/pilot?$filter=' + odata, 'DELETE', (result) =>
+	test('/pilot?$filter=' + odata, 'DELETE', (result) => {
 		it('should delete from pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.deletes.from('pilot')
@@ -655,8 +653,8 @@ run(function () {
 						],
 					],
 				]);
-		}),
-	);
+		});
+	});
 });
 
 run([['Number', 1]], function () {
@@ -763,26 +761,27 @@ run([['Number', 1]], function () {
 		],
 	];
 
-	test('/pilot(1)?$filter=' + odata, 'POST', { name }, (result) =>
+	test('/pilot(1)?$filter=' + odata, 'POST', { name }, (result) => {
 		it('should insert into pilot where "' + odata + '"', () => {
 			insertTest(result);
-		}),
-	);
+		});
+	});
 
-	test('/pilot(1)?$filter=' + odata, 'PATCH', { name }, (result) =>
+	test('/pilot(1)?$filter=' + odata, 'PATCH', { name }, (result) => {
 		it('should update the pilot with id 1', () => {
 			expect(result)
 				.to.be.a.query.that.updates.fields('name')
 				.values(['Bind', 'pilot', 'name'])
 				.from('pilot')
 				.where(updateWhere);
-		}),
-	);
+		});
+	});
 
-	test('/pilot(1)?$filter=' + odata, 'PUT', { name }, (result) =>
+	test('/pilot(1)?$filter=' + odata, 'PUT', { name }, (result) => {
 		describe('should upsert the pilot with id 1', function () {
-			it('should be an upsert', () =>
-				expect(result).to.be.a.query.that.upserts);
+			it('should be an upsert', () => {
+				expect(result).to.be.a.query.that.upserts;
+			});
 			it('that inserts', () => {
 				insertTest(result[1]);
 			});
@@ -819,14 +818,14 @@ run([['Number', 1]], function () {
 					.from('pilot')
 					.where(updateWhere);
 			});
-		}),
-	);
+		});
+	});
 });
 
 run(function () {
 	const licence = 1;
 	const { odata, abstractsql } = createExpression('licence/id', 'eq', licence);
-	return test('/pilot?$filter=' + odata, 'POST', { licence }, (result) =>
+	test('/pilot?$filter=' + odata, 'POST', { licence }, (result) => {
 		it('should insert into pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.inserts.fields('licence')
@@ -904,8 +903,8 @@ run(function () {
 					],
 				)
 				.from('pilot');
-		}),
-	);
+		});
+	});
 });
 
 run(function () {
@@ -916,7 +915,7 @@ run(function () {
 		'eq',
 		`'${name}'`,
 	);
-	test(`/pilot?$filter=${odata}`, 'POST', { licence }, (result) =>
+	test(`/pilot?$filter=${odata}`, 'POST', { licence }, (result) => {
 		it('should insert into pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.inserts.fields('licence')
@@ -994,8 +993,8 @@ run(function () {
 					],
 				)
 				.from('pilot');
-		}),
-	);
+		});
+	});
 });
 
 methodTest('contains', 'name', "'et'");
@@ -1257,30 +1256,32 @@ const lambdaTest = function (methodName) {
 			'/pilot?$filter=can_fly__plane/' +
 				methodName +
 				"(d:d/plane/name eq 'Concorde')",
-			(result) =>
+			(result) => {
 				it('should select from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects(pilotFields)
 						.from('pilot')
 						.where(where);
-				}),
+				});
+			},
 		);
 
-		return test(
+		test(
 			'/pilot/$count?$filter=can_fly__plane/' +
 				methodName +
 				"(d:d/plane/name eq 'Concorde')",
-			(result) =>
+			(result) => {
 				it('should select count(*) from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects($count)
 						.from('pilot')
 						.where(where);
-				}),
+				});
+			},
 		);
 	});
 
-	return run(function () {
+	run(function () {
 		const subWhere = [
 			'And',
 			[
@@ -1336,26 +1337,28 @@ const lambdaTest = function (methodName) {
 			'/pilot?$filter=can_fly__plane/plane/' +
 				methodName +
 				"(d:d/name eq 'Concorde')",
-			(result) =>
+			(result) => {
 				it('should select from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects(pilotFields)
 						.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
 						.where(where);
-				}),
+				});
+			},
 		);
 
-		return test(
+		test(
 			'/pilot/$count?$filter=can_fly__plane/plane/' +
 				methodName +
 				"(d:d/name eq 'Concorde')",
-			(result) =>
+			(result) => {
 				it('should select count(*) from pilot where ...', () => {
 					expect(result)
 						.to.be.a.query.that.selects($count)
 						.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
 						.where(where);
-				}),
+				});
+			},
 		);
 	});
 };
@@ -1376,11 +1379,11 @@ run(function () {
 		'eq',
 		`'${favouriteColour}'`,
 	);
-	return test(
+	test(
 		'/team?$filter=' + odata,
 		'POST',
 		{ favourite_colour: favouriteColour },
-		(result) =>
+		(result) => {
 			it('should insert into team where "' + odata + '"', () => {
 				expect(result)
 					.to.be.a.query.that.inserts.fields('favourite colour')
@@ -1433,7 +1436,8 @@ run(function () {
 						],
 					)
 					.from('team');
-			}),
+			});
+		},
 	);
 });
 
@@ -1444,7 +1448,7 @@ run(function () {
 		'eq',
 		`'${planeName}'`,
 	);
-	return test('/team?$filter=' + odata, (result) =>
+	test('/team?$filter=' + odata, (result) => {
 		it('should select from team where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.selects(teamFields)
@@ -1485,11 +1489,11 @@ run(function () {
 					],
 					abstractsql,
 				]);
-		}),
-	);
+		});
+	});
 });
 
-test(`/copilot?$select=id,rank&$filter=rank eq 'major'`, (result) =>
+test(`/copilot?$select=id,rank&$filter=rank eq 'major'`, (result) => {
 	it(`should get and filter copilot on computed field rank`, () => {
 		expect(result).to.be.a.query.to.deep.equal([
 			'SelectQuery',
@@ -1528,13 +1532,14 @@ test(`/copilot?$select=id,rank&$filter=rank eq 'major'`, (result) =>
 				],
 			],
 		]);
-	}));
+	});
+});
 
 test(
 	`/copilot?$select=id,rank&$filter=rank eq 'major'`,
 	'PATCH',
 	{ assists__pilot: 1 },
-	(result) =>
+	(result) => {
 		it(`should PATCH copilot based on filtered computed field rank`, () => {
 			expect(result).to.be.a.query.to.deep.equal([
 				'UpdateQuery',
@@ -1585,14 +1590,15 @@ test(
 				['Fields', ['assists-pilot']],
 				['Values', [['Bind', 'copilot', 'assists__pilot']]],
 			]);
-		}),
+		});
+	},
 );
 
 test(
 	`/copilot?$select=id,rank&$filter=rank eq 'major'`,
 	'DELETE',
 	{ assists__pilot: 1 },
-	(result) =>
+	(result) => {
 		it(`should DELETE copilot based on filtered computed field rank`, () => {
 			expect(result).to.be.a.query.to.deep.equal([
 				'DeleteQuery',
@@ -1641,5 +1647,6 @@ test(
 					],
 				],
 			]);
-		}),
+		});
+	},
 );
