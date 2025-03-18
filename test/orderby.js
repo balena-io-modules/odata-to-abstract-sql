@@ -47,6 +47,16 @@ test('/pilot?$orderby=name asc', (result) => {
 	});
 });
 
+test('/pilot?$orderby=p/name asc', (result) => {
+	// TODO: This should fail
+	it('should order by name asc using a non-existing alias', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot')
+			.orderby(['ASC', operandToAbstractSQL('name')]);
+	});
+});
+
 test('/pilot?$orderby=name asc,age desc', (result) => {
 	it('should order by name desc, age desc', () => {
 		expect(result)
