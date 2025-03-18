@@ -918,7 +918,7 @@ export class OData2AbstractSQL {
 		throw new SyntaxError(`Could not match bind reference`);
 	}
 	SelectFilter(filter: FilterOption, query: Query, resource: Resource) {
-		this.AddExtraFroms(query, resource, filter);
+		this.AddJoins(query, resource, filter, 'LeftJoin');
 		const where = this.BooleanMatch(filter);
 		query.where.push(where);
 	}
@@ -1705,42 +1705,6 @@ export class OData2AbstractSQL {
 			],
 		};
 	}
-	AddExtraFroms(query: Query, parentResource: Resource, match: any) {
-		// TODO: try removing
-		try {
-			if (Array.isArray(match)) {
-				match.forEach((v) => {
-					this.AddExtraFroms(query, parentResource, v);
-				});
-			} else {
-				let nextProp = match;
-				let prop;
-				while (
-					// tslint:disable-next-line:no-conditional-assignment
-					(prop = nextProp) &&
-					prop.name &&
-					prop.property?.name
-				) {
-					nextProp = prop.property;
-					const resourceAlias = this.resourceAliases[prop.name];
-					if (resourceAlias) {
-						parentResource = resourceAlias;
-					} else {
-						parentResource = this.AddNavigation(
-							query,
-							parentResource,
-							prop.name,
-						);
-					}
-				}
-				if (nextProp?.args) {
-					this.AddExtraFroms(query, parentResource, prop.args);
-				}
-			}
-		} catch {
-			// ignore
-		}
-	}
 	AddNavigation(
 		query: Query,
 		resource: Resource,
@@ -1796,6 +1760,15 @@ export class OData2AbstractSQL {
 						joinType,
 					);
 				}
+			}
+			const maybeMethodCallProp = nextProp as { args?: any[] } | undefined;
+			if (maybeMethodCallProp?.args != null) {
+				this.AddJoins(
+					query,
+					parentResource,
+					maybeMethodCallProp.args,
+					'LeftJoin',
+				);
 			}
 		}
 	}
