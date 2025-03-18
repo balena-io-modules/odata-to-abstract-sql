@@ -111,66 +111,78 @@ const aggregateJSON = {
 	},
 };
 
-test('/pilot?$expand=licence', (result) =>
-	it('should select from pilot.*, licence.*', () =>
+test('/pilot?$expand=licence', (result) => {
+	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSON.licence].concat(_.reject(pilotFields, { 2: 'licence' })),
 			)
-			.from('pilot')));
+			.from('pilot');
+	});
+});
 
-let nestedExpandTest = (result) =>
-	it('should select from pilot ..., (select ... FROM ...)', () =>
+let nestedExpandTest = (result) => {
+	it('should select from pilot ..., (select ... FROM ...)', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSON.pilotCanFlyPlane.plane].concat(pilotFields),
 			)
-			.from('pilot'));
+			.from('pilot');
+	});
+};
 test('/pilot?$expand=can_fly__plane/plane', nestedExpandTest);
 test('/pilot?$expand=can_fly__plane($expand=plane)', nestedExpandTest);
 
-nestedExpandTest = (result) =>
-	it('should select from pilot.*, plane.*, licence.*', () =>
+nestedExpandTest = (result) => {
+	it('should select from pilot.*, plane.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSON.pilotCanFlyPlane.plane, aggregateJSON.licence].concat(
 					_.reject(pilotFields, { 2: 'licence' }),
 				),
 			)
-			.from('pilot'));
+			.from('pilot');
+	});
+};
 test('/pilot?$expand=can_fly__plane/plane,licence', nestedExpandTest);
 test('/pilot?$expand=can_fly__plane($expand=plane),licence', nestedExpandTest);
 
-test('/pilot?$select=licence&$expand=licence', (result) =>
-	it('should select just the expanded licence from pilots', () =>
+test('/pilot?$select=licence&$expand=licence', (result) => {
+	it('should select just the expanded licence from pilots', () => {
 		expect(result)
 			.to.be.a.query.that.selects([aggregateJSON.licence])
-			.from('pilot')));
+			.from('pilot');
+	});
+});
 
-nestedExpandTest = (result) =>
-	it('should only select the id and expanded field from pilot', () =>
+nestedExpandTest = (result) => {
+	it('should only select the id and expanded field from pilot', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSON.pilotCanFlyPlane.plane].concat(
 					_.filter(pilotFields, { 2: 'id' }),
 				),
 			)
-			.from('pilot'));
+			.from('pilot');
+	});
+};
 test('/pilot?$select=id&$expand=can_fly__plane/plane', nestedExpandTest);
 test(
 	'/pilot?$select=id&$expand=can_fly__plane($expand=plane)',
 	nestedExpandTest,
 );
 
-nestedExpandTest = (result) =>
-	it('should only select id and the expanded fields', () =>
+nestedExpandTest = (result) => {
+	it('should only select id and the expanded fields', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSON.pilotCanFlyPlane.plane, aggregateJSON.licence].concat(
 					_.filter(pilotFields, { 2: 'id' }),
 				),
 			)
-			.from('pilot'));
+			.from('pilot');
+	});
+};
 test(
 	'/pilot?$select=id,licence&$expand=can_fly__plane/plane,licence',
 	nestedExpandTest,
@@ -180,8 +192,8 @@ test(
 	nestedExpandTest,
 );
 
-test('/pilot?$expand=can_fly__plane($select=id)', (result) =>
-	it('should only select id and the expanded fields', () =>
+test('/pilot?$expand=can_fly__plane($select=id)', (result) => {
+	it('should only select id and the expanded fields', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[
@@ -194,7 +206,9 @@ test('/pilot?$expand=can_fly__plane($select=id)', (result) =>
 					}),
 				].concat(pilotFields),
 			)
-			.from('pilot')));
+			.from('pilot');
+	});
+});
 
 test('/pilot?$expand=licence($filter=id eq 1)', function (result) {
 	const agg = _.cloneDeep(aggregateJSON.licence);
@@ -219,13 +233,14 @@ test('/pilot?$expand=licence($filter=id eq 1)', function (result) {
 			);
 		})
 		.value();
-	it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
 				..._.reject(pilotFields, { 2: 'licence' }),
 			])
-			.from('pilot'));
+			.from('pilot');
+	});
 });
 
 test('/pilot?$expand=licence($filter=is_of__pilot/id eq 1)', function (result) {
@@ -262,13 +277,14 @@ test('/pilot?$expand=licence($filter=is_of__pilot/id eq 1)', function (result) {
 			);
 		})
 		.value();
-	it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
 				..._.reject(pilotFields, { 2: 'licence' }),
 			])
-			.from('pilot'));
+			.from('pilot');
+	});
 });
 
 test('/pilot?$expand=licence($orderby=id)', function (result) {
@@ -281,13 +297,14 @@ test('/pilot?$expand=licence($orderby=id)', function (result) {
 		.find({ 0: 'SelectQuery' })
 		.value()
 		.push(['OrderBy', ['DESC', ['ReferencedField', 'pilot.licence', 'id']]]);
-	it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
 				..._.reject(pilotFields, { 2: 'licence' }),
 			])
-			.from('pilot'));
+			.from('pilot');
+	});
 });
 
 test('/pilot?$expand=licence($top=10)', function (result) {
@@ -300,13 +317,14 @@ test('/pilot?$expand=licence($top=10)', function (result) {
 		.find({ 0: 'SelectQuery' })
 		.value()
 		.push(['Limit', ['Bind', 0]]);
-	it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
 				..._.reject(pilotFields, { 2: 'licence' }),
 			])
-			.from('pilot'));
+			.from('pilot');
+	});
 });
 
 test('/pilot?$expand=licence($skip=10)', function (result) {
@@ -319,13 +337,14 @@ test('/pilot?$expand=licence($skip=10)', function (result) {
 		.find({ 0: 'SelectQuery' })
 		.value()
 		.push(['Offset', ['Bind', 0]]);
-	it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
 				..._.reject(pilotFields, { 2: 'licence' }),
 			])
-			.from('pilot'));
+			.from('pilot');
+	});
 });
 
 test('/pilot?$expand=licence($select=id)', function (result) {
@@ -340,22 +359,25 @@ test('/pilot?$expand=licence($select=id)', function (result) {
 		.value();
 	select[1] = _.filter(select[1], { 2: 'id' });
 
-	it('should select from pilot.*, licence.*', () =>
+	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
 				..._.reject(pilotFields, { 2: 'licence' }),
 			])
-			.from('pilot'));
+			.from('pilot');
+	});
 });
 
-test('/pilot?$expand=trained__pilot', (result) =>
-	it('should select from pilot.*, aggregated pilot.*', () =>
+test('/pilot?$expand=trained__pilot', (result) => {
+	it('should select from pilot.*, aggregated pilot.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSON.pilot].concat(_.reject(pilotFields, { 2: 'pilot' })),
 			)
-			.from('pilot')));
+			.from('pilot');
+	});
+});
 
 // Tests for /$count
 const aggregateJSONCount = {
@@ -389,18 +411,20 @@ const aggregateJSONCount = {
 	},
 };
 
-test('/pilot?$expand=licence/$count', (result) =>
-	it('should select from pilot.*, count(*) licence', () =>
+test('/pilot?$expand=licence/$count', (result) => {
+	it('should select from pilot.*, count(*) licence', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
 					_.reject(pilotFields, { 2: 'licence' }),
 				),
 			)
-			.from('pilot')));
+			.from('pilot');
+	});
+});
 
-test('/pilot?$filter=id eq 5&$expand=licence/$count', (result) =>
-	it('should select from pilot.*, count(*) licence, for pilot/id eq 5', () =>
+test('/pilot?$filter=id eq 5&$expand=licence/$count', (result) => {
+	it('should select from pilot.*, count(*) licence, for pilot/id eq 5', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
@@ -412,10 +436,12 @@ test('/pilot?$filter=id eq 5&$expand=licence/$count', (result) =>
 				'IsNotDistinctFrom',
 				['ReferencedField', 'pilot', 'id'],
 				['Bind', 0],
-			])));
+			]);
+	});
+});
 
-test('/pilot?$orderby=id asc&$expand=licence/$count', (result) =>
-	it('should select from pilot.*, count(*) licence, ordered by pilot id', () =>
+test('/pilot?$orderby=id asc&$expand=licence/$count', (result) => {
+	it('should select from pilot.*, count(*) licence, ordered by pilot id', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
@@ -423,7 +449,9 @@ test('/pilot?$orderby=id asc&$expand=licence/$count', (result) =>
 				),
 			)
 			.from('pilot')
-			.orderby(['ASC', operandToAbstractSQL('id')])));
+			.orderby(['ASC', operandToAbstractSQL('id')]);
+	});
+});
 
 test('/pilot?$expand=licence/$count($filter=id gt 5)', function (result) {
 	const agg = _.cloneDeep(aggregateJSONCount.licence);
@@ -448,44 +476,51 @@ test('/pilot?$expand=licence/$count($filter=id gt 5)', function (result) {
 			);
 		})
 		.value();
-	it('should select from pilot.*, count(*) licence for id gt 5', () =>
+	it('should select from pilot.*, count(*) licence for id gt 5', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
 				..._.reject(pilotFields, { 2: 'licence' }),
 			])
-			.from('pilot'));
+			.from('pilot');
+	});
 });
 
-test('/pilot?$expand=licence/$count($orderby=id asc)', (result) =>
-	it('should select from pilot.*, count(*) and ignore orderby', () =>
+test('/pilot?$expand=licence/$count($orderby=id asc)', (result) => {
+	it('should select from pilot.*, count(*) and ignore orderby', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
 					_.reject(pilotFields, { 2: 'licence' }),
 				),
 			)
-			.from('pilot')));
+			.from('pilot');
+	});
+});
 
-test('/pilot?$expand=licence/$count($skip=5)', (result) =>
-	it('should select from pilot.*, count(*) and ignore skip', () =>
+test('/pilot?$expand=licence/$count($skip=5)', (result) => {
+	it('should select from pilot.*, count(*) and ignore skip', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
 					_.reject(pilotFields, { 2: 'licence' }),
 				),
 			)
-			.from('pilot')));
+			.from('pilot');
+	});
+});
 
-test('/pilot?$expand=licence/$count($top=5)', (result) =>
-	it('should select from pilot.*, count(*) and ignore top', () =>
+test('/pilot?$expand=licence/$count($top=5)', (result) => {
+	it('should select from pilot.*, count(*) and ignore top', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
 					_.reject(pilotFields, { 2: 'licence' }),
 				),
 			)
-			.from('pilot')));
+			.from('pilot');
+	});
+});
 
 // Alias tests
 (function () {
@@ -531,12 +566,13 @@ test('/pilot?$expand=licence/$count($top=5)', (result) =>
 				fields: aliasedFields,
 			});
 		};
-		it('should select from pilot.*, aggregated pilot', () =>
+		it('should select from pilot.*, aggregated pilot', () => {
 			expect(result)
 				.to.be.a.query.that.selects([
 					recurse(recursions, 'pilot'),
 					...remainingPilotFields,
 				])
-				.from('pilot'));
+				.from('pilot');
+		});
 	});
 })();
