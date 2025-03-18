@@ -1668,39 +1668,30 @@ export class OData2AbstractSQL {
 		};
 	}
 	AddExtraFroms(query: Query, parentResource: Resource, match: any) {
-		// TODO: try removing
-		try {
-			if (Array.isArray(match)) {
-				match.forEach((v) => {
-					this.AddExtraFroms(query, parentResource, v);
-				});
-			} else {
-				let nextProp = match;
-				let prop;
-				while (
-					// tslint:disable-next-line:no-conditional-assignment
-					(prop = nextProp) &&
-					prop.name &&
-					prop.property?.name
-				) {
-					nextProp = prop.property;
-					const resourceAlias = this.resourceAliases[prop.name];
-					if (resourceAlias) {
-						parentResource = resourceAlias;
-					} else {
-						parentResource = this.AddNavigation(
-							query,
-							parentResource,
-							prop.name,
-						);
-					}
-				}
-				if (nextProp?.args) {
-					this.AddExtraFroms(query, parentResource, prop.args);
+		if (Array.isArray(match)) {
+			match.forEach((v) => {
+				this.AddExtraFroms(query, parentResource, v);
+			});
+		} else {
+			let nextProp = match;
+			let prop;
+			while (
+				// tslint:disable-next-line:no-conditional-assignment
+				(prop = nextProp) &&
+				prop.name &&
+				prop.property?.name
+			) {
+				nextProp = prop.property;
+				const resourceAlias = this.resourceAliases[prop.name];
+				if (resourceAlias) {
+					parentResource = resourceAlias;
+				} else {
+					parentResource = this.AddNavigation(query, parentResource, prop.name);
 				}
 			}
-		} catch {
-			// ignore
+			if (nextProp?.args) {
+				this.AddExtraFroms(query, parentResource, prop.args);
+			}
 		}
 	}
 	AddNavigation(
@@ -1716,14 +1707,11 @@ export class OData2AbstractSQL {
 					(isAliasNode(from) && from[2] === navigation.resource.tableAlias),
 			)
 		) {
+			// Add a FROM for the extraResource only if there isn't already one
 			query.fromResource(this, navigation.resource);
 			query.where.push(navigation.where);
-			return navigation.resource;
-		} else {
-			throw new SyntaxError(
-				`Could not navigate resources '${resource.name}' and '${extraResource}'`,
-			);
 		}
+		return navigation.resource;
 	}
 
 	reset() {
