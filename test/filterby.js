@@ -1199,58 +1199,182 @@ run(() => {
 
 const lambdaTest = function (methodName) {
 	run(function () {
-		const subWhere = [
-			'And',
-			[
-				'Equals',
-				['ReferencedField', 'pilot', 'id'],
-				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
-			],
-			[
-				'Equals',
-				['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
-				['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
-			],
+		const getFilterWhereForBind = (bindNumber) => [
+			'IsNotDistinctFrom',
+			['ReferencedField', 'pilot.identification method', 'identification type'],
+			['Bind', bindNumber],
 		];
-		const filterWhere = [
+
+		const getWhereForBind = (...bindNumbers) => {
+			const subWhere = [
+				'And',
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'id'],
+					['ReferencedField', 'pilot.identification method', 'pilot'],
+				],
+			];
+			const filterWheres = bindNumbers.map(getFilterWhereForBind);
+			const filterWhere =
+				filterWheres.length > 1 ? ['Or', ...filterWheres] : filterWheres[0];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error Pushing valid AbstractSql
+				subWhere.push(['Not', filterWhere]);
+			} else {
+				subWhere.push(filterWhere);
+			}
+
+			let $where = [
+				'Exists',
+				[
+					'SelectQuery',
+					['Select', []],
+					[
+						'From',
+						[
+							'Alias',
+							['Table', 'identification method'],
+							'pilot.identification method',
+						],
+					],
+					['Where', subWhere],
+				],
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error the types should be fine but it's not feasible to do in js
+				$where = ['Not', $where];
+			}
+
+			return $where;
+		};
+
+		const where = getWhereForBind(0);
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(where);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(where);
+			});
+		});
+
+		const twoPartWhere = ['Or', where, getWhereForBind(1)];
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:d/identification_type eq 'idcard')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:d/identification_type eq 'idcard')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
+
+		const nestedTwoPartWhere = getWhereForBind(0, 1);
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or d/identification_type eq 'idcard')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(nestedTwoPartWhere);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or d/identification_type eq 'idcard')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(nestedTwoPartWhere);
+			});
+		});
+	});
+
+	run(function () {
+		const getFilterWhereForBind = (bindNumber) => [
 			'IsNotDistinctFrom',
 			['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'name'],
-			['Bind', 0],
+			['Bind', bindNumber],
 		];
-		// All is implemented as where none fail
-		if (methodName === 'all') {
-			// @ts-expect-error Pushing valid AbstractSql
-			subWhere.push(['Not', filterWhere]);
-		} else {
-			// @ts-expect-error Pushing valid AbstractSql
-			subWhere.push(filterWhere);
-		}
 
-		let where = [
-			'Exists',
-			[
-				'SelectQuery',
-				['Select', []],
+		const getWhereForBind = (bindNumber) => {
+			const subWhere = [
+				'And',
 				[
-					'From',
+					'Equals',
+					['ReferencedField', 'pilot', 'id'],
+					['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+				],
+				[
+					'Equals',
+					['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
+					['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
+				],
+			];
+			const filterWhere = getFilterWhereForBind(bindNumber);
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error Pushing valid AbstractSql
+				subWhere.push(['Not', filterWhere]);
+			} else {
+				subWhere.push(filterWhere);
+			}
+
+			let $where = [
+				'Exists',
+				[
+					'SelectQuery',
+					['Select', []],
 					[
-						'Alias',
-						['Table', 'pilot-can fly-plane'],
-						'pilot.pilot-can fly-plane',
+						'From',
+						[
+							'Alias',
+							['Table', 'pilot-can fly-plane'],
+							'pilot.pilot-can fly-plane',
+						],
 					],
+					[
+						'From',
+						['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+					],
+					['Where', subWhere],
 				],
-				[
-					'From',
-					['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
-				],
-				['Where', subWhere],
-			],
-		];
-		// All is implemented as where none fail
-		if (methodName === 'all') {
-			// @ts-expect-error the types should be fine but it's not feasible to do in js
-			where = ['Not', where];
-		}
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error the types should be fine but it's not feasible to do in js
+				$where = ['Not', $where];
+			}
+
+			return $where;
+		};
+
+		const where = getWhereForBind(0);
 
 		test(
 			'/pilot?$filter=can_fly__plane/' +
@@ -1279,49 +1403,74 @@ const lambdaTest = function (methodName) {
 				});
 			},
 		);
+
+		const twoPartWhere = ['Or', where, getWhereForBind(1)];
+
+		test(`/pilot?$filter=can_fly__plane/${methodName}(d:d/plane/name eq 'Concorde') or can_fly__plane/${methodName}(d:d/plane/name eq '747')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
+
+		test(`/pilot/$count?$filter=can_fly__plane/${methodName}(d:d/plane/name eq 'Concorde') or can_fly__plane/${methodName}(d:d/plane/name eq '747')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
 	});
 
 	run(function () {
-		const subWhere = [
-			'And',
-			[
-				'Equals',
-				['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
-				['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
-			],
-		];
-		const filterWhere = [
+		const getFilterWhereForBind = (bindNumber) => [
 			'IsNotDistinctFrom',
 			['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'name'],
-			['Bind', 0],
+			['Bind', bindNumber],
 		];
-		// All is implemented as where none fail
-		if (methodName === 'all') {
-			// @ts-expect-error Pushing valid AbstractSql
-			subWhere.push(['Not', filterWhere]);
-		} else {
-			// @ts-expect-error Pushing valid AbstractSql
-			subWhere.push(filterWhere);
-		}
 
-		let innerWhere = [
-			'Exists',
-			[
-				'SelectQuery',
-				['Select', []],
+		const getPlaneWhereForBind = (bindNumber) => {
+			const subWhere = [
+				'And',
 				[
-					'From',
-					['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+					'Equals',
+					['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
+					['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
 				],
-				['Where', subWhere],
-			],
-		];
+			];
+			const filterWhere = getFilterWhereForBind(bindNumber);
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error Pushing valid AbstractSql
+				subWhere.push(['Not', filterWhere]);
+			} else {
+				subWhere.push(filterWhere);
+			}
 
-		// All is implemented as where none fail
-		if (methodName === 'all') {
-			// @ts-expect-error the types should be fine but it's not feasible to do in js
-			innerWhere = ['Not', innerWhere];
-		}
+			let innerWhere = [
+				'Exists',
+				[
+					'SelectQuery',
+					['Select', []],
+					[
+						'From',
+						['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+					],
+					['Where', subWhere],
+				],
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error the types should be fine but it's not feasible to do in js
+				innerWhere = ['Not', innerWhere];
+			}
+
+			return innerWhere;
+		};
 
 		const where = [
 			'And',
@@ -1330,7 +1479,7 @@ const lambdaTest = function (methodName) {
 				['ReferencedField', 'pilot', 'id'],
 				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
 			],
-			innerWhere,
+			getPlaneWhereForBind(0),
 		];
 
 		test(
@@ -1360,6 +1509,124 @@ const lambdaTest = function (methodName) {
 				});
 			},
 		);
+
+		const twoPartWhere = [
+			'And',
+			[
+				'Equals',
+				['ReferencedField', 'pilot', 'id'],
+				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+			],
+			['Or', getPlaneWhereForBind(0), getPlaneWhereForBind(1)],
+		];
+
+		test(`/pilot?$filter=can_fly__plane/plane/${methodName}(d:d/name eq 'Concorde') or can_fly__plane/plane/${methodName}(d:d/name eq '747')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+					.where(twoPartWhere);
+			});
+		});
+
+		test(`/pilot/$count?$filter=can_fly__plane/plane/${methodName}(d:d/name eq 'Concorde') or can_fly__plane/plane/${methodName}(d:d/name eq '747')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+					.where(twoPartWhere);
+			});
+		});
+	});
+
+	run(function () {
+		const getWhereFor = (filterWhere) => {
+			const subWhere = [
+				'And',
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'id'],
+					['ReferencedField', 'pilot.identification method', 'pilot'],
+				],
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error Pushing valid AbstractSql
+				subWhere.push(['Not', filterWhere]);
+			} else {
+				subWhere.push(filterWhere);
+			}
+
+			let $where = [
+				'Exists',
+				[
+					'SelectQuery',
+					['Select', []],
+					[
+						'From',
+						[
+							'Alias',
+							['Table', 'identification method'],
+							'pilot.identification method',
+						],
+					],
+					['Where', subWhere],
+				],
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error the types should be fine but it's not feasible to do in js
+				$where = ['Not', $where];
+			}
+
+			return $where;
+		};
+
+		const whereOneEqOne = getWhereFor([
+			'IsNotDistinctFrom',
+			['Bind', 0],
+			['Bind', 1],
+		]);
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:1 eq 1)`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(whereOneEqOne);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:1 eq 1)`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(whereOneEqOne);
+			});
+		});
+
+		const whereTrue = getWhereFor(['Bind', 0]);
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:true)`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(whereTrue);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:true)`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(whereTrue);
+			});
+		});
 	});
 };
 
