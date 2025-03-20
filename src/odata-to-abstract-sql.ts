@@ -1943,11 +1943,15 @@ const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 	origAliasParts = _(aliasParts)
 		.flatMap((aliasPart) => aliasPart.split('-'))
 		.filter((aliasPart) => aliasPart.includes(' '))
-		.map((aliasPart) =>
-			aliasPart
-				.split(' ')
-				.map((part) => shortAliases[part])
-				.join(' '),
+		.flatMap((aliasPart) =>
+			// Generate the 2nd level aliases for both the short and long versions
+			[
+				aliasPart,
+				aliasPart
+					.split(' ')
+					.map((part) => shortAliases[part])
+					.join(' '),
+			],
 		)
 		.uniq()
 		.value();
