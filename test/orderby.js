@@ -63,11 +63,14 @@ test('/pilot?$orderby=licence/id asc', (result) => {
 	it('should order by licence/id asc', () => {
 		expect(result)
 			.to.be.a.query.that.selects(pilotFields)
-			.from('pilot', ['licence', 'pilot.licence'])
-			.where([
-				'Equals',
-				['ReferencedField', 'pilot', 'licence'],
-				['ReferencedField', 'pilot.licence', 'id'],
+			.from('pilot')
+			.leftJoin([
+				['licence', 'pilot.licence'],
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'licence'],
+					['ReferencedField', 'pilot.licence', 'id'],
+				],
 			])
 			.orderby(['ASC', operandToAbstractSQL('licence/id')]);
 	});
@@ -77,24 +80,25 @@ test('/pilot?$orderby=can_fly__plane/plane/id asc', (result) => {
 	it('should order by can_fly__plane/plane/id asc', () => {
 		expect(result)
 			.to.be.a.query.that.selects(pilotFields)
-			.from(
-				'pilot',
-				['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
-				['plane', 'pilot.pilot-can fly-plane.plane'],
+			.from('pilot')
+			.leftJoin(
+				[
+					['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
+					[
+						'Equals',
+						['ReferencedField', 'pilot', 'id'],
+						['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+					],
+				],
+				[
+					['plane', 'pilot.pilot-can fly-plane.plane'],
+					[
+						'Equals',
+						['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
+						['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
+					],
+				],
 			)
-			.where([
-				'And',
-				[
-					'Equals',
-					['ReferencedField', 'pilot', 'id'],
-					['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
-				],
-				[
-					'Equals',
-					['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
-					['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
-				],
-			])
 			.orderby(['ASC', operandToAbstractSQL('can_fly__plane/plane/id')]);
 	});
 });
@@ -230,5 +234,25 @@ test('/team?$orderby=includes__pilot/$count($filter=is_experienced eq true) desc
 					],
 				],
 			]);
+	});
+});
+
+test('/pilot?$orderby=licence/name asc,licence/id asc', (result) => {
+	it('should order pilot by licence/name asc and licence/id asc', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot')
+			.leftJoin([
+				['licence', 'pilot.licence'],
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'licence'],
+					['ReferencedField', 'pilot.licence', 'id'],
+				],
+			])
+			.orderby(
+				['ASC', operandToAbstractSQL('licence/name')],
+				['ASC', operandToAbstractSQL('licence/id')],
+			);
 	});
 });
