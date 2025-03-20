@@ -1879,15 +1879,22 @@ const addAliases = (
 		}
 	};
 	const traverseNodes = (str: string, node: any) => {
-		if (node.$suffix) {
+		if (node.$suffix != null) {
+			// If the node has a suffix, it means that this is the end of a path and so we should use the part so far
+			// as the unique part. If the suffix is '' then that means it is the full original alias and could not be shortened
 			const index = lowerCaseAliasParts.indexOf(str + node.$suffix);
 			const origAliasPart = origAliasParts[index];
 			shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
-		} else {
-			_.forEach(node, (value, key) => {
-				traverseNodes(str + key, value);
-			});
 		}
+		// We then traverse any non suffix nodes to make sure those parts get their short versions. This should only happen
+		// in the case of a '' suffix because it means that the other parts are supersets, eg `of`/`often` and must be added
+		// with a longer short alias, eg `of`/`oft`
+		_.forEach(node, (value, key) => {
+			if (key === '$suffix') {
+				return;
+			}
+			traverseNodes(str + key, value);
+		});
 	};
 
 	const lowerCaseAliasParts = origAliasParts.map((origAliasPart) =>
