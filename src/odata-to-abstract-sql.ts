@@ -1934,6 +1934,21 @@ const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 		.value();
 	addAliases(shortAliases, origAliasParts);
 
+	// Add aliases for $ containing names
+	origAliasParts = _(aliasParts)
+		.flatMap((aliasPart) => aliasPart.split(/-| /))
+		.filter((aliasPart) => aliasPart.includes('$'))
+		.flatMap((aliasPart) => {
+			shortAliases[aliasPart] = aliasPart
+				.split('$')
+				.map((part) => shortAliases[part])
+				.join('$');
+			return [];
+		})
+		.uniq()
+		.value();
+	addAliases(shortAliases, origAliasParts);
+
 	// Add the second level of aliases, of names that include a ` `, split by `-`, for short aliases on a verb/term basis
 	origAliasParts = _(aliasParts)
 		.flatMap((aliasPart) => aliasPart.split('-'))
