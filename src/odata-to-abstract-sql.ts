@@ -415,7 +415,7 @@ export class OData2AbstractSQL {
 			if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
 				return alias;
 			}
-			alias = _(alias)
+			alias = _(alias.toLowerCase())
 				.split('.')
 				.map((part) => {
 					if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
@@ -428,18 +428,14 @@ export class OData2AbstractSQL {
 							part2 = _(part2)
 								.split(' ')
 								.map((part3) => {
-									const shortPart2 = shortAliases[part3];
-									if (shortPart2) {
-										return shortPart2;
-									}
-									return part3;
+									part3 = _(part3)
+										.split('$')
+										.map((part4) => shortAliases[part4] ?? part4)
+										.join('$');
+									return shortAliases[part3] ?? part3;
 								})
 								.join(' ');
-							const shortPart = shortAliases[part2];
-							if (shortPart) {
-								return shortPart;
-							}
-							return part2;
+							return shortAliases[part2] ?? part2;
 						})
 						.join('-');
 					aliasLength += shortAlias.length;
@@ -447,6 +443,9 @@ export class OData2AbstractSQL {
 				})
 				.join('.');
 
+			if (minimizeAliases !== false || aliasLength > MAX_ALIAS_LENGTH) {
+				alias = shortAliases[alias] ?? alias;
+			}
 			if (aliasLength <= MAX_ALIAS_LENGTH) {
 				return alias;
 			}
@@ -1855,7 +1854,7 @@ export class OData2AbstractSQL {
 
 const addAliases = (
 	shortAliases: Dictionary<string>,
-	origAliasParts: string[],
+	lowerCaseAliasParts: string[],
 ) => {
 	const trie = {};
 	const buildTrie = (aliasPart: string) => {
@@ -1879,21 +1878,23 @@ const addAliases = (
 		}
 	};
 	const traverseNodes = (str: string, node: any) => {
-		if (node.$suffix) {
-			const index = lowerCaseAliasParts.indexOf(str + node.$suffix);
-			const origAliasPart = origAliasParts[index];
-			shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
-		} else {
-			_.forEach(node, (value, key) => {
-				traverseNodes(str + key, value);
-			});
+		if (node.$suffix != null) {
+			// If the node has a suffix, it means that this is the end of a path and so we should use the part so far
+			// as the unique part. If the suffix is '' then that means it is the full original alias and could not be shortened
+			shortAliases[str + node.$suffix] = str;
 		}
+		// We then traverse any non suffix nodes to make sure those parts get their short versions. This should only happen
+		// in the case of a '' suffix because it means that the other parts are supersets, eg `of`/`often` and must be added
+		// with a longer short alias, eg `of`/`oft`
+		_.forEach(node, (value, key) => {
+			if (key === '$suffix') {
+				return;
+			}
+			traverseNodes(str + key, value);
+		});
 	};
 
-	const lowerCaseAliasParts = origAliasParts.map((origAliasPart) =>
-		origAliasPart.toLowerCase(),
-	);
-	lowerCaseAliasParts.slice().sort().forEach(buildTrie);
+	lowerCaseAliasParts.sort().forEach(buildTrie);
 
 	// Find the shortest unique alias for each term, using the trie.
 	traverseNodes('', trie);
@@ -1923,11 +1924,27 @@ const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 	const aliasParts = _(getRelationships(clientModel.relationships))
 		.union(Object.keys(clientModel.synonyms))
 		.reject((key) => key === '$')
+		.map((alias) => alias.toLowerCase())
 		.value();
 
-	// Add the first level of aliases, of names split by `-` and ` `, for short aliases on a word by word basis
+	// Add the first level of aliases, of names split by `-`/` `/`$`, for short aliases on a word by word basis
 	let origAliasParts = _(aliasParts)
+		.flatMap((aliasPart) => aliasPart.split(/-| |\$/))
+		.uniq()
+		.value();
+	addAliases(shortAliases, origAliasParts);
+
+	// Add aliases for $ containing names
+	origAliasParts = _(aliasParts)
 		.flatMap((aliasPart) => aliasPart.split(/-| /))
+		.filter((aliasPart) => aliasPart.includes('$'))
+		.flatMap((aliasPart) => {
+			shortAliases[aliasPart] = aliasPart
+				.split('$')
+				.map((part) => shortAliases[part])
+				.join('$');
+			return [];
+		})
 		.uniq()
 		.value();
 	addAliases(shortAliases, origAliasParts);
@@ -1936,11 +1953,15 @@ const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 	origAliasParts = _(aliasParts)
 		.flatMap((aliasPart) => aliasPart.split('-'))
 		.filter((aliasPart) => aliasPart.includes(' '))
-		.map((aliasPart) =>
-			aliasPart
-				.split(' ')
-				.map((part) => shortAliases[part])
-				.join(' '),
+		.flatMap((aliasPart) =>
+			// Generate the 2nd level aliases for both the short and long versions
+			[
+				aliasPart,
+				aliasPart
+					.split(' ')
+					.map((part) => shortAliases[part])
+					.join(' '),
+			],
 		)
 		.uniq()
 		.value();
@@ -1950,11 +1971,16 @@ const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 	// Add the third level of aliases, of names that include a `-`, for short aliases on a fact type basis
 	origAliasParts = _(aliasParts)
 		.filter((aliasPart) => aliasPart.includes('-'))
-		.map((aliasPart) =>
-			aliasPart
-				.split('-')
-				.map((part) => shortAliases[part])
-				.join('-'),
+		.flatMap((aliasPart) =>
+			// Generate the 3rd level aliases for both the short and long versions
+
+			[
+				aliasPart,
+				aliasPart
+					.split('-')
+					.map((part) => shortAliases[part])
+					.join('-'),
+			],
 		)
 		.uniq()
 		.value();
