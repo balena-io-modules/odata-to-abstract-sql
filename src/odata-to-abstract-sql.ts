@@ -447,6 +447,9 @@ export class OData2AbstractSQL {
 				})
 				.join('.');
 
+			if (minimizeAliases !== false || aliasLength > MAX_ALIAS_LENGTH) {
+				alias = shortAliases[alias] ?? alias;
+			}
 			if (aliasLength <= MAX_ALIAS_LENGTH) {
 				return alias;
 			}
