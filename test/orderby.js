@@ -232,3 +232,113 @@ test('/team?$orderby=includes__pilot/$count($filter=is_experienced eq true) desc
 			]);
 	});
 });
+
+test(`/pilot?$orderby=identification_method(1)/identification_number desc`, (result) => {
+	it('should fail to order pilots by their passport number when using a promitive key', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Using a key bind after a navigation expression is not supported.',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(pilot=1)/identification_number desc`, (result) => {
+	it('should fail to order by an associated resource when providing the navigated FK of the associated resource as the only part of the alternate key', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified already navigated field as part of key: pilot',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(pilot=1,identification_type='passport')/identification_number desc`, (result) => {
+	it('should fail to order by an associated resource when providing the navigated FK of the associated resource as part of the alternate key', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified already navigated field as part of key: pilot',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport') desc`, (result) => {
+	it('should fail to order by an associated resource when not defining the associated resource field', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Attempted to directly fetch a virtual field: "identification_method"',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(not_a_field='12345')/identification_number desc`, (result) => {
+	it('should fail to order pilots when the field provided as an alternate key does not exist', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified non-existent field for path key',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_number='12345')/identification_number desc`, (result) => {
+	it('should fail to order pilots when the field provided as an alternate key does not complete a natural key when combined with the navigation field', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified fields for path key that are not directly unique',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport',identification_number='12345')/identification_number desc`, (result) => {
+	it('should fail to order pilots when the field provided as an alternate key does not complete a natural key when combined with the navigation field', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified fields for path key that are not directly unique',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport')/identification_number desc`, (result) => {
+	it('should order pilots by their passport number when defining part of the alternate key and infering the rest from the navigation', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot', ['identification method', 'pilot.identification method'])
+			.where([
+				'And',
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'id'],
+					['ReferencedField', 'pilot.identification method', 'pilot'],
+				],
+				[
+					'IsNotDistinctFrom',
+					[
+						'ReferencedField',
+						'pilot.identification method',
+						'identification type',
+					],
+					['Bind', 0],
+				],
+			])
+			.orderby([
+				'DESC',
+				[
+					'ReferencedField',
+					'pilot.identification method',
+					'identification number',
+				],
+			]);
+	});
+});

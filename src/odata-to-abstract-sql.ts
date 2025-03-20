@@ -87,6 +87,9 @@ import type {
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
+// TODO: Remove this custom error once AddExtraFroms stops silencing errors.
+class KeySyntaxError extends SyntaxError {}
+
 type InternalSupportedMethod = Exclude<SupportedMethod, 'MERGE'> | 'PUT-INSERT';
 
 type RequiredAbstractSqlModelSubset = Pick<
@@ -822,56 +825,85 @@ export class OData2AbstractSQL {
 					}
 				}
 			}
-			if (isBindReference(key)) {
-				const bind = this.Bind(key);
-				const referencedField: ReferencedFieldNode = [
-					'ReferencedField',
-					resource.tableAlias,
-					resource.idField,
-				];
-				return [comparison.eq, referencedField, bind];
-			}
-			const fieldNames = Object.keys(key);
-			const sqlFieldNames = fieldNames.map(odataNameToSqlName).sort();
-
-			const fields = sqlFieldNames.map((fieldName) => {
-				const resourceField = resource.fields.find(
-					(f) => f.fieldName === fieldName,
-				);
-				if (resourceField == null) {
-					throw new SyntaxError('Specified non-existent field for path key');
-				}
-				return resourceField;
-			});
-			if (
-				!(
-					fields.length === 1 &&
-					(fields[0].index === 'UNIQUE' || fields[0].index === 'PRIMARY KEY')
-				) &&
-				!resource.indexes.some((index) => {
-					return (
-						((index.type === 'UNIQUE' && index.predicate == null) ||
-							index.type === 'PRIMARY KEY') &&
-						sqlFieldNames.length === index.fields.length &&
-						_.isEqual(index.fields.slice().sort(), sqlFieldNames)
-					);
-				})
-			) {
-				throw new SyntaxError(
-					'Specified fields for path key that are not directly unique',
-				);
-			}
-
-			const namedKeys = fieldNames.map((fieldName): BooleanTypeNodes => {
-				const bind = this.Bind(key[fieldName]);
-				const referencedField = this.ReferencedField(resource, fieldName);
-				return [comparison.eq, referencedField, bind];
-			});
-			if (namedKeys.length === 1) {
-				return namedKeys[0];
-			}
-			return ['And', ...namedKeys];
+			return this.BaseKey(resource, key);
 		}
+	}
+	BaseKey(
+		resource: AliasedResource,
+		key: NonNullable<ODataQuery['key']>,
+		followedForeignKey?: string,
+	): BooleanTypeNodes {
+		if (isBindReference(key)) {
+			if (followedForeignKey != null) {
+				// We should be able to allow this if needed after v gets merged.
+				// https://github.com/balena-io-modules/odata-to-abstract-sql/pull/160
+				throw new SyntaxError(
+					'Using a key bind after a navigation expression is not supported.',
+				);
+			}
+			const bind = this.Bind(key);
+			const referencedField: ReferencedFieldNode = [
+				'ReferencedField',
+				resource.tableAlias,
+				resource.idField,
+			];
+			return [comparison.eq, referencedField, bind];
+		}
+		const fieldNames = Object.keys(key);
+		const sqlFieldNames = fieldNames.map(odataNameToSqlName);
+		if (followedForeignKey != null) {
+			if (sqlFieldNames.includes(followedForeignKey)) {
+				// Block providing FKs that we already navigated in an alternate key,
+				// since this would work like an additional filter.
+				throw new SyntaxError(
+					`Specified already navigated field as part of key: ${followedForeignKey}`,
+				);
+			}
+			// When following a FK, we check the whether the FK + the fields in the alternate notation
+			// complete a unique index. This allows users to not include the navigated FK property in
+			// the provided alternate key notation and define just the rest fields of the unique index.
+			// We effectively consider a navigated FK as implicitly defined in the alternate key notation.
+			sqlFieldNames.push(followedForeignKey);
+		}
+		sqlFieldNames.sort();
+
+		const fields = sqlFieldNames.map((fieldName) => {
+			const resourceField = resource.fields.find(
+				(f) => f.fieldName === fieldName,
+			);
+			if (resourceField == null) {
+				throw new SyntaxError('Specified non-existent field for path key');
+			}
+			return resourceField;
+		});
+		if (
+			!(
+				fields.length === 1 &&
+				(fields[0].index === 'UNIQUE' || fields[0].index === 'PRIMARY KEY')
+			) &&
+			!resource.indexes.some((index) => {
+				return (
+					((index.type === 'UNIQUE' && index.predicate == null) ||
+						index.type === 'PRIMARY KEY') &&
+					sqlFieldNames.length === index.fields.length &&
+					_.isEqual(index.fields.slice().sort(), sqlFieldNames)
+				);
+			})
+		) {
+			throw new SyntaxError(
+				'Specified fields for path key that are not directly unique',
+			);
+		}
+
+		const namedKeys = fieldNames.map((fieldName): BooleanTypeNodes => {
+			const bind = this.Bind(key[fieldName]);
+			const referencedField = this.ReferencedField(resource, fieldName);
+			return [comparison.eq, referencedField, bind];
+		});
+		if (namedKeys.length === 1) {
+			return namedKeys[0];
+		}
+		return ['And', ...namedKeys];
 	}
 	Bind(bind: BindReference, optional: true): BindNode | undefined;
 	Bind(bind: BindReference): BindNode;
@@ -1653,13 +1685,19 @@ export class OData2AbstractSQL {
 	NavigateResources(
 		resource: Resource,
 		navigation: string,
-	): { resource: AliasedResource; where: BooleanTypeNodes } {
+	): {
+		resource: AliasedResource;
+		navigationResourceField: string;
+		where: BooleanTypeNodes;
+	} {
 		const relationshipMapping = this.ResolveRelationship(resource, navigation);
 		const linkedResource = this.Resource(navigation, resource);
 		const tableAlias = resource.tableAlias ?? resource.name;
 		const linkedTableAlias = linkedResource.tableAlias ?? linkedResource.name;
 		return {
 			resource: linkedResource,
+			// Include the FK used, to re-use it in any follow-up alternate Key check.
+			navigationResourceField: relationshipMapping[1][1],
 			where: [
 				'Equals',
 				['ReferencedField', tableAlias, relationshipMapping[0]],
@@ -1692,6 +1730,7 @@ export class OData2AbstractSQL {
 							query,
 							parentResource,
 							prop.name,
+							prop.key,
 						);
 					}
 				}
@@ -1699,7 +1738,10 @@ export class OData2AbstractSQL {
 					this.AddExtraFroms(query, parentResource, prop.args);
 				}
 			}
-		} catch {
+		} catch (e) {
+			if (e instanceof KeySyntaxError) {
+				throw e;
+			}
 			// ignore
 		}
 	}
@@ -1707,6 +1749,7 @@ export class OData2AbstractSQL {
 		query: Query,
 		resource: Resource,
 		extraResource: string,
+		key?: ODataQuery['key'],
 	): AliasedResource {
 		const navigation = this.NavigateResources(resource, extraResource);
 		if (
@@ -1718,6 +1761,24 @@ export class OData2AbstractSQL {
 		) {
 			query.fromResource(this, navigation.resource);
 			query.where.push(navigation.where);
+			if (key != null) {
+				try {
+					const keyWhere = this.BaseKey(
+						navigation.resource,
+						key,
+						navigation.navigationResourceField,
+					);
+					query.where.push(keyWhere);
+				} catch (e) {
+					if (e instanceof SyntaxError) {
+						// Since there is a TODO in the AddExtraFroms to stop silencing errors, instead of
+						// silencing the new Syntax errors that can be thrown by the added BaseKey().
+						// we decided use a new custom error to detect those new errors and re-throw them.
+						throw new KeySyntaxError(e.message, { cause: e });
+					}
+					throw e;
+				}
+			}
 			return navigation.resource;
 		} else {
 			throw new SyntaxError(
