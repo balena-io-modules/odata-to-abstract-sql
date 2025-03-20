@@ -1,4 +1,74 @@
 - commits:
+    - subject: Add support for also shortening translation suffix names, eg `x$test`
+        -> `x$t`
+      hash: 3b16beeadf1f2fde59dab5be924623b015abae7f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Treat $ as a word separator for alias shortening for better translation
+        support
+      hash: 9f96bf9bb28538b3c961a635560bf77e4e1f5bea
+      body: |
+        Since translations in pinejs use $ as their boundary this allows for
+        shortening translated models much better
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Also shorten the overall alias if it is possible and beneficial to do so
+      hash: c0010bd4613ea489e37000d01b3b5132cf2cf87a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Always look up short aliases using lower case, to avoid issues with
+        mixed cases
+      hash: d66df2195a347e86471bd356f9efa68a5c7fa301
+      body: |
+        This could happen if eg you have `Some Term` and `some other term`
+        where the mixing of cases would mean one version would not be correctly
+        shortened due to not matching the case-sensitive check
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Generate short versions both short and long versions of the `-`
+        containing aliases
+      hash: 3dedcc1ac808b5dd88c21cd09f64dac8c37d820d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Generate short versions both short and long versions of the ` `
+        containing aliases
+      hash: 48f7ca9b0a3bf3f486ed943cde2bb5aa3e7b1c2b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Properly handle the case where there is no shorter alias available
+      hash: a6d160e826424ef261b71bb0f13668c22112bedf
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.1.2
+  title: ""
+  date: 2025-03-20T17:49:23.847Z
+- commits:
     - subject: "tests: Remove unnecessary returns & add curly braces"
       hash: 9ad21e94dc29b333542caa92a1b465d89579e2ef
       body: ""
@@ -1609,6 +1679,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1631,6 +1702,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 As engine and npm is
                                                                 now required as part
                                                                 of package.json we
@@ -1668,6 +1740,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 Ensure that the
                                                                 input passed in for
                                                                 JSON types is either
@@ -1768,6 +1841,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1796,6 +1870,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 It can in fact be a
                                                                 lot of different
                                                                 things and that is
@@ -1825,6 +1900,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -1859,6 +1935,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -2004,6 +2081,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 This also deprecates
                                                                 the legacy use of
                                                                 direct true/false
