@@ -427,7 +427,13 @@ export class OData2AbstractSQL {
 						.map((part2) => {
 							part2 = _(part2)
 								.split(' ')
-								.map((part3) => shortAliases[part3] ?? part3)
+								.map((part3) => {
+									part3 = _(part3)
+										.split('$')
+										.map((part4) => shortAliases[part4] ?? part4)
+										.join('$');
+									return shortAliases[part3] ?? part3;
+								})
 								.join(' ');
 							return shortAliases[part2] ?? part2;
 						})
@@ -1921,9 +1927,9 @@ const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 		.map((alias) => alias.toLowerCase())
 		.value();
 
-	// Add the first level of aliases, of names split by `-` and ` `, for short aliases on a word by word basis
+	// Add the first level of aliases, of names split by `-`/` `/`$`, for short aliases on a word by word basis
 	let origAliasParts = _(aliasParts)
-		.flatMap((aliasPart) => aliasPart.split(/-| /))
+		.flatMap((aliasPart) => aliasPart.split(/-| |\$/))
 		.uniq()
 		.value();
 	addAliases(shortAliases, origAliasParts);
