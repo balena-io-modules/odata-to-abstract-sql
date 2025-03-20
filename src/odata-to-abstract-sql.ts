@@ -1961,11 +1961,16 @@ const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 	// Add the third level of aliases, of names that include a `-`, for short aliases on a fact type basis
 	origAliasParts = _(aliasParts)
 		.filter((aliasPart) => aliasPart.includes('-'))
-		.map((aliasPart) =>
-			aliasPart
-				.split('-')
-				.map((part) => shortAliases[part])
-				.join('-'),
+		.flatMap((aliasPart) =>
+			// Generate the 3rd level aliases for both the short and long versions
+
+			[
+				aliasPart,
+				aliasPart
+					.split('-')
+					.map((part) => shortAliases[part])
+					.join('-'),
+			],
 		)
 		.uniq()
 		.value();
