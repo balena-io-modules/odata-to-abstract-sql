@@ -415,7 +415,7 @@ export class OData2AbstractSQL {
 			if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
 				return alias;
 			}
-			alias = _(alias)
+			alias = _(alias.toLowerCase())
 				.split('.')
 				.map((part) => {
 					if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
@@ -1855,7 +1855,7 @@ export class OData2AbstractSQL {
 
 const addAliases = (
 	shortAliases: Dictionary<string>,
-	origAliasParts: string[],
+	lowerCaseAliasParts: string[],
 ) => {
 	const trie = {};
 	const buildTrie = (aliasPart: string) => {
@@ -1882,9 +1882,7 @@ const addAliases = (
 		if (node.$suffix != null) {
 			// If the node has a suffix, it means that this is the end of a path and so we should use the part so far
 			// as the unique part. If the suffix is '' then that means it is the full original alias and could not be shortened
-			const index = lowerCaseAliasParts.indexOf(str + node.$suffix);
-			const origAliasPart = origAliasParts[index];
-			shortAliases[origAliasPart] = origAliasPart.slice(0, str.length);
+			shortAliases[str + node.$suffix] = str;
 		}
 		// We then traverse any non suffix nodes to make sure those parts get their short versions. This should only happen
 		// in the case of a '' suffix because it means that the other parts are supersets, eg `of`/`often` and must be added
@@ -1897,10 +1895,7 @@ const addAliases = (
 		});
 	};
 
-	const lowerCaseAliasParts = origAliasParts.map((origAliasPart) =>
-		origAliasPart.toLowerCase(),
-	);
-	lowerCaseAliasParts.slice().sort().forEach(buildTrie);
+	lowerCaseAliasParts.sort().forEach(buildTrie);
 
 	// Find the shortest unique alias for each term, using the trie.
 	traverseNodes('', trie);
@@ -1930,6 +1925,7 @@ const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 	const aliasParts = _(getRelationships(clientModel.relationships))
 		.union(Object.keys(clientModel.synonyms))
 		.reject((key) => key === '$')
+		.map((alias) => alias.toLowerCase())
 		.value();
 
 	// Add the first level of aliases, of names split by `-` and ` `, for short aliases on a word by word basis
