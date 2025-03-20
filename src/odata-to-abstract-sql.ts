@@ -427,19 +427,9 @@ export class OData2AbstractSQL {
 						.map((part2) => {
 							part2 = _(part2)
 								.split(' ')
-								.map((part3) => {
-									const shortPart2 = shortAliases[part3];
-									if (shortPart2) {
-										return shortPart2;
-									}
-									return part3;
-								})
+								.map((part3) => shortAliases[part3] ?? part3)
 								.join(' ');
-							const shortPart = shortAliases[part2];
-							if (shortPart) {
-								return shortPart;
-							}
-							return part2;
+							return shortAliases[part2] ?? part2;
 						})
 						.join('-');
 					aliasLength += shortAlias.length;
