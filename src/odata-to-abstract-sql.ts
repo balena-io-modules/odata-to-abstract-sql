@@ -73,6 +73,7 @@ import type {
 	UnknownTypeNodes,
 	FromTypeNode,
 	EqualsAnyNode,
+	JoinTypeNodes,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -84,10 +85,13 @@ import type {
 	OrderByPropertyPath,
 	FilterOption,
 	BindReference,
+	PropertyPath,
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
 type InternalSupportedMethod = Exclude<SupportedMethod, 'MERGE'> | 'PUT-INSERT';
+
+type JoinType = 'Join' | 'LeftJoin' | 'RightJoin';
 
 type RequiredAbstractSqlModelSubset = Pick<
 	AbstractSqlModel,
@@ -238,6 +242,7 @@ class Query {
 	> = [];
 	public from: Array<FromNode[1]> = [];
 	public where: Array<WhereNode[1]> = [];
+	public joins: JoinTypeNodes[] = [];
 	public extras: Array<
 		FieldsNode | ValuesNode | OrderByNode | LimitNode | OffsetNode
 	> = [];
@@ -246,6 +251,7 @@ class Query {
 		this.select = this.select.concat(otherQuery.select);
 		this.from = this.from.concat(otherQuery.from);
 		this.where = this.where.concat(otherQuery.where);
+		this.joins = this.joins.concat(otherQuery.joins);
 		this.extras = this.extras.concat(otherQuery.extras);
 	}
 	fromResource(
@@ -267,6 +273,28 @@ class Query {
 			isModifyOperation,
 		);
 		this.from.push(tableRef);
+	}
+	joinResource(
+		odataToAbstractSql: OData2AbstractSQL,
+		resource: AliasedResource,
+		type: JoinType,
+		condition: BooleanTypeNodes,
+		args: {
+			extraBindVars: ODataBinds;
+			bindVarsLength: number;
+		} = odataToAbstractSql,
+		bypassDefinition?: boolean,
+	): void {
+		const tableRef = odataToAbstractSql.getTableReference(
+			resource,
+			args.extraBindVars,
+			args.bindVarsLength,
+			bypassDefinition,
+			resource.tableAlias,
+			undefined,
+		);
+		const joinNode: JoinTypeNodes = [type, tableRef, ['On', condition]];
+		this.joins.push(joinNode);
 	}
 	addNestedFieldSelect(fieldName: string, fieldNameAlias: string): void {
 		if (this.from.length !== 1) {
@@ -290,6 +318,9 @@ class Query {
 		}
 		this.from.forEach((tableName) => {
 			compiled.push(['From', tableName] as AbstractSqlQuery);
+		});
+		this.joins.forEach((joinNode) => {
+			compiled.push(joinNode);
 		});
 		if (where.length > 0) {
 			if (where.length > 1) {
@@ -822,56 +853,85 @@ export class OData2AbstractSQL {
 					}
 				}
 			}
-			if (isBindReference(key)) {
-				const bind = this.Bind(key);
-				const referencedField: ReferencedFieldNode = [
-					'ReferencedField',
-					resource.tableAlias,
-					resource.idField,
-				];
-				return [comparison.eq, referencedField, bind];
-			}
-			const fieldNames = Object.keys(key);
-			const sqlFieldNames = fieldNames.map(odataNameToSqlName).sort();
-
-			const fields = sqlFieldNames.map((fieldName) => {
-				const resourceField = resource.fields.find(
-					(f) => f.fieldName === fieldName,
-				);
-				if (resourceField == null) {
-					throw new SyntaxError('Specified non-existent field for path key');
-				}
-				return resourceField;
-			});
-			if (
-				!(
-					fields.length === 1 &&
-					(fields[0].index === 'UNIQUE' || fields[0].index === 'PRIMARY KEY')
-				) &&
-				!resource.indexes.some((index) => {
-					return (
-						((index.type === 'UNIQUE' && index.predicate == null) ||
-							index.type === 'PRIMARY KEY') &&
-						sqlFieldNames.length === index.fields.length &&
-						_.isEqual(index.fields.slice().sort(), sqlFieldNames)
-					);
-				})
-			) {
-				throw new SyntaxError(
-					'Specified fields for path key that are not directly unique',
-				);
-			}
-
-			const namedKeys = fieldNames.map((fieldName): BooleanTypeNodes => {
-				const bind = this.Bind(key[fieldName]);
-				const referencedField = this.ReferencedField(resource, fieldName);
-				return [comparison.eq, referencedField, bind];
-			});
-			if (namedKeys.length === 1) {
-				return namedKeys[0];
-			}
-			return ['And', ...namedKeys];
+			return this.BaseKey(resource, key);
 		}
+	}
+	BaseKey(
+		resource: AliasedResource,
+		key: NonNullable<ODataQuery['key']>,
+		followedForeignKey?: string,
+	): BooleanTypeNodes {
+		if (isBindReference(key)) {
+			if (followedForeignKey != null) {
+				// We should be able to allow this if needed after v gets merged.
+				// https://github.com/balena-io-modules/odata-to-abstract-sql/pull/160
+				throw new SyntaxError(
+					'Using a key bind after a navigation expression is not supported.',
+				);
+			}
+			const bind = this.Bind(key);
+			const referencedField: ReferencedFieldNode = [
+				'ReferencedField',
+				resource.tableAlias,
+				resource.idField,
+			];
+			return [comparison.eq, referencedField, bind];
+		}
+		const fieldNames = Object.keys(key);
+		const sqlFieldNames = fieldNames.map(odataNameToSqlName);
+		if (followedForeignKey != null) {
+			if (sqlFieldNames.includes(followedForeignKey)) {
+				// Block providing FKs that we already navigated in an alternate key,
+				// since this would work like an additional filter.
+				throw new SyntaxError(
+					`Specified already navigated field as part of key: ${followedForeignKey}`,
+				);
+			}
+			// When following a FK, we check the whether the FK + the fields in the alternate notation
+			// complete a unique index. This allows users to not include the navigated FK property in
+			// the provided alternate key notation and define just the rest fields of the unique index.
+			// We effectively consider a navigated FK as implicitly defined in the alternate key notation.
+			sqlFieldNames.push(followedForeignKey);
+		}
+		sqlFieldNames.sort();
+
+		const fields = sqlFieldNames.map((fieldName) => {
+			const resourceField = resource.fields.find(
+				(f) => f.fieldName === fieldName,
+			);
+			if (resourceField == null) {
+				throw new SyntaxError('Specified non-existent field for path key');
+			}
+			return resourceField;
+		});
+		if (
+			!(
+				fields.length === 1 &&
+				(fields[0].index === 'UNIQUE' || fields[0].index === 'PRIMARY KEY')
+			) &&
+			!resource.indexes.some((index) => {
+				return (
+					((index.type === 'UNIQUE' && index.predicate == null) ||
+						index.type === 'PRIMARY KEY') &&
+					sqlFieldNames.length === index.fields.length &&
+					_.isEqual(index.fields.slice().sort(), sqlFieldNames)
+				);
+			})
+		) {
+			throw new SyntaxError(
+				'Specified fields for path key that are not directly unique',
+			);
+		}
+
+		const namedKeys = fieldNames.map((fieldName): BooleanTypeNodes => {
+			const bind = this.Bind(key[fieldName]);
+			const referencedField = this.ReferencedField(resource, fieldName);
+			return [comparison.eq, referencedField, bind];
+		});
+		if (namedKeys.length === 1) {
+			return namedKeys[0];
+		}
+		return ['And', ...namedKeys];
 	}
 	Bind(bind: BindReference, optional: true): BindNode | undefined;
 	Bind(bind: BindReference): BindNode;
@@ -890,7 +950,7 @@ export class OData2AbstractSQL {
 		query.where.push(where);
 	}
 	OrderBy(orderby: OrderByOption, query: Query, resource: Resource) {
-		this.AddExtraFroms(query, resource, orderby.properties);
+		this.AddJoins(query, resource, orderby.properties, 'LeftJoin');
 		query.extras.push([
 			'OrderBy',
 			...this.OrderByProperties(orderby.properties),
@@ -1653,13 +1713,19 @@ export class OData2AbstractSQL {
 	NavigateResources(
 		resource: Resource,
 		navigation: string,
-	): { resource: AliasedResource; where: BooleanTypeNodes } {
+	): {
+		resource: AliasedResource;
+		navigationResourceField: string;
+		where: BooleanTypeNodes;
+	} {
 		const relationshipMapping = this.ResolveRelationship(resource, navigation);
 		const linkedResource = this.Resource(navigation, resource);
 		const tableAlias = resource.tableAlias ?? resource.name;
 		const linkedTableAlias = linkedResource.tableAlias ?? linkedResource.name;
 		return {
 			resource: linkedResource,
+			// Include the FK used, to re-use it in any follow-up alternate Key check.
+			navigationResourceField: relationshipMapping[1][1],
 			where: [
 				'Equals',
 				['ReferencedField', tableAlias, relationshipMapping[0]],
@@ -1724,6 +1790,97 @@ export class OData2AbstractSQL {
 				`Could not navigate resources '${resource.name}' and '${extraResource}'`,
 			);
 		}
+	}
+	AddJoins(
+		query: Query,
+		parentResource: Resource,
+		match: PropertyPath | PropertyPath[],
+		joinType: JoinType,
+	) {
+		if (Array.isArray(match)) {
+			match.forEach((v) => {
+				this.AddJoins(query, parentResource, v, joinType);
+			});
+		} else {
+			let nextProp = match;
+			let prop;
+			while (
+				// tslint:disable-next-line:no-conditional-assignment
+				(prop = nextProp) &&
+				prop.name &&
+				prop.property?.name
+			) {
+				nextProp = prop.property;
+				const resourceAlias = this.resourceAliases[prop.name];
+				if (resourceAlias) {
+					parentResource = resourceAlias;
+				} else {
+					parentResource = this.AddJoinNavigation(
+						query,
+						parentResource,
+						prop.name,
+						joinType,
+						prop.key,
+					);
+				}
+			}
+		}
+	}
+	AddJoinNavigation(
+		query: Query,
+		resource: Resource,
+		extraResource: string,
+		joinType: JoinType,
+		key?: ODataQuery['key'],
+	): AliasedResource {
+		const navigation = this.NavigateResources(resource, extraResource);
+		if (key != null) {
+			const keyWhere = this.BaseKey(
+				navigation.resource,
+				key,
+				navigation.navigationResourceField,
+			);
+			navigation.where = ['And', navigation.where, keyWhere];
+		}
+		const alreadyJoinedResource = query.joins.some((join) => {
+			const [existingJoinType, existingFrom, existingJoinOnNode] = join;
+			const sameAlias =
+				(isTableNode(existingFrom) &&
+					existingFrom[1] === navigation.resource.tableAlias) ||
+				(isAliasNode(existingFrom) &&
+					existingFrom[2] === navigation.resource.tableAlias);
+			if (!sameAlias) {
+				return false;
+			}
+
+			const existingJoinPredicate = existingJoinOnNode?.[1];
+			// NavigateResources returns an Equals node, and we nested inside an And only if a key was provided.
+			const existingJoinWithoutKey = existingJoinPredicate?.[0] === 'Equals';
+
+			if (
+				joinType === existingJoinType &&
+				// When JOINing resources w/o any additional key, the ON clauses will be equal
+				// as long as the aliases are the same. In that case we can avoid the extra cost of isEqual.
+				((key == null && existingJoinWithoutKey) ||
+					// We only need to run isEqual if both queries are using a key, otherwise we know upfront that the ONs are different.
+					(key != null &&
+						!existingJoinWithoutKey &&
+						_.isEqual(navigation.where, existingJoinPredicate)))
+			) {
+				return true;
+			}
+			// When we reach this point we have found an already existing JOIN with the
+			// same alias as the one we just created but different JOIN type or ON predicate.
+			// TODO: In this case we need to be able to generate a new alias for the newly JOINed resource.
+			// Since we atm do not support that we throw early, since otherwise the generated query would be invalid.
+			throw new Error(
+				`Adding JOINs on the same resource with different ON clauses is not supported. Found ${navigation.resource.tableAlias}`,
+			);
+		});
+		if (!alreadyJoinedResource) {
+			query.joinResource(this, navigation.resource, joinType, navigation.where);
+		}
+		return navigation.resource;
 	}
 
 	reset() {
