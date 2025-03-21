@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use primitive mode memoization for `checkAlias`
+      hash: 8e895a74f16b1bfe70584d2e941c79bc9ef83042
+      body: |
+        This should slightly improve performance
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.1.4
+  title: ""
+  date: 2025-03-21T16:29:36.413Z
+- commits:
     - subject: Test that multiple $select & $orderby on the same resource result it
         being JOINed just once
       hash: cd87826ae0972d8f0ac6493cbb25d8a5301cca3e
@@ -1711,6 +1724,7 @@
                                                                 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1733,6 +1747,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 As engine and npm is
@@ -1772,6 +1787,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 Ensure that the
@@ -1876,6 +1892,7 @@
                                                                 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1904,6 +1921,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 It can in fact be a
@@ -1935,6 +1953,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 We know what type
@@ -1971,6 +1990,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 Update
@@ -2118,6 +2138,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 This also deprecates
