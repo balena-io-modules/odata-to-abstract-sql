@@ -156,6 +156,20 @@ test('/pilot?$filter=name in (null)', (result) => {
 	});
 });
 
+test('/pilot?$filter=p/name eq 2', (result) => {
+	// TODO: This should fail
+	it('should select from pilot when filtering using a non-existing alias', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot')
+			.where([
+				'IsNotDistinctFrom',
+				['ReferencedField', 'pilot', 'name'],
+				['Bind', 0],
+			]);
+	});
+});
+
 test(`/pilot?$filter=name eq 'test' or name in (null, 1) or name in (null) or startswith(name,'test1') or name in (1,2,3)`, (result) => {
 	it('should be able to select with multiple conditions', () => {
 		expect(result)
@@ -173,6 +187,46 @@ test(`/pilot?$filter=name eq 'test' or name in (null, 1) or name in (null) or st
 				['Startswith', ['ReferencedField', 'pilot', 'name'], ['Bind', 3]],
 				['EqualsAny', ['ReferencedField', 'pilot', 'name'], ['Bind', 4]],
 			]);
+	});
+});
+
+test('/pilot?$filter=name eq 2 or p eq 2', (result) => {
+	it('should select from pilot when filtering using a non-existing property in an or', () => {
+		expect(result)
+			.to.be.instanceOf(TypeError)
+			.and.to.have.property('message', `match is not iterable`);
+	});
+});
+
+test('/pilot?$filter=name eq 2 or p/name eq 2', (result) => {
+	// TODO: This should fail
+	it('should select from pilot when filtering using a non-existing alias in an or', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot')
+			.where([
+				'Or',
+				[
+					'IsNotDistinctFrom',
+					['ReferencedField', 'pilot', 'name'],
+					['Bind', 0],
+				],
+				[
+					'IsNotDistinctFrom',
+					['ReferencedField', 'pilot', 'name'],
+					['Bind', 1],
+				],
+			]);
+	});
+});
+
+test(`/pilot?$filter=startswith(p/name,'test1')`, (result) => {
+	// TODO: This should fail
+	it('should select from pilot when filtering using a non-existing alias in a method', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot')
+			.where(['Startswith', ['ReferencedField', 'pilot', 'name'], ['Bind', 0]]);
 	});
 });
 
@@ -1199,58 +1253,263 @@ run(() => {
 
 const lambdaTest = function (methodName) {
 	run(function () {
-		const subWhere = [
-			'And',
-			[
-				'Equals',
-				['ReferencedField', 'pilot', 'id'],
-				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
-			],
-			[
-				'Equals',
-				['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
-				['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
-			],
+		const getFilterWhereForBind = (bindNumber) => [
+			'IsNotDistinctFrom',
+			['ReferencedField', 'pilot.identification method', 'identification type'],
+			['Bind', bindNumber],
 		];
-		const filterWhere = [
+
+		const getWhereForBind = (...bindNumbers) => {
+			const subWhere = [
+				'And',
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'id'],
+					['ReferencedField', 'pilot.identification method', 'pilot'],
+				],
+			];
+			const filterWheres = bindNumbers.map(getFilterWhereForBind);
+			const filterWhere =
+				filterWheres.length > 1 ? ['Or', ...filterWheres] : filterWheres[0];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error Pushing valid AbstractSql
+				subWhere.push(['Not', filterWhere]);
+			} else {
+				subWhere.push(filterWhere);
+			}
+
+			let $where = [
+				'Exists',
+				[
+					'SelectQuery',
+					['Select', []],
+					[
+						'From',
+						[
+							'Alias',
+							['Table', 'identification method'],
+							'pilot.identification method',
+						],
+					],
+					['Where', subWhere],
+				],
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error the types should be fine but it's not feasible to do in js
+				$where = ['Not', $where];
+			}
+
+			return $where;
+		};
+
+		const where = getWhereForBind(0);
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(where);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(where);
+			});
+		});
+
+		// unknown alias
+		test(`/pilot?$filter=identification_method/${methodName}(d:x/identification_type eq 'passport')`, (result) => {
+			// TODO: This should fail
+			it(`should select from pilot when filtering using a non-existing alias in a select path inside an ${methodName}`, () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(where);
+			});
+		});
+
+		const twoPartWhere = ['Or', where, getWhereForBind(1)];
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:d/identification_type eq 'idcard')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:d/identification_type eq 'idcard')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
+
+		// unknown property w/o alias
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:x eq 'idcard')`, (result) => {
+			expect(result)
+				.to.be.instanceOf(TypeError)
+				.and.to.have.property('message', `match is not iterable`);
+		});
+
+		// unknown sub-property
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:d/identification_type/x eq 'idcard')`, (result) => {
+			expect(result)
+				.to.be.instanceOf(TypeError)
+				.and.to.have.property('message', `match is not iterable`);
+		});
+
+		// missing alias
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:identification_type eq 'idcard')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
+
+		// unknown alias
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:x/identification_type eq 'idcard')`, (result) => {
+			// TODO: This should fail
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
+
+		const nestedTwoPartWhere = getWhereForBind(0, 1);
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or d/identification_type eq 'idcard')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(nestedTwoPartWhere);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or d/identification_type eq 'idcard')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(nestedTwoPartWhere);
+			});
+		});
+
+		// unknown property w/o alias
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or x eq 'idcard')`, (result) => {
+			expect(result)
+				.to.be.instanceOf(TypeError)
+				.and.to.have.property('message', `match is not iterable`);
+		});
+
+		// unknown sub-property
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or d/identification_type/x eq 'idcard')`, (result) => {
+			expect(result)
+				.to.be.instanceOf(TypeError)
+				.and.to.have.property('message', `match is not iterable`);
+		});
+
+		// missing alias
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or identification_type eq 'idcard')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(nestedTwoPartWhere);
+			});
+		});
+
+		// unknown alias
+		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or x/identification_type eq 'idcard')`, (result) => {
+			// TODO: This should fail
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(nestedTwoPartWhere);
+			});
+		});
+	});
+
+	run(function () {
+		const getFilterWhereForBind = (bindNumber) => [
 			'IsNotDistinctFrom',
 			['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'name'],
-			['Bind', 0],
+			['Bind', bindNumber],
 		];
-		// All is implemented as where none fail
-		if (methodName === 'all') {
-			// @ts-expect-error Pushing valid AbstractSql
-			subWhere.push(['Not', filterWhere]);
-		} else {
-			// @ts-expect-error Pushing valid AbstractSql
-			subWhere.push(filterWhere);
-		}
 
-		let where = [
-			'Exists',
-			[
-				'SelectQuery',
-				['Select', []],
+		const getWhereForBind = (bindNumber) => {
+			const subWhere = [
+				'And',
 				[
-					'From',
+					'Equals',
+					['ReferencedField', 'pilot', 'id'],
+					['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+				],
+				[
+					'Equals',
+					['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
+					['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
+				],
+			];
+			const filterWhere = getFilterWhereForBind(bindNumber);
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error Pushing valid AbstractSql
+				subWhere.push(['Not', filterWhere]);
+			} else {
+				subWhere.push(filterWhere);
+			}
+
+			let $where = [
+				'Exists',
+				[
+					'SelectQuery',
+					['Select', []],
 					[
-						'Alias',
-						['Table', 'pilot-can fly-plane'],
-						'pilot.pilot-can fly-plane',
+						'From',
+						[
+							'Alias',
+							['Table', 'pilot-can fly-plane'],
+							'pilot.pilot-can fly-plane',
+						],
 					],
+					[
+						'From',
+						['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+					],
+					['Where', subWhere],
 				],
-				[
-					'From',
-					['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
-				],
-				['Where', subWhere],
-			],
-		];
-		// All is implemented as where none fail
-		if (methodName === 'all') {
-			// @ts-expect-error the types should be fine but it's not feasible to do in js
-			where = ['Not', where];
-		}
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error the types should be fine but it's not feasible to do in js
+				$where = ['Not', $where];
+			}
+
+			return $where;
+		};
+
+		const where = getWhereForBind(0);
 
 		test(
 			'/pilot?$filter=can_fly__plane/' +
@@ -1279,49 +1538,126 @@ const lambdaTest = function (methodName) {
 				});
 			},
 		);
+
+		const twoPartWhere = ['Or', where, getWhereForBind(1)];
+
+		test(`/pilot?$filter=can_fly__plane/${methodName}(d:d/plane/name eq 'Concorde') or can_fly__plane/${methodName}(d:d/plane/name eq '747')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
+
+		test(`/pilot/$count?$filter=can_fly__plane/${methodName}(d:d/plane/name eq 'Concorde') or can_fly__plane/${methodName}(d:d/plane/name eq '747')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(twoPartWhere);
+			});
+		});
+
+		test(
+			'/pilot?$filter=can_fly__plane/' +
+				methodName +
+				"(d:x/plane/name eq 'Concorde')",
+			(result) => {
+				const badSubWhere = [
+					'And',
+					[
+						'Equals',
+						['ReferencedField', 'pilot', 'id'],
+						['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+					],
+				];
+				const filterWhere = getFilterWhereForBind(0);
+				// All is implemented as where none fail
+				if (methodName === 'all') {
+					// @ts-expect-error Pushing valid AbstractSql
+					badSubWhere.push(['Not', filterWhere]);
+				} else {
+					badSubWhere.push(filterWhere);
+				}
+				let badWhere = [
+					'Exists',
+					[
+						'SelectQuery',
+						['Select', []],
+						[
+							'From',
+							[
+								'Alias',
+								['Table', 'pilot-can fly-plane'],
+								'pilot.pilot-can fly-plane',
+							],
+						],
+						['Where', badSubWhere],
+					],
+				];
+				// All is implemented as where none fail
+				if (methodName === 'all') {
+					// @ts-expect-error the types should be fine but it's not feasible to do in js
+					badWhere = ['Not', badWhere];
+				}
+				// TODO: This should fail
+				it(`should select from pilot when filtering using a non-existing alias in a select path inside an ${methodName}`, () => {
+					expect(result)
+						.to.be.a.query.that.selects(pilotFields)
+						.from('pilot')
+						.where(badWhere);
+				});
+			},
+		);
 	});
 
 	run(function () {
-		const subWhere = [
-			'And',
-			[
-				'Equals',
-				['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
-				['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
-			],
-		];
-		const filterWhere = [
+		const getFilterWhereForBind = (bindNumber) => [
 			'IsNotDistinctFrom',
 			['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'name'],
-			['Bind', 0],
+			['Bind', bindNumber],
 		];
-		// All is implemented as where none fail
-		if (methodName === 'all') {
-			// @ts-expect-error Pushing valid AbstractSql
-			subWhere.push(['Not', filterWhere]);
-		} else {
-			// @ts-expect-error Pushing valid AbstractSql
-			subWhere.push(filterWhere);
-		}
 
-		let innerWhere = [
-			'Exists',
-			[
-				'SelectQuery',
-				['Select', []],
+		const getPlaneWhereForBind = (bindNumber) => {
+			const subWhere = [
+				'And',
 				[
-					'From',
-					['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+					'Equals',
+					['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
+					['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
 				],
-				['Where', subWhere],
-			],
-		];
+			];
+			const filterWhere = getFilterWhereForBind(bindNumber);
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error Pushing valid AbstractSql
+				subWhere.push(['Not', filterWhere]);
+			} else {
+				subWhere.push(filterWhere);
+			}
 
-		// All is implemented as where none fail
-		if (methodName === 'all') {
-			// @ts-expect-error the types should be fine but it's not feasible to do in js
-			innerWhere = ['Not', innerWhere];
-		}
+			let innerWhere = [
+				'Exists',
+				[
+					'SelectQuery',
+					['Select', []],
+					[
+						'From',
+						['Alias', ['Table', 'plane'], 'pilot.pilot-can fly-plane.plane'],
+					],
+					['Where', subWhere],
+				],
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error the types should be fine but it's not feasible to do in js
+				innerWhere = ['Not', innerWhere];
+			}
+
+			return innerWhere;
+		};
 
 		const where = [
 			'And',
@@ -1330,7 +1666,7 @@ const lambdaTest = function (methodName) {
 				['ReferencedField', 'pilot', 'id'],
 				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
 			],
-			innerWhere,
+			getPlaneWhereForBind(0),
 		];
 
 		test(
@@ -1360,6 +1696,138 @@ const lambdaTest = function (methodName) {
 				});
 			},
 		);
+
+		const twoPartWhere = [
+			'And',
+			[
+				'Equals',
+				['ReferencedField', 'pilot', 'id'],
+				['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+			],
+			['Or', getPlaneWhereForBind(0), getPlaneWhereForBind(1)],
+		];
+
+		test(`/pilot?$filter=can_fly__plane/plane/${methodName}(d:d/name eq 'Concorde') or can_fly__plane/plane/${methodName}(d:d/name eq '747')`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+					.where(twoPartWhere);
+			});
+		});
+
+		test(`/pilot/$count?$filter=can_fly__plane/plane/${methodName}(d:d/name eq 'Concorde') or can_fly__plane/plane/${methodName}(d:d/name eq '747')`, (result) => {
+			it('should select count(*) from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+					.where(twoPartWhere);
+			});
+		});
+
+		test(
+			'/pilot?$filter=can_fly__plane/plane/' +
+				methodName +
+				"(d:x/name eq 'Concorde')",
+			(result) => {
+				// TODO: This should fail
+				it(`should select from pilot when filtering using a non-existing alias inside an ${methodName}`, () => {
+					expect(result)
+						.to.be.a.query.that.selects(pilotFields)
+						.from('pilot', ['pilot-can fly-plane', 'pilot.pilot-can fly-plane'])
+						.where(where);
+				});
+			},
+		);
+	});
+
+	run(function () {
+		const getWhereFor = (filterWhere) => {
+			const subWhere = [
+				'And',
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'id'],
+					['ReferencedField', 'pilot.identification method', 'pilot'],
+				],
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				subWhere.push(['Not', filterWhere]);
+			} else {
+				subWhere.push(filterWhere);
+			}
+
+			let $where = [
+				'Exists',
+				[
+					'SelectQuery',
+					['Select', []],
+					[
+						'From',
+						[
+							'Alias',
+							['Table', 'identification method'],
+							'pilot.identification method',
+						],
+					],
+					['Where', subWhere],
+				],
+			];
+
+			// All is implemented as where none fail
+			if (methodName === 'all') {
+				// @ts-expect-error the types should be fine but it's not feasible to do in js
+				$where = ['Not', $where];
+			}
+
+			return $where;
+		};
+
+		const whereOneEqOne = getWhereFor([
+			'IsNotDistinctFrom',
+			['Bind', 0],
+			['Bind', 1],
+		]);
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:1 eq 1)`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(whereOneEqOne);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:1 eq 1)`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(whereOneEqOne);
+			});
+		});
+
+		const whereTrue = getWhereFor(['Bind', 0]);
+
+		test(`/pilot?$filter=identification_method/${methodName}(d:true)`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects(pilotFields)
+					.from('pilot')
+					.where(whereTrue);
+			});
+		});
+
+		test(`/pilot/$count?$filter=identification_method/${methodName}(d:true)`, (result) => {
+			it('should select from pilot where ...', () => {
+				expect(result)
+					.to.be.a.query.that.selects($count)
+					.from('pilot')
+					.where(whereTrue);
+			});
+		});
 	});
 };
 

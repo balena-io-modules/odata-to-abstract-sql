@@ -13,7 +13,7 @@ declare namespace Chai {
 			table: string | string[],
 			...tables: string[] | string[][]
 		) => Assertion;
-		where: (clause: any[]) => Assertion;
+		where: (clause?: any[]) => Assertion;
 		orderby: (...clause: any[]) => Assertion;
 		limit: (clause: any[]) => Assertion;
 		offset: (clause: any[]) => Assertion;

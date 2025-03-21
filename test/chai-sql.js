@@ -23,11 +23,19 @@ chai.use(function ($chai, utils) {
 	const bodyClause = (bodyType) =>
 		function (...bodyClauses) {
 			const obj = utils.flag(this, 'object');
-			for (let i = 0; i < bodyClauses.length; i++) {
-				expect(obj).to.contain.something.that.deep.equals(
-					[bodyType, bodyClauses[i]],
-					bodyType + ' - ' + i,
+			if (bodyClauses.length === 0) {
+				const topLevelBodyTypeNodes = obj.filter(
+					(v) => Array.isArray(v) && v[0] === bodyType,
 				);
+				// We use deep.equal as an easy way to print the diff in case this fails
+				expect(topLevelBodyTypeNodes).to.deep.equal([]);
+			} else {
+				for (let i = 0; i < bodyClauses.length; i++) {
+					expect(obj).to.contain.something.that.deep.equals(
+						[bodyType, bodyClauses[i]],
+						bodyType + ' - ' + i,
+					);
+				}
 			}
 			return this;
 		};

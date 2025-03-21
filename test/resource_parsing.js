@@ -148,6 +148,28 @@ test('/pilot(1)/licence', (result) => {
 	});
 });
 
+test('/pilot(1)/p', (result) => {
+	it('should fail to select an invalid path', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'p'`,
+			);
+	});
+});
+
+test('/pilot(1)/p/licence', (result) => {
+	it('should fail to select from the licence of pilot with id when using an invalid path', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'p'`,
+			);
+	});
+});
+
 test('/licence(1)/is_of__pilot', (result) => {
 	it('should select from the pilots of licence with id', () => {
 		expect(result)

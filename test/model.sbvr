@@ -10,6 +10,12 @@ Term:       favourite colour
 Term:       hire date
 	Concept Type: Date Time (Type)
 
+Term:       identification type
+	Concept Type: Short Text (Type)
+
+Term:       identification number
+	Concept Type: Short Text (Type)
+
 Term:       licence
 
 Fact type:  licence has name
@@ -54,6 +60,13 @@ Fact type:  pilot has licence
 
 Fact type:  pilot has hire date
 	Necessity: each pilot has exactly one hire date
+
+Fact type:  pilot has identification type
+	Term Form: identification method
+	Database Table Name: identification method
+
+Fact type: identification method has identification number
+	Necessity: each identification method has exactly one identification number.
 
 Fact type:  pilot1 was trained by pilot2
 	Synonymous Form: pilot2 trained pilot1

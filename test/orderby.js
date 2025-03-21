@@ -47,8 +47,18 @@ test('/pilot?$orderby=name asc', (result) => {
 	});
 });
 
+test('/pilot?$orderby=p/name asc', (result) => {
+	// TODO: This should fail
+	it('should order by name asc using a non-existing alias', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot')
+			.orderby(['ASC', operandToAbstractSQL('name')]);
+	});
+});
+
 test('/pilot?$orderby=name asc,age desc', (result) => {
-	it('should order by name desc, age desc', () => {
+	it('should order by name asc, age desc', () => {
 		expect(result)
 			.to.be.a.query.that.selects(pilotFields)
 			.from('pilot')
@@ -70,6 +80,23 @@ test('/pilot?$orderby=licence/id asc', (result) => {
 				['ReferencedField', 'pilot.licence', 'id'],
 			])
 			.orderby(['ASC', operandToAbstractSQL('licence/id')]);
+	});
+});
+
+test('/pilot?$orderby=licence/name asc,licence/id desc', (result) => {
+	it('should order by licence/name asc, licence/id desc w/o JOINing the licence twice', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot', ['licence', 'pilot.licence'])
+			.where([
+				'Equals',
+				['ReferencedField', 'pilot', 'licence'],
+				['ReferencedField', 'pilot.licence', 'id'],
+			])
+			.orderby(
+				['ASC', operandToAbstractSQL('licence/name')],
+				['DESC', operandToAbstractSQL('licence/id')],
+			);
 	});
 });
 
@@ -96,6 +123,35 @@ test('/pilot?$orderby=can_fly__plane/plane/id asc', (result) => {
 				],
 			])
 			.orderby(['ASC', operandToAbstractSQL('can_fly__plane/plane/id')]);
+	});
+});
+
+test('/pilot?$orderby=can_fly__plane/plane/name desc,can_fly__plane/plane/id asc', (result) => {
+	it('should order by can_fly__plane/plane/name desc, can_fly__plane/plane/id asc w/o JOINing the resources twice', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from(
+				'pilot',
+				['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
+				['plane', 'pilot.pilot-can fly-plane.plane'],
+			)
+			.where([
+				'And',
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'id'],
+					['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
+				],
+				[
+					'Equals',
+					['ReferencedField', 'pilot.pilot-can fly-plane', 'can fly-plane'],
+					['ReferencedField', 'pilot.pilot-can fly-plane.plane', 'id'],
+				],
+			])
+			.orderby(
+				['DESC', operandToAbstractSQL('can_fly__plane/plane/name')],
+				['ASC', operandToAbstractSQL('can_fly__plane/plane/id')],
+			);
 	});
 });
 
@@ -230,5 +286,25 @@ test('/team?$orderby=includes__pilot/$count($filter=is_experienced eq true) desc
 					],
 				],
 			]);
+	});
+});
+
+test('/pilot?$select=name,licence/name&$orderby=name asc,licence/name desc', function (result) {
+	it('should select from pilot.name, licence.name, ordered by the pilot name asc and licence name desc w/o JOINing the licence twice', () => {
+		expect(result)
+			.to.be.a.query.that.selects([
+				operandToAbstractSQL('name'),
+				operandToAbstractSQL('licence/name'),
+			])
+			.from('pilot', ['licence', 'pilot.licence'])
+			.where([
+				'Equals',
+				['ReferencedField', 'pilot', 'licence'],
+				['ReferencedField', 'pilot.licence', 'id'],
+			])
+			.orderby(
+				['ASC', operandToAbstractSQL('name')],
+				['DESC', operandToAbstractSQL('licence/name')],
+			);
 	});
 });

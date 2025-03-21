@@ -453,6 +453,32 @@ test('/pilot?$orderby=id asc&$expand=licence/$count', (result) => {
 	});
 });
 
+test('/pilot?$expand=licence&$orderby=licence/name asc', function (result) {
+	const agg = _.cloneDeep(aggregateJSON.licence);
+	_.chain(agg)
+		.find({ 0: 'SelectQuery' })
+		// @ts-expect-error AbstractSql array being an array having .find
+		.find({ 0: 'From' })
+		.find({ 2: 'pilot.licence' })
+		.find({ 0: 'SelectQuery' })
+		.value();
+
+	it('should select from pilot.*, licence.*, ordered by the licence name', () => {
+		expect(result)
+			.to.be.a.query.that.selects([
+				agg,
+				..._.reject(pilotFields, { 2: 'licence' }),
+			])
+			.from('pilot', ['licence', 'pilot.licence'])
+			.where([
+				'Equals',
+				['ReferencedField', 'pilot', 'licence'],
+				['ReferencedField', 'pilot.licence', 'id'],
+			])
+			.orderby(['ASC', ['ReferencedField', 'pilot.licence', 'name']]);
+	});
+});
+
 test('/pilot?$expand=licence/$count($filter=id gt 5)', function (result) {
 	const agg = _.cloneDeep(aggregateJSONCount.licence);
 	_.chain(agg)
