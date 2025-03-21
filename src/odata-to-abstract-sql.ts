@@ -984,7 +984,10 @@ export class OData2AbstractSQL {
 				parentResource,
 				resourceName,
 			);
-			resource = this.clientModel.tables[relationshipMapping[1]![0]];
+			if (relationshipMapping[1] == null) {
+				throw new SyntaxError(`Could not match resource: "${resourceName}"`);
+			}
+			resource = this.clientModel.tables[relationshipMapping[1][0]];
 		} else {
 			let sqlName = odataNameToSqlName(resourceName);
 			sqlName = this.Synonym(sqlName);
