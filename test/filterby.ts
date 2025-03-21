@@ -1350,10 +1350,10 @@ const lambdaTest = function (methodName) {
 		// unknown sub-property
 		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:d/identification_type/x eq 'idcard')`, (result) => {
 			expect(result)
-				.to.be.instanceOf(TypeError)
+				.to.be.instanceOf(SyntaxError)
 				.and.to.have.property(
 					'message',
-					`Cannot read properties of undefined (reading '0')`,
+					`Could not match resource: "identification_type"`,
 				);
 		});
 
@@ -1407,10 +1407,10 @@ const lambdaTest = function (methodName) {
 		// unknown sub-property
 		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or d/identification_type/x eq 'idcard')`, (result) => {
 			expect(result)
-				.to.be.instanceOf(TypeError)
+				.to.be.instanceOf(SyntaxError)
 				.and.to.have.property(
 					'message',
-					`Cannot read properties of undefined (reading '0')`,
+					`Could not match resource: "identification_type"`,
 				);
 		});
 
