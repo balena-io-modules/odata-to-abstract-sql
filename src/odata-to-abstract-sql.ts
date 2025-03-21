@@ -410,51 +410,57 @@ export class OData2AbstractSQL {
 	) {
 		const MAX_ALIAS_LENGTH = 63;
 		const shortAliases = generateShortAliases(clientModel);
-		this.checkAlias = memoize((alias: string) => {
-			let aliasLength = alias.length;
-			if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
-				return alias;
-			}
-			alias = _(alias.toLowerCase())
-				.split('.')
-				.map((part) => {
-					if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
-						return part;
-					}
-					aliasLength -= part.length;
-					const shortAlias = _(part)
-						.split('-')
-						.map((part2) => {
-							part2 = _(part2)
-								.split(' ')
-								.map((part3) => {
-									part3 = _(part3)
-										.split('$')
-										.map((part4) => shortAliases[part4] ?? part4)
-										.join('$');
-									return shortAliases[part3] ?? part3;
-								})
-								.join(' ');
-							return shortAliases[part2] ?? part2;
-						})
-						.join('-');
-					aliasLength += shortAlias.length;
-					return shortAlias;
-				})
-				.join('.');
+		this.checkAlias = memoize(
+			(alias: string) => {
+				let aliasLength = alias.length;
+				if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
+					return alias;
+				}
+				alias = _(alias.toLowerCase())
+					.split('.')
+					.map((part) => {
+						if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
+							return part;
+						}
+						aliasLength -= part.length;
+						const shortAlias = _(part)
+							.split('-')
+							.map((part2) => {
+								part2 = _(part2)
+									.split(' ')
+									.map((part3) => {
+										part3 = _(part3)
+											.split('$')
+											.map((part4) => shortAliases[part4] ?? part4)
+											.join('$');
+										return shortAliases[part3] ?? part3;
+									})
+									.join(' ');
+								return shortAliases[part2] ?? part2;
+							})
+							.join('-');
+						aliasLength += shortAlias.length;
+						return shortAlias;
+					})
+					.join('.');
 
-			if (minimizeAliases !== false || aliasLength > MAX_ALIAS_LENGTH) {
-				alias = shortAliases[alias] ?? alias;
-			}
-			if (aliasLength <= MAX_ALIAS_LENGTH) {
-				return alias;
-			}
+				if (minimizeAliases !== false || aliasLength > MAX_ALIAS_LENGTH) {
+					alias = shortAliases[alias] ?? alias;
+				}
+				if (aliasLength <= MAX_ALIAS_LENGTH) {
+					return alias;
+				}
 
-			const hashStr = stringHash(alias).toString(36) + '$';
-			return (
-				hashStr + alias.slice(hashStr.length + alias.length - MAX_ALIAS_LENGTH)
-			);
-		});
+				const hashStr = stringHash(alias).toString(36) + '$';
+				return (
+					hashStr +
+					alias.slice(hashStr.length + alias.length - MAX_ALIAS_LENGTH)
+				);
+			},
+			{
+				primitive: true,
+			},
+		);
 	}
 	match(
 		path: ODataQuery,
