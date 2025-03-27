@@ -151,24 +151,6 @@ const operations = {
 	div: 'Divide',
 } as const;
 
-const rewriteComputed = (
-	computed: NonNullable<AbstractSqlField['computed']>,
-	tableName: string,
-	tableAlias: string,
-) => {
-	const rewrittenComputed = _.cloneDeep(computed);
-	modifyAbstractSql(
-		'ReferencedField',
-		rewrittenComputed,
-		(referencedField: ReferencedFieldNode) => {
-			if (referencedField[1] === tableName) {
-				referencedField[1] = tableAlias;
-			}
-		},
-	);
-	return rewrittenComputed;
-};
-
 const containsQueryOption = (opts?: object): boolean => {
 	if (opts == null) {
 		return false;
@@ -1092,7 +1074,7 @@ export class OData2AbstractSQL {
 				resource.tableAlias != null &&
 				resource.tableAlias !== resource.name
 			) {
-				computed = rewriteComputed(
+				computed = this.rewriteComputed(
 					computed,
 					resource.name,
 					resource.tableAlias,
@@ -1837,24 +1819,44 @@ export class OData2AbstractSQL {
 			convertToModernDefinition(definition),
 		);
 		rewriteBinds(rewrittenDefinition, extraBindVars, bindVarsLength);
+		this.rewriteResourceAsTable(rewrittenDefinition.abstractSql);
+		return rewrittenDefinition;
+	}
+
+	rewriteComputed(
+		computed: NonNullable<AbstractSqlField['computed']>,
+		tableName: string,
+		tableAlias: string,
+	): AbstractSqlQuery {
+		const rewrittenComputed = _.cloneDeep(computed);
+		this.rewriteResourceAsTable(rewrittenComputed);
+
 		modifyAbstractSql(
-			'Resource',
-			rewrittenDefinition.abstractSql,
-			(resource: ResourceNode) => {
-				const resourceName = resource[1];
-				const referencedResource = this.clientModel.tables[resourceName];
-				if (!referencedResource) {
-					throw new Error(`Could not resolve resource ${resourceName}`);
+			'ReferencedField',
+			rewrittenComputed,
+			(referencedField: ReferencedFieldNode) => {
+				if (referencedField[1] === tableName) {
+					referencedField[1] = tableAlias;
 				}
-				const tableRef = this.getTableReference(
-					referencedResource,
-					extraBindVars,
-					bindVarsLength,
-				);
-				(resource as AbstractSqlType[]).splice(0, resource.length, ...tableRef);
 			},
 		);
-		return rewrittenDefinition;
+		return rewrittenComputed;
+	}
+
+	rewriteResourceAsTable(abstractSql: AbstractSqlQuery): void {
+		modifyAbstractSql('Resource', abstractSql, (resource: ResourceNode) => {
+			const resourceName = resource[1];
+			const referencedResource = this.clientModel.tables[resourceName];
+			if (!referencedResource) {
+				throw new Error(`Could not resolve resource ${resourceName}`);
+			}
+			const tableRef = this.getTableReference(
+				referencedResource,
+				this.extraBindVars,
+				this.bindVarsLength,
+			);
+			(resource as AbstractSqlType[]).splice(0, resource.length, ...tableRef);
+		});
 	}
 }
 
