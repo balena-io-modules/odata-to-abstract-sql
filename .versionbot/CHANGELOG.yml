@@ -1,4 +1,23 @@
 - commits:
+    - subject: Fix translation of Resource -> Table when using a computed term
+      hash: 1ece1c36cee6650d5ec72ba767842bb15fdcc953
+      body: >
+        When adding a computed term which the abstract sql body uses a
+        `Resource` node
+
+        odata-to-abstract-sql was failing to convert the Resource into the
+        correct Table due
+
+        to missing table ref search
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 7.1.5
+  title: ""
+  date: 2025-03-27T18:14:04.062Z
+- commits:
     - subject: Use primitive mode memoization for `checkAlias`
       hash: 8e895a74f16b1bfe70584d2e941c79bc9ef83042
       body: |
@@ -1725,6 +1744,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1747,6 +1767,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1787,6 +1808,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1893,6 +1915,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1921,6 +1944,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1953,6 +1977,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1990,6 +2015,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2138,6 +2164,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
