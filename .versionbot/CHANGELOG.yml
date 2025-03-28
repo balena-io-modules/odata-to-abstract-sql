@@ -1,4 +1,62 @@
 - commits:
+    - subject: Support path expressions of resources with 0..1 cardinality in
+        $select/$filter/$orderby
+      hash: 0e9954ba628717eae2581f05cfb5b78c29f2f9a9
+      body: |
+        Update @balena/odata-parser from 4.1.0 to 4.2.1
+      footer:
+        Change-type: patch
+        change-type: patch
+        See: https://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part2-url-conventions.html#sec_PathExpressions
+        see: https://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part2-url-conventions.html#sec_PathExpressions
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Add the missing MethodCall type
+              hash: 78efcd852c6ff653da7eb17c9d15cdfaf18f177e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+            - subject: Add the missing properties in the PropertyPath typings
+              hash: dde814052753c19020bdf069050cb96c03229f24
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: https://github.com/balena-io-modules/odata-parser/pull/96
+                see: https://github.com/balena-io-modules/odata-parser/pull/96
+              author: Thodoris Greasidis
+          version: odata-parser-4.2.1
+          title: ""
+          date: 2025-03-18T11:16:09.003Z
+        - commits:
+            - subject: Support ordering by a Collection Navigation property using a Key
+                notation
+              hash: 460e4f3775068621b914c3c4a12cac34aba5e0e0
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+                See: https://balena.fibery.io/Work/Project/Shape--Build-Add-support-for-sorting-on-user-selected-tag-columns-in-the-server-side-paginated-devic-912
+                see: https://balena.fibery.io/Work/Project/Shape--Build-Add-support-for-sorting-on-user-selected-tag-columns-in-the-server-side-paginated-devic-912
+              author: Thodoris Greasidis
+          version: odata-parser-4.2.0
+          title: ""
+          date: 2025-03-12T23:08:54.233Z
+    - subject: Fix OrderBy to use LEFT JOIN instead of INNER JOIN
+      hash: e9f636b894c00b1b29946ddcb0f7bb635cb0d01d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Andrea Rosci
+      nested: []
+  version: 7.1.6
+  title: ""
+  date: 2025-03-28T05:47:18.848Z
+- commits:
     - subject: Fix translation of Resource -> Table when using a computed term
       hash: 1ece1c36cee6650d5ec72ba767842bb15fdcc953
       body: >
@@ -1745,6 +1803,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1767,6 +1826,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1808,6 +1868,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1916,6 +1977,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1944,6 +2006,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1977,6 +2040,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2015,6 +2079,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2164,6 +2229,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
