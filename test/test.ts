@@ -66,3 +66,41 @@ test.skip = runExpectation.bind(null, describe.skip);
 test.only = runExpectation.bind(null, describe.only);
 
 export default test;
+
+export const itExpectsError = (
+	title: string,
+	fn: (this: Mocha.Context) => void,
+	expectedError: string | RegExp | ((err: Error) => boolean),
+) => {
+	it(`[Expect test case to fail] ${title}`, function () {
+		try {
+			fn?.call(this);
+			throw new Error(`
+				(Maybe a good one) Test case:
+				> ${title}
+
+				that was expected to fail, now completed without issues!
+				Confirm whether the test was properly fixed and change its 'itExpectsError()' to an 'it()'.
+				Thanks for fixing it!
+			`);
+		} catch (err) {
+			if (!(err instanceof Error)) {
+				throw err;
+			}
+			const isExpectedError =
+				typeof expectedError === 'function'
+					? expectedError
+					: (e: Error) => {
+							if (typeof expectedError === 'string') {
+								return expectedError === e.message;
+							}
+							if (expectedError instanceof RegExp) {
+								return expectedError.test(e.message);
+							}
+						};
+			if (!isExpectedError(err)) {
+				throw err;
+			}
+		}
+	});
+};

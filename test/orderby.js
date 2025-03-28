@@ -4,7 +4,7 @@ import {
 	pilotFields,
 	teamFields,
 } from './chai-sql';
-import test from './test';
+import test, { itExpectsError } from './test';
 
 const operandToAbstractSQL = operandToAbstractSQLFactory();
 
@@ -322,4 +322,223 @@ test('/pilot?$select=name,licence/name&$orderby=name asc,licence/name desc', fun
 				['DESC', operandToAbstractSQL('licence/name')],
 			);
 	});
+});
+
+test(`/pilot?$orderby=identification_method(1)/identification_number desc`, (result) => {
+	it('should fail to order pilots by their passport number when using a primitive key', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Using a key bind after a navigation expression is not supported.',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(pilot=1)/identification_number desc`, (result) => {
+	it('should fail to order by an associated resource when providing the navigated FK of the associated resource as the only part of the alternate key', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified already navigated field as part of key: pilot',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(pilot=1,identification_type='passport')/identification_number desc`, (result) => {
+	it('should fail to order by an associated resource when providing the navigated FK of the associated resource as part of the alternate key', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified already navigated field as part of key: pilot',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport') desc`, (result) => {
+	it('should fail to order by an associated resource when not defining the associated resource field', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Attempted to directly fetch a virtual field: "identification_method"',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(not_a_field='12345')/identification_number desc`, (result) => {
+	it('should fail to order pilots when the field provided as an alternate key does not exist', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified non-existent field for path key',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_number='12345')/identification_number desc`, (result) => {
+	it('should fail to order pilots when the field provided as an alternate key does not complete a natural key when combined with the navigation field', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified fields for path key that are not directly unique',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport',identification_number='12345')/identification_number desc`, (result) => {
+	it('should fail to order pilots when the field provided as an alternate key does not complete a natural key when combined with the navigation field', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				'Specified fields for path key that are not directly unique',
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport')/identification_number desc`, (result) => {
+	it('should order pilots by their passport number when using part of the alternate key and infering the rest from the navigation', () => {
+		expect(result)
+			.to.be.a.query.that.selects(pilotFields)
+			.from('pilot')
+			.leftJoin([
+				['identification method', 'pilot.identification method'],
+				[
+					'And',
+					[
+						'Equals',
+						['ReferencedField', 'pilot', 'id'],
+						['ReferencedField', 'pilot.identification method', 'pilot'],
+					],
+					[
+						'IsNotDistinctFrom',
+						[
+							'ReferencedField',
+							'pilot.identification method',
+							'identification type',
+						],
+						['Bind', 0],
+					],
+				],
+			])
+			.orderby([
+				'DESC',
+				[
+					'ReferencedField',
+					'pilot.identification method',
+					'identification number',
+				],
+			]);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport')/identification_number desc,identification_method(identification_type='id card')/identification_number desc`, (result) => {
+	it('should order pilots by their passport number & then their ID when using part of the alternate key and infering the rest from the navigation', () => {
+		expect(result)
+			.to.be.instanceOf(Error)
+			.and.to.have.property(
+				'message',
+				`Adding JOINs on the same resource with different ON clauses is not supported. Found pilot.identification method`,
+			);
+	});
+});
+
+test(`/pilot?$orderby=identification_method(identification_type='passport')/identification_number desc,identification_method(identification_type='passport')/created_at desc`, (result) => {
+	// TODO: This atm doens't work b/c the two JOINs are generated with differnet Bind numbers
+	itExpectsError(
+		`should order pilots by their passport's creation date and then by its number`,
+		() => {
+			expect(result)
+				.to.be.a.query.that.selects(pilotFields)
+				.from('pilot')
+				.leftJoin([
+					['identification method', 'pilot.identification method'],
+					[
+						'And',
+						[
+							'Equals',
+							['ReferencedField', 'pilot', 'id'],
+							['ReferencedField', 'pilot.identification method', 'pilot'],
+						],
+						[
+							'IsNotDistinctFrom',
+							[
+								'ReferencedField',
+								'pilot.identification method',
+								'identification type',
+							],
+							['Bind', 0],
+						],
+					],
+				])
+				.orderby(
+					[
+						'DESC',
+						[
+							'ReferencedField',
+							'pilot.identification method',
+							'identification number',
+						],
+					],
+					[
+						'DESC',
+						['ReferencedField', 'pilot.identification method', 'created at'],
+					],
+				);
+		},
+		'expected SyntaxError: Adding JOINs on the same res… to be an instance of Array',
+	);
+});
+
+test(`/pilot?$select=name,identification_method(identification_type='passport')/identification_number&$orderby=identification_method(identification_type='passport')/created_at desc`, (result) => {
+	// TODO: This atm doens't work b/c the two JOINs are generated with differnet Bind numbers
+	itExpectsError(
+		`should order pilots by their passport's creation date and select their passport number`,
+		() => {
+			expect(result)
+				.to.be.a.query.that.selects([
+					operandToAbstractSQL('name'),
+					[
+						'Alias',
+						[
+							'ReferencedField',
+							'pilot.identification method',
+							'identification number',
+						],
+						'identification_number',
+					],
+				])
+				.from('pilot')
+				.leftJoin([
+					['identification method', 'pilot.identification method'],
+					[
+						'And',
+						[
+							'Equals',
+							['ReferencedField', 'pilot', 'id'],
+							['ReferencedField', 'pilot.identification method', 'pilot'],
+						],
+						[
+							'IsNotDistinctFrom',
+							[
+								'ReferencedField',
+								'pilot.identification method',
+								'identification type',
+							],
+							['Bind', 0],
+						],
+					],
+				])
+				.orderby([
+					'DESC',
+					['ReferencedField', 'pilot.identification method', 'created at'],
+				]);
+		},
+		'expected SyntaxError: Adding JOINs on the same res… to be an instance of Array',
+	);
 });
