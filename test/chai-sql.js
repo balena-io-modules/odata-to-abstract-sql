@@ -48,6 +48,17 @@ chai.use(function ($chai, utils) {
 			);
 			return this;
 		};
+	const binaryClause = (bodyType) =>
+		function (...bodyClauses) {
+			const obj = utils.flag(this, 'object');
+			for (let i = 0; i < bodyClauses.length; i++) {
+				expect(obj).to.contain.something.that.deep.equals(
+					[bodyType, bodyClauses[i][0], bodyClauses[i][1]],
+					bodyType + ' - ' + i,
+				);
+			}
+			return this;
+		};
 
 	const select = (function () {
 		const bodySelect = bodyClause('Select');
@@ -77,6 +88,15 @@ chai.use(function ($chai, utils) {
 		});
 		return fromClause.apply(this, bodyClauses);
 	});
+	const leftJoinClause = binaryClause('LeftJoin');
+	utils.addMethod(assertionPrototype, 'leftJoin', function (...bodyClauses) {
+		bodyClauses = bodyClauses.map(function ([v, condition]) {
+			const resource =
+				typeof v === 'string' ? ['Table', v] : ['Alias', ['Table', v[0]], v[1]];
+			return [resource, ['On', condition]];
+		});
+		return leftJoinClause.apply(this, bodyClauses);
+	});
 	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'));
 	utils.addMethod(assertionPrototype, 'orderby', function (...bodyClauses) {
 		const bodyType = 'OrderBy';
@@ -88,7 +108,6 @@ chai.use(function ($chai, utils) {
 		return this;
 	});
 	utils.addMethod(assertionPrototype, 'groupby', multiBodyClause('GroupBy'));
-	utils.addMethod(assertionPrototype, 'where', bodyClause('Where'));
 	utils.addMethod(assertionPrototype, 'limit', bodyClause('Limit'));
 	utils.addMethod(assertionPrototype, 'offset', bodyClause('Offset'));
 });

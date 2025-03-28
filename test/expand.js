@@ -253,28 +253,30 @@ test('/pilot?$expand=licence($filter=is_of__pilot/id eq 1)', function (result) {
 		.find({ 0: 'SelectQuery' })
 		.tap((aggSelect) =>
 			aggSelect.splice(aggSelect.length - 1, 0, [
-				'From',
+				'LeftJoin',
 				['Alias', ['Table', 'pilot'], 'pilot.licence.is of-pilot'],
-			]),
-		)
-		.find({ 0: 'Where' })
-		.tap(function (aggWhere) {
-			const currentWhere = aggWhere.splice(1, Infinity);
-			return aggWhere.push(
 				[
-					'And',
+					'On',
 					[
 						'Equals',
 						['ReferencedField', 'pilot.licence', 'id'],
 						['ReferencedField', 'pilot.licence.is of-pilot', 'licence'],
 					],
-					[
-						'IsNotDistinctFrom',
-						['ReferencedField', 'pilot.licence.is of-pilot', 'id'],
-						['Bind', 0],
-					],
-				].concat(currentWhere),
-			);
+				],
+			]),
+		)
+		.find({ 0: 'Where' })
+		.tap(function (aggWhere) {
+			const currentWhere = aggWhere.splice(1, Infinity);
+			return aggWhere.push([
+				'And',
+				[
+					'IsNotDistinctFrom',
+					['ReferencedField', 'pilot.licence.is of-pilot', 'id'],
+					['Bind', 0],
+				],
+				...currentWhere,
+			]);
 		})
 		.value();
 	it('should select from pilot.*, licence.*', () => {
@@ -469,12 +471,16 @@ test('/pilot?$expand=licence&$orderby=licence/name asc', function (result) {
 				agg,
 				..._.reject(pilotFields, { 2: 'licence' }),
 			])
-			.from('pilot', ['licence', 'pilot.licence'])
-			.where([
-				'Equals',
-				['ReferencedField', 'pilot', 'licence'],
-				['ReferencedField', 'pilot.licence', 'id'],
+			.from('pilot')
+			.leftJoin([
+				['licence', 'pilot.licence'],
+				[
+					'Equals',
+					['ReferencedField', 'pilot', 'licence'],
+					['ReferencedField', 'pilot.licence', 'id'],
+				],
 			])
+			.where()
 			.orderby(['ASC', ['ReferencedField', 'pilot.licence', 'name']]);
 	});
 });
