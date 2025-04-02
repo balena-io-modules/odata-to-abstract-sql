@@ -5,8 +5,8 @@
   "type": "commonjs",
   "main": "out/odata-to-abstract-sql.js",
   "scripts": {
-    "lint": "balena-lint -e js -e ts src test && tsc --noEmit && tsc --noEmit --project tsconfig.js.json",
-    "lint-fix": "balena-lint -e js -e ts --fix src test",
+    "lint": "balena-lint src test && tsc --noEmit && tsc --noEmit --project tsconfig.js.json",
+    "lint-fix": "balena-lint --fix src test",
     "pretest": "npm run prepare",
     "test": "mocha && npm run lint",
     "prepublish": "require-npm4-to-publish",
@@ -48,10 +48,7 @@
     "require": "ts-node/register/transpile-only",
     "bail": true,
     "exclude": "test/**/*.d.ts",
-    "_": [
-      "test/**/*.ts",
-      "test/**/*.js"
-    ]
+    "_": "test/**/*.ts"
   },
   "engines": {
     "node": ">=20.14.0",

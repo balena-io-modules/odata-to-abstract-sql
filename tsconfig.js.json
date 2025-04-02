@@ -3,12 +3,11 @@
 	"compilerOptions": {
 		"noImplicitAny": false,
 		"noImplicitThis": false,
-		"strictFunctionTypes": false,
-		"checkJs": true
+		"strictFunctionTypes": false
 	},
 	"include": [
 		"*",
-		"src/*",
+		"src/**/*",
 		"test/**/*"
 	],
 }
