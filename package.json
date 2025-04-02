@@ -47,7 +47,11 @@
     "recursive": true,
     "require": "ts-node/register/transpile-only",
     "bail": true,
-    "_": "test/*.js"
+    "exclude": "test/**/*.d.ts",
+    "_": [
+      "test/**/*.ts",
+      "test/**/*.js"
+    ]
   },
   "engines": {
     "node": ">=20.14.0",
