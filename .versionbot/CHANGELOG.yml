@@ -1,4 +1,72 @@
 - commits:
+    - subject: "Tests: convert test/filterby to typescript"
+      hash: 92d206795a7e7f60da03a874785f364d995a2180
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: convert test/expand to typescript"
+      hash: 04c310f3383173b67d69af394582c48e8724feb0
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: convert test/orderby to typescript"
+      hash: a95840abc03109b1c719bed30b1e388c31fa69e0
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: convert test/resource_parsing to typescript"
+      hash: e70202afdfa112c4e182abaf8ab7ff843faf56a8
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: convert test/select to typescript"
+      hash: 12d873a51539f043143738fb632fb0d44952c6bc
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: convert test/paging to typescript"
+      hash: a74eb53a5c4f0728d5aabb6e6e9748bd6ef28a86
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: convert test/stress to typescript"
+      hash: 43402fa7238daa8c200781bdd42a29a409676fbc
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: convert test/chai-sql to typescript"
+      hash: d9d203864ef9d29f7a993c69b4951e575bf8a0c1
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.1.7
+  title: ""
+  date: 2025-04-02T14:08:06.831Z
+- commits:
     - subject: Support path expressions of resources with 0..1 cardinality in
         $select/$filter/$orderby
       hash: 0e9954ba628717eae2581f05cfb5b78c29f2f9a9
@@ -1804,6 +1872,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1826,6 +1895,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1868,6 +1938,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1978,6 +2049,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2006,6 +2078,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2045,6 +2118,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2079,6 +2153,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2229,6 +2304,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
