@@ -557,10 +557,6 @@ test('/pilot?$expand=licence/$count($top=5)', (result) => {
 // Alias tests
 (function () {
 	const remainingPilotFields = _.reject(pilotFields, function (field) {
-		if (field.length === 2) {
-			// @ts-expect-error Assign field with stil valid AbstractSql
-			field = field[1];
-		}
 		return field[2] === 'pilot';
 	});
 	const recursions = 9;

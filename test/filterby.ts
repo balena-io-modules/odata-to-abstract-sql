@@ -16,11 +16,11 @@ let operandToAbstractSQLFactory = $operandToAbstractSQLFactory;
 import test from './test';
 import _ from 'lodash';
 
-let operandToAbstractSQL = null;
+let operandToAbstractSQL: ReturnType<typeof operandToAbstractSQLFactory>;
 
 const run = (function () {
 	let running = false;
-	return function (keyBinds, fn) {
+	return function (keyBinds, fn?) {
 		if (fn == null) {
 			fn = keyBinds;
 			keyBinds = [];
@@ -99,7 +99,7 @@ const createMethodCall = function (method, ...args) {
 			method +
 			'(' +
 			(() => {
-				const result = [];
+				const result: string[] = [];
 				for (arg of args) {
 					result.push(operandToOData(arg));
 				}
@@ -125,7 +125,7 @@ const createMethodCall = function (method, ...args) {
 	};
 };
 
-const operandTest = (lhs, op, rhs) =>
+const operandTest = (lhs, op?, rhs?) =>
 	run(function () {
 		const { odata, abstractsql } = createExpression(lhs, op, rhs);
 		test('/pilot?$filter=' + odata, (result) => {
@@ -230,7 +230,7 @@ test(`/pilot?$filter=startswith(p/name,'test1')`, (result) => {
 	});
 });
 
-const navigatedOperandTest = (lhs, op, rhs) => {
+const navigatedOperandTest = (lhs, op?, rhs?) => {
 	run(function () {
 		const { odata, abstractsql } = createExpression(lhs, op, rhs);
 		test('/pilot?$filter=' + odata, (result) => {
@@ -268,10 +268,10 @@ const navigatedOperandTest = (lhs, op, rhs) => {
 	});
 };
 
-const methodTest = (...args) =>
+const methodTest = (...args: Parameters<typeof createMethodCall>) =>
 	run(() => operandTest(createMethodCall(...args)));
 
-const navigatedMethodTest = (...args) =>
+const navigatedMethodTest = (...args: Parameters<typeof createMethodCall>) =>
 	run(() => {
 		navigatedOperandTest(createMethodCall(...args));
 	});

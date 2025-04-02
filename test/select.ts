@@ -9,8 +9,8 @@ import _ from 'lodash';
 
 const operandToAbstractSQL = operandToAbstractSQLFactory();
 
-const pilotName = _.filter(pilotFields, { 2: 'name' })[0];
-const pilotAge = _.filter(pilotFields, { 2: 'age' })[0];
+const pilotName = pilotFields.filter((field) => field[2] === 'name')[0];
+const pilotAge = pilotFields.filter((field) => field[2] === 'age')[0];
 test('/pilot?$select=name', (result) => {
 	it('should select name from pilot', () => {
 		expect(result).to.be.a.query.that.selects([pilotName]).from('pilot');
