@@ -5,6 +5,19 @@ import fs from 'fs';
 import { createTranslator } from '@balena/lf-to-abstract-sql';
 import { SBVRParser } from '@balena/sbvr-parser';
 import sbvrTypes from '@balena/sbvr-types';
+import type {
+	AliasNode,
+	BindNode,
+	BooleanNode,
+	CountNode,
+	DateNode,
+	DateTruncNode,
+	DurationNode,
+	NullNode,
+	NumberNode,
+	ReferencedFieldNode,
+	TextNode,
+} from '@balena/abstract-sql-compiler';
 
 chai.use(chaiThings);
 
@@ -15,12 +28,12 @@ chai.use(function ($chai, utils) {
 		const obj = utils.flag(this, 'object');
 		return expect(obj).to.be.an.instanceof(Array);
 	});
-	const queryType = (type) =>
+	const queryType = (type: string) =>
 		function () {
 			const obj = utils.flag(this, 'object');
 			return expect(obj).to.contain.something.that.equals(type);
 		};
-	const bodyClause = (bodyType) =>
+	const bodyClause = (bodyType: string) =>
 		function (...bodyClauses) {
 			const obj = utils.flag(this, 'object');
 			if (bodyClauses.length === 0) {
@@ -39,7 +52,7 @@ chai.use(function ($chai, utils) {
 			}
 			return this;
 		};
-	const multiBodyClause = (bodyType) =>
+	const multiBodyClause = (bodyType: string) =>
 		function (...bodyClauses) {
 			const obj = utils.flag(this, 'object');
 			expect(obj).to.contain.something.that.deep.equals(
@@ -48,7 +61,7 @@ chai.use(function ($chai, utils) {
 			);
 			return this;
 		};
-	const binaryClause = (bodyType) =>
+	const binaryClause = (bodyType: string) =>
 		function (...bodyClauses) {
 			const obj = utils.flag(this, 'object');
 			for (let i = 0; i < bodyClauses.length; i++) {
@@ -112,7 +125,7 @@ chai.use(function ($chai, utils) {
 	utils.addMethod(assertionPrototype, 'offset', bodyClause('Offset'));
 });
 
-const generateClientModel = function (input) {
+const generateClientModel = function (input: string) {
 	const typeVocab = fs.readFileSync(
 		require.resolve('@balena/sbvr-types/Type.sbvr'),
 		'utf8',
@@ -149,25 +162,36 @@ clientModel.tables['copilot'].fields.push({
 	computed: ['Text', 'Junior'],
 });
 
-const odataNameToSqlName = (odataName) =>
+const odataNameToSqlName = (odataName: string) =>
 	odataName.replace(/__/g, '-').replace(/_/g, ' ');
 
-export function sqlNameToOdataName(sqlName) {
+export function sqlNameToOdataName(sqlName: string) {
 	return sqlName.replace(/-/g, '__').replace(/ /g, '_');
 }
 
+type AbstractSqlBind =
+	| BindNode
+	| NullNode
+	| DateTruncNode
+	| ReferencedFieldNode
+	| DurationNode;
 export function operandToAbstractSQLFactory(
-	binds = [],
+	binds: Array<BooleanNode | NumberNode | DateNode | NullNode | TextNode> = [],
 	defaultResource = 'pilot',
 	defaultParentAlias = defaultResource,
 ) {
-	let operandToAbstractSQL;
-	return (operandToAbstractSQL = function (
-		operand,
+	const operandToAbstractSQL = function (
+		operand:
+			| string
+			| number
+			| boolean
+			| Date
+			| [string, string, string]
+			| { abstractsql: AbstractSqlBind },
 		resource = defaultResource,
 		parentAlias = defaultParentAlias,
-	) {
-		if (operand.abstractsql != null) {
+	): AbstractSqlBind | AbstractSqlBind[] {
+		if (typeof operand === 'object' && 'abstractsql' in operand) {
 			return operand.abstractsql;
 		}
 		if (typeof operand === 'boolean') {
@@ -183,7 +207,6 @@ export function operandToAbstractSQLFactory(
 			return ['Bind', binds.length - 1];
 		}
 		if (typeof operand === 'string') {
-			let mapping;
 			if (operand === 'null') {
 				return ['Null'];
 			}
@@ -191,13 +214,13 @@ export function operandToAbstractSQLFactory(
 				return operand
 					.slice(1, -1)
 					.split(',')
-					.map(function (op) {
+					.map(function (op): AbstractSqlBind {
 						const n = parseInt(op, 10);
 						if (Number.isFinite(n)) {
-							return operandToAbstractSQL(n);
+							return operandToAbstractSQL(n) as AbstractSqlBind;
 						}
 
-						return operandToAbstractSQL(op);
+						return operandToAbstractSQL(op) as AbstractSqlBind;
 					});
 			}
 
@@ -208,6 +231,7 @@ export function operandToAbstractSQLFactory(
 				]);
 				return ['Bind', binds.length - 1];
 			}
+			let mapping;
 			const fieldParts = operand.split('/');
 			if (fieldParts.length > 1) {
 				let alias = parentAlias;
@@ -241,10 +265,10 @@ export function operandToAbstractSQLFactory(
 				return [
 					'DateTrunc',
 					['EmbeddedText', 'milliseconds'],
-					['ReferencedField'].concat(mapping),
+					['ReferencedField', ...mapping] as ReferencedFieldNode,
 				];
 			}
-			return ['ReferencedField'].concat(mapping);
+			return ['ReferencedField', ...mapping] as ReferencedFieldNode;
 		}
 		if (Array.isArray(operand)) {
 			return operandToAbstractSQL(...operand);
@@ -253,10 +277,11 @@ export function operandToAbstractSQLFactory(
 			return ['Duration', operand];
 		}
 		throw new Error('Unknown operand type: ' + operand);
-	});
+	};
+	return operandToAbstractSQL;
 }
 
-export const operandToOData = function (operand) {
+export const operandToOData = function (operand): string {
 	if (operand.odata != null) {
 		return operand.odata;
 	}
@@ -267,7 +292,7 @@ export const operandToOData = function (operand) {
 		return operandToOData(operand[0]);
 	}
 	if (operand !== null && typeof operand === 'object') {
-		const duration = [];
+		const duration: string[] = [];
 		let t = false;
 		if (operand.negative) {
 			duration.push('-');
@@ -302,7 +327,7 @@ export const operandToOData = function (operand) {
 	return operand;
 };
 
-export const shortenAlias = function (alias) {
+export const shortenAlias = function (alias: string) {
 	while (alias.length >= 64) {
 		alias = alias
 			.replace(/(^|[^-])pilot/, '$1pi')
@@ -312,7 +337,11 @@ export const shortenAlias = function (alias) {
 };
 
 export const aliasFields = (function () {
-	const aliasField = function (resourceAlias, verb, field) {
+	const aliasField = function (
+		resourceAlias: string,
+		verb: string,
+		field: Fields[number],
+	): Fields[number] {
 		if (field[0] === 'ReferencedField') {
 			return [
 				field[0],
@@ -321,12 +350,16 @@ export const aliasFields = (function () {
 			];
 		}
 		if (field[0] === 'Alias') {
-			return ['Alias', aliasField(resourceAlias, verb, field[1]), field[2]];
+			return [
+				'Alias',
+				aliasField(resourceAlias, verb, field[1]) as ReferencedFieldNode,
+				field[2],
+			];
 		} else {
 			return field;
 		}
 	};
-	return function (resourceAlias, fields, verb) {
+	return function (resourceAlias: string, fields: Fields, verb?: string) {
 		if (verb != null) {
 			verb = verb + '-';
 		} else {
@@ -336,7 +369,9 @@ export const aliasFields = (function () {
 	};
 })();
 
-export const pilotFields = [
+type Fields = Array<ReferencedFieldNode | AliasNode<ReferencedFieldNode>>;
+
+export const pilotFields: Fields = [
 	['Alias', ['ReferencedField', 'pilot', 'created at'], 'created_at'],
 	['Alias', ['ReferencedField', 'pilot', 'modified at'], 'modified_at'],
 	['ReferencedField', 'pilot', 'id'],
@@ -359,21 +394,21 @@ export const pilotFields = [
 	],
 ];
 
-export const licenceFields = [
+export const licenceFields: Fields = [
 	['Alias', ['ReferencedField', 'licence', 'created at'], 'created_at'],
 	['Alias', ['ReferencedField', 'licence', 'modified at'], 'modified_at'],
 	['ReferencedField', 'licence', 'id'],
 	['ReferencedField', 'licence', 'name'],
 ];
 
-export const planeFields = [
+export const planeFields: Fields = [
 	['Alias', ['ReferencedField', 'plane', 'created at'], 'created_at'],
 	['Alias', ['ReferencedField', 'plane', 'modified at'], 'modified_at'],
 	['ReferencedField', 'plane', 'id'],
 	['ReferencedField', 'plane', 'name'],
 ];
 
-export const pilotCanFlyPlaneFields = [
+export const pilotCanFlyPlaneFields: Fields = [
 	[
 		'Alias',
 		['ReferencedField', 'pilot-can fly-plane', 'created at'],
@@ -393,7 +428,7 @@ export const pilotCanFlyPlaneFields = [
 	['ReferencedField', 'pilot-can fly-plane', 'id'],
 ];
 
-export const teamFields = [
+export const teamFields: Fields = [
 	['Alias', ['ReferencedField', 'team', 'created at'], 'created_at'],
 	['Alias', ['ReferencedField', 'team', 'modified at'], 'modified_at'],
 	[
@@ -403,9 +438,11 @@ export const teamFields = [
 	],
 ];
 
-export const $count = [['Alias', ['Count', '*'], '$count']];
+export const $count: [AliasNode<CountNode>] = [
+	['Alias', ['Count', '*'], '$count'],
+];
 
-export const copilotFields = [
+export const copilotFields: Fields = [
 	['Alias', ['ReferencedField', 'copilot', 'created at'], 'created_at'],
 	['Alias', ['ReferencedField', 'copilot', 'modified at'], 'modified_at'],
 	['ReferencedField', 'copilot', 'id'],
