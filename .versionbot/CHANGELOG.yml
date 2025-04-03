@@ -1,4 +1,20 @@
 - commits:
+    - subject: Support ORDER BY a Collection Navigation property using the Key notation
+      hash: cc2bfbe7558b252855ccb2289d771a0ed92a365d
+      body: ""
+      footer:
+        Depends-on: https://github.com/balena-io-modules/odata-parser/pull/96
+        depends-on: https://github.com/balena-io-modules/odata-parser/pull/96
+        Change-type: minor
+        change-type: minor
+        See: https://balena.fibery.io/Work/Project/Shape--Build-Add-support-for-sorting-on-user-selected-tag-columns-in-the-server-side-paginated-devic-912
+        see: https://balena.fibery.io/Work/Project/Shape--Build-Add-support-for-sorting-on-user-selected-tag-columns-in-the-server-side-paginated-devic-912
+      author: Thodoris Greasidis
+      nested: []
+  version: 7.2.0
+  title: ""
+  date: 2025-04-03T12:35:50.097Z
+- commits:
     - subject: "Tests: convert test/filterby to typescript"
       hash: 92d206795a7e7f60da03a874785f364d995a2180
       body: ""
@@ -1873,6 +1889,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1895,6 +1912,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1938,6 +1956,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2050,6 +2069,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2078,6 +2098,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2119,6 +2140,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2153,6 +2175,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2304,6 +2327,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 

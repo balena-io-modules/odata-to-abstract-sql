@@ -1,6 +1,6 @@
 {
   "name": "@balena/odata-to-abstract-sql",
-  "version": "7.1.7",
+  "version": "7.2.0",
   "description": "A consumer of the OData parser, written in OMeta",
   "type": "commonjs",
   "main": "out/odata-to-abstract-sql.js",
@@ -55,6 +55,6 @@
     "npm": ">=10.7.0"
   },
   "versionist": {
-    "publishedAt": "2025-04-02T14:08:07.297Z"
+    "publishedAt": "2025-04-03T12:35:50.596Z"
   }
 }
