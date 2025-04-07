@@ -1,4 +1,16 @@
 - commits:
+    - subject: Ensure resource is always translated to table on computed terms
+      hash: e76969c928bacd80d237b5f084c9f5e481b0dc9d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 7.2.1
+  title: ""
+  date: 2025-04-07T11:45:17.745Z
+- commits:
     - subject: Support ORDER BY a Collection Navigation property using the Key notation
       hash: cc2bfbe7558b252855ccb2289d771a0ed92a365d
       body: ""
@@ -1890,6 +1902,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1912,6 +1925,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1956,6 +1970,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2070,6 +2085,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2098,6 +2114,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2141,6 +2158,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2175,6 +2193,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2327,6 +2346,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
