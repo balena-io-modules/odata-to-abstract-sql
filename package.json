@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@balena/lf-to-abstract-sql": "^5.0.2",
-    "@balena/lint": "^8.2.8",
+    "@balena/lint": "^9.0.0",
     "@balena/sbvr-parser": "^1.4.6",
     "@balena/sbvr-types": "^9.0.2",
     "@types/chai": "^4.3.20",
