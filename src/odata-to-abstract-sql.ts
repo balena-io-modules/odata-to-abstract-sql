@@ -1131,16 +1131,11 @@ export class OData2AbstractSQL {
 			computed &&
 			(!this.alreadyComputedFields[key] || forceCompilingComputedField)
 		) {
-			if (
-				resource.tableAlias != null &&
-				resource.tableAlias !== resource.name
-			) {
-				computed = this.rewriteComputed(
-					computed,
-					resource.name,
-					resource.tableAlias,
-				);
-			}
+			computed = this.rewriteComputed(
+				computed,
+				resource.name,
+				resource.tableAlias,
+			);
 			this.alreadyComputedFields[key] = true;
 			return ['Alias', computed, alias];
 		}
@@ -1957,20 +1952,22 @@ export class OData2AbstractSQL {
 	rewriteComputed(
 		computed: NonNullable<AbstractSqlField['computed']>,
 		tableName: string,
-		tableAlias: string,
+		tableAlias?: string,
 	): AbstractSqlQuery {
 		const rewrittenComputed = _.cloneDeep(computed);
 		this.rewriteResourceAsTable(rewrittenComputed);
 
-		modifyAbstractSql(
-			'ReferencedField',
-			rewrittenComputed,
-			(referencedField: ReferencedFieldNode) => {
-				if (referencedField[1] === tableName) {
-					referencedField[1] = tableAlias;
-				}
-			},
-		);
+		if (tableAlias != null && tableAlias !== tableName) {
+			modifyAbstractSql(
+				'ReferencedField',
+				rewrittenComputed,
+				(referencedField: ReferencedFieldNode) => {
+					if (referencedField[1] === tableName) {
+						referencedField[1] = tableAlias;
+					}
+				},
+			);
+		}
 		return rewrittenComputed;
 	}
 
