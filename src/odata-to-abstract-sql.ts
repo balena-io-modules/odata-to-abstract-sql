@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import memoize from 'memoizee';
-import stringHash = require('string-hash');
+import stringHash from 'string-hash';
 import {
 	isAliasNode,
 	isFromNode,
@@ -1408,11 +1408,9 @@ export class OData2AbstractSQL {
 		}
 	}
 
-	Method(
-		prop: unknown & {
-			method: ['call', { method: string; args: any[] }];
-		},
-	): BooleanTypeNodes | { resource: Resource; name: string } {
+	Method(prop: {
+		method: ['call', { method: string; args: any[] }];
+	}): BooleanTypeNodes | { resource: Resource; name: string } {
 		if (!prop.method) {
 			throw new SyntaxError('Method is missing method entry');
 		}

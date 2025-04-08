@@ -276,7 +276,7 @@ export function operandToAbstractSQLFactory(
 		if (typeof operand === 'object') {
 			return ['Duration', operand];
 		}
-		throw new Error('Unknown operand type: ' + operand);
+		throw new Error(`Unknown operand type: ${operand}`);
 	};
 	return operandToAbstractSQL;
 }
