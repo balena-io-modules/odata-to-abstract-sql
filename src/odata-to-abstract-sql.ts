@@ -90,9 +90,6 @@ import type {
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
-// TODO: Remove this custom error once AddJoins stops silencing errors.
-class KeySyntaxError extends SyntaxError {}
-
 type InternalSupportedMethod = Exclude<SupportedMethod, 'MERGE'> | 'PUT-INSERT';
 
 type RequiredAbstractSqlModelSubset = Pick<
@@ -854,7 +851,7 @@ export class OData2AbstractSQL {
 			if (followedForeignKey != null) {
 				// We should be able to allow this if needed after v gets merged.
 				// https://github.com/balena-io-modules/odata-to-abstract-sql/pull/160
-				throw new KeySyntaxError(
+				throw new SyntaxError(
 					'Using a key bind after a navigation expression is not supported.',
 				);
 			}
@@ -907,7 +904,7 @@ export class OData2AbstractSQL {
 				);
 			})
 		) {
-			throw new KeySyntaxError(
+			throw new SyntaxError(
 				'Specified fields for path key that are not directly unique',
 			);
 		}
@@ -1771,22 +1768,12 @@ export class OData2AbstractSQL {
 	): AliasedResource {
 		const navigation = this.NavigateResources(resource, extraResource);
 		if (key != null) {
-			try {
-				const keyWhere = this.BaseKey(
-					navigation.resource,
-					key,
-					navigation.navigationResourceField,
-				);
-				navigation.where = ['And', navigation.where, keyWhere];
-			} catch (e) {
-				if (e instanceof SyntaxError) {
-					// Since there is a TODO in the AddJoins to stop silencing errors, instead of
-					// silencing the new Syntax errors that can be thrown by the added BaseKey().
-					// we decided use a new custom error to detect those new errors and re-throw them.
-					throw new KeySyntaxError(e.message, { cause: e });
-				}
-				throw e;
-			}
+			const keyWhere = this.BaseKey(
+				navigation.resource,
+				key,
+				navigation.navigationResourceField,
+			);
+			navigation.where = ['And', navigation.where, keyWhere];
 		}
 		const existingJoin = query.joins.find((join) => {
 			const existingFrom = join[1];
@@ -1811,7 +1798,7 @@ export class OData2AbstractSQL {
 			// same alias as the one we just created but different ON predicate.
 			// TODO: In this case we need to be able to generate a new alias for the newly JOINed resource.
 			// Since we atm do not support that we throw early, since otherwise the generated query would be invalid.
-			throw new KeySyntaxError(
+			throw new SyntaxError(
 				`Adding JOINs on the same resource with different ON clauses is not supported. Found ${navigation.resource.tableAlias}`,
 			);
 		}
