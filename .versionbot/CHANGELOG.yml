@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency lint-staged to v16
+      hash: 539a3b023ec33d7d43ab33c2c4d98fe80136cd4a
+      body: |
+        Update lint-staged from 15.5.2 to 16.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 7.2.4
+  title: ""
+  date: 2025-06-06T06:23:08.242Z
+- commits:
     - subject: Fix lintstaged config
       hash: 6ab3c8c750775093b1fbf0f2fb04b319da05f32b
       body: ""
@@ -1929,6 +1942,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1951,6 +1965,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1998,6 +2013,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2118,6 +2134,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2146,6 +2163,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2195,6 +2213,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2229,6 +2248,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2384,6 +2404,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
