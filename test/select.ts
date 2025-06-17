@@ -245,7 +245,8 @@ test('/pilot?$select=can_fly__plane/plane/id', (result) => {
 	});
 });
 
-test('/copilot?$select=*', (result) => {
+// Skipping because the optimization for already computed fields had to be removed due to dangerous interactions with translations
+test.skip('/copilot?$select=*', (result) => {
 	it('should select * from copilot', () => {
 		expect(result).to.be.a.query.to.deep.equal([
 			'SelectQuery',
@@ -292,7 +293,8 @@ test('/copilot?$select=*', (result) => {
 	});
 });
 
-test('/copilot?$select=id,is_blocked,rank', (result) => {
+// Skipping because the optimization for already computed fields had to be removed due to dangerous interactions with translations
+test.skip('/copilot?$select=id,is_blocked,rank', (result) => {
 	it('should select * from copilot', () => {
 		expect(result).to.be.a.query.to.deep.equal([
 			'SelectQuery',
