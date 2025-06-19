@@ -373,6 +373,7 @@ run(function () {
 						'DateTrunc',
 						['EmbeddedText', 'milliseconds'],
 						['ReferencedField', 'pilot', 'created at'],
+						['EmbeddedText', 'UTC'],
 					],
 					['Bind', 0],
 				]);
@@ -395,6 +396,7 @@ run(function () {
 							'DateTrunc',
 							['EmbeddedText', 'milliseconds'],
 							['ReferencedField', 'pilot.licence', 'created at'],
+							['EmbeddedText', 'UTC'],
 						],
 						['Bind', 1],
 					],

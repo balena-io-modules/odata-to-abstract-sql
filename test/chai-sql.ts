@@ -266,6 +266,7 @@ export function operandToAbstractSQLFactory(
 					'DateTrunc',
 					['EmbeddedText', 'milliseconds'],
 					['ReferencedField', ...mapping] as ReferencedFieldNode,
+					['EmbeddedText', 'UTC'],
 				];
 			}
 			return ['ReferencedField', ...mapping] as ReferencedFieldNode;
