@@ -2004,8 +2004,7 @@ run(function () {
 	});
 });
 
-// Skipping because the optimization for already computed fields had to be removed due to dangerous interactions with translations
-test.skip(`/copilot?$select=id,rank&$filter=rank eq 'major'`, (result) => {
+test(`/copilot?$select=id,rank&$filter=rank eq 'major'`, (result) => {
 	it(`should get and filter copilot on computed field rank`, () => {
 		expect(result).to.be.a.query.to.deep.equal([
 			'SelectQuery',
