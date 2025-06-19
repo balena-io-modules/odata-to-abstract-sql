@@ -1071,6 +1071,8 @@ export class OData2AbstractSQL {
 		}
 	}
 	AddSelectFields(path: any, query: Query, resource: Resource) {
+		// We do not need to worry about whether the fields here are computed or not as they will be handled
+		// via a `FROM (SELECT *, ... AS "computed")` subquery if need be so that $filter's can also work
 		let odataFieldNames: Array<
 			Parameters<OData2AbstractSQL['AliasSelectField']>
 		>;
@@ -1081,17 +1083,12 @@ export class OData2AbstractSQL {
 					resource: Resource;
 					name: string;
 				};
-				const sqlName = odataNameToSqlName(field.name);
-				const resourceField = field.resource.fields.find(
-					({ fieldName }) => fieldName === sqlName,
-				);
-				return [field.resource, field.name, resourceField?.computed];
+				return [field.resource, field.name];
 			});
 		} else {
 			odataFieldNames = resource.fields.map((field) => [
 				resource,
 				sqlNameToODataName(field.fieldName),
-				field.computed,
 			]);
 		}
 		const fields = _.differenceWith(
