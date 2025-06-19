@@ -1,4 +1,39 @@
 - commits:
+    - subject: Update dependency @balena/sbvr-types to v10
+      hash: 4d2e8d91667ee168d10e6e8ab96d2ef26d28319e
+      body: |
+        Update @balena/sbvr-types from 9.2.6 to 10.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested:
+        - commits:
+            - subject: Extend webresource write type with File api
+              hash: f5a0f83beecc65319b149735c6522f857b5b7028
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Otavio Jacobi
+          version: sbvr-types-10.1.0
+          title: ""
+          date: 2025-06-19T16:01:41.144Z
+        - commits:
+            - subject: Drop support for no longer maintained node 16 & 18
+              hash: 151b346d0e8cd3148306f07a7bb8abd48b69c440
+              body: ""
+              footer:
+                Change-type: major
+                change-type: major
+              author: Otavio Jacobi
+          version: sbvr-types-10.0.0
+          title: ""
+          date: 2025-06-19T15:40:49.398Z
+  version: 7.2.6
+  title: ""
+  date: 2025-06-19T18:26:49.390Z
+- commits:
     - subject: Remove the "already computed fields" optimization
       hash: d0f448d7040fcfa984a5e4ff9ed3412dfa1a8c22
       body: |
@@ -1959,6 +1994,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1981,6 +2017,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2030,6 +2067,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2154,6 +2192,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2182,6 +2221,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2235,6 +2275,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2269,6 +2310,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2426,6 +2468,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
