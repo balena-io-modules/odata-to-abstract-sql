@@ -1379,6 +1379,7 @@ export class OData2AbstractSQL {
 						'DateTrunc',
 						['EmbeddedText', 'milliseconds'],
 						this.ReferencedField(prop.resource, prop.name),
+						['EmbeddedText', 'UTC'],
 					] as any as UnknownTypeNodes;
 				}
 			}
