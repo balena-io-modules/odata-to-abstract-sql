@@ -1,4 +1,28 @@
 - commits:
+    - subject: Update dependency @balena/sbvr-types to v11
+      hash: fc4d759f780ce55243c14317b1c6278d4ab4e7bb
+      body: |
+        Update @balena/sbvr-types from 10.1.0 to 11.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested:
+        - commits:
+            - subject: Update DateTime to include time zone information
+              hash: 4888db5251dd7a510cfd72f1fae1376410a0e3e2
+              body: ""
+              footer:
+                Change-type: major
+                change-type: major
+              author: Josh Bowling
+          version: sbvr-types-11.0.0
+          title: ""
+          date: 2025-07-15T03:50:13.516Z
+  version: 7.2.7
+  title: ""
+  date: 2025-07-15T23:27:45.025Z
+- commits:
     - subject: Update dependency @balena/sbvr-types to v10
       hash: 4d2e8d91667ee168d10e6e8ab96d2ef26d28319e
       body: |
@@ -1995,6 +2019,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2017,6 +2042,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2067,6 +2093,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2193,6 +2220,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2221,6 +2249,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2276,6 +2305,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2310,6 +2340,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2468,6 +2499,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
