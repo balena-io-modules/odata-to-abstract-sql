@@ -951,7 +951,7 @@ export class OData2AbstractSQL {
 					bodyKeys.includes(fieldName) ||
 					bodyKeys.includes(resourceName + '.' + fieldName)
 				) {
-					return [mappedFieldName, ['Bind', resourceName, fieldName]];
+					return [mappedFieldName, ['Bind', [resourceName, fieldName]]];
 				}
 				// The body doesn't contain a bind var for this field.
 				if (method === 'PUT') {

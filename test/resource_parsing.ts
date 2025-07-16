@@ -286,7 +286,7 @@ test('/pilot(1)', 'PUT', (result) => {
 										['Alias', ['Cast', ['Null'], 'Date Time'], 'modified at'],
 										[
 											'Alias',
-											['Cast', ['Bind', 'pilot', 'id'], 'Serial'],
+											['Cast', ['Bind', ['pilot', 'id']], 'Serial'],
 											'id',
 										],
 										['Alias', ['Cast', ['Null'], 'ConceptType'], 'person'],
@@ -359,7 +359,7 @@ test('/pilot(1)', 'PUT', (result) => {
 				.values(
 					'Default',
 					'Default',
-					['Bind', 'pilot', 'id'],
+					['Bind', ['pilot', 'id']],
 					'Default',
 					'Default',
 					'Default',
@@ -382,8 +382,8 @@ test('/pilot(1)', 'PUT', (result) => {
 			expect(result)
 				.to.be.a.query.that.updates.fields('is experienced', 'favourite colour')
 				.values(
-					['Bind', 'pilot', 'is_experienced'],
-					['Bind', 'pilot', 'favourite_colour'],
+					['Bind', ['pilot', 'is_experienced']],
+					['Bind', ['pilot', 'favourite_colour']],
 				)
 				.from('pilot')
 				.where([
@@ -411,7 +411,7 @@ test('/pilot', 'POST', { name: 'Peter' }, (result) => {
 	it('should insert a pilot', () => {
 		expect(result)
 			.to.be.a.query.that.inserts.fields('name')
-			.values(['Bind', 'pilot', 'name'])
+			.values(['Bind', ['pilot', 'name']])
 			.from('pilot');
 	});
 });
@@ -461,7 +461,11 @@ test('/pilot__can_fly__plane(1)', 'PUT', (result) => {
 										],
 										[
 											'Alias',
-											['Cast', ['Bind', 'pilot-can fly-plane', 'id'], 'Serial'],
+											[
+												'Cast',
+												['Bind', ['pilot-can fly-plane', 'id']],
+												'Serial',
+											],
 											'id',
 										],
 									],
@@ -513,8 +517,7 @@ test('/pilot__can_fly__plane(1)', 'PUT', (result) => {
 				)
 				.values('Default', 'Default', 'Default', 'Default', [
 					'Bind',
-					'pilot-can fly-plane',
-					'id',
+					['pilot-can fly-plane', 'id'],
 				])
 				.from('pilot-can fly-plane')
 				.where(whereClause);
@@ -527,7 +530,7 @@ test('/pilot__can_fly__plane(1)', 'PUT', (result) => {
 		it('should update the pilot__can_fly__plane with id 1', () => {
 			expect(result)
 				.to.be.a.query.that.updates.fields('pilot')
-				.values(['Bind', 'pilot-can fly-plane', 'pilot'])
+				.values(['Bind', ['pilot-can fly-plane', 'pilot']])
 				.from('pilot-can fly-plane')
 				.where([
 					'IsNotDistinctFrom',
@@ -549,8 +552,8 @@ test(
 			expect(result)
 				.to.be.a.query.that.inserts.fields('pilot', 'can fly-plane')
 				.values(
-					['Bind', 'pilot-can fly-plane', 'pilot'],
-					['Bind', 'pilot-can fly-plane', 'can_fly__plane'],
+					['Bind', ['pilot-can fly-plane', 'pilot']],
+					['Bind', ['pilot-can fly-plane', 'can_fly__plane']],
 				)
 				.from('pilot-can fly-plane');
 		});
@@ -656,7 +659,7 @@ test('/team', 'POST', { favourite_colour: 'purple' }, (result) => {
 	it('should insert a team', () => {
 		expect(result)
 			.to.be.a.query.that.inserts.fields('favourite colour')
-			.values(['Bind', 'team', 'favourite_colour'])
+			.values(['Bind', ['team', 'favourite_colour']])
 			.from('team');
 	});
 });
