@@ -509,7 +509,7 @@ run(function () {
 									['Alias', ['Cast', ['Null'], 'Boolean'], 'is experienced'],
 									[
 										'Alias',
-										['Cast', ['Bind', 'pilot', 'name'], 'Short Text'],
+										['Cast', ['Bind', ['pilot', 'name']], 'Short Text'],
 										'name',
 									],
 									['Alias', ['Cast', ['Null'], 'Integer'], 'age'],
@@ -599,7 +599,7 @@ run(function () {
 		it('should update pilot where "' + odata + '"', () => {
 			expect(result)
 				.to.be.a.query.that.updates.fields('name')
-				.values(['Bind', 'pilot', 'name'])
+				.values(['Bind', ['pilot', 'name']])
 				.from('pilot')
 				.where(updateWhere);
 		});
@@ -641,7 +641,7 @@ run(function () {
 						'Default',
 						'Default',
 						'Default',
-						['Bind', 'pilot', 'name'],
+						['Bind', ['pilot', 'name']],
 						'Default',
 						'Default',
 						'Default',
@@ -734,12 +734,16 @@ run([['Number', 1]], function () {
 								[
 									['Alias', ['Cast', ['Null'], 'Date Time'], 'created at'],
 									['Alias', ['Cast', ['Null'], 'Date Time'], 'modified at'],
-									['Alias', ['Cast', ['Bind', 'pilot', 'id'], 'Serial'], 'id'],
+									[
+										'Alias',
+										['Cast', ['Bind', ['pilot', 'id']], 'Serial'],
+										'id',
+									],
 									['Alias', ['Cast', ['Null'], 'ConceptType'], 'person'],
 									['Alias', ['Cast', ['Null'], 'Boolean'], 'is experienced'],
 									[
 										'Alias',
-										['Cast', ['Bind', 'pilot', 'name'], 'Short Text'],
+										['Cast', ['Bind', ['pilot', 'name']], 'Short Text'],
 										'name',
 									],
 									['Alias', ['Cast', ['Null'], 'Integer'], 'age'],
@@ -822,7 +826,7 @@ run([['Number', 1]], function () {
 		it('should update the pilot with id 1', () => {
 			expect(result)
 				.to.be.a.query.that.updates.fields('name')
-				.values(['Bind', 'pilot', 'name'])
+				.values(['Bind', ['pilot', 'name']])
 				.from('pilot')
 				.where(updateWhere);
 		});
@@ -855,10 +859,10 @@ run([['Number', 1]], function () {
 					.values(
 						'Default',
 						'Default',
-						['Bind', 'pilot', 'id'],
+						['Bind', ['pilot', 'id']],
 						'Default',
 						'Default',
-						['Bind', 'pilot', 'name'],
+						['Bind', ['pilot', 'name']],
 						'Default',
 						'Default',
 						'Default',
@@ -903,7 +907,7 @@ run(function () {
 										['Alias', ['Cast', ['Null'], 'ForeignKey'], 'is on-team'],
 										[
 											'Alias',
-											['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey'],
+											['Cast', ['Bind', ['pilot', 'licence']], 'ForeignKey'],
 											'licence',
 										],
 										['Alias', ['Cast', ['Null'], 'Date Time'], 'hire date'],
@@ -993,7 +997,7 @@ run(function () {
 										['Alias', ['Cast', ['Null'], 'ForeignKey'], 'is on-team'],
 										[
 											'Alias',
-											['Cast', ['Bind', 'pilot', 'licence'], 'ForeignKey'],
+											['Cast', ['Bind', ['pilot', 'licence']], 'ForeignKey'],
 											'licence',
 										],
 										['Alias', ['Cast', ['Null'], 'Date Time'], 'hire date'],
@@ -1903,7 +1907,11 @@ run(function () {
 											['Alias', ['Cast', ['Null'], 'Date Time'], 'modified at'],
 											[
 												'Alias',
-												['Cast', ['Bind', 'team', 'favourite_colour'], 'Color'],
+												[
+													'Cast',
+													['Bind', ['team', 'favourite_colour']],
+													'Color',
+												],
 												'favourite colour',
 											],
 										],
@@ -2092,7 +2100,7 @@ test(
 					],
 				],
 				['Fields', ['assists-pilot']],
-				['Values', [['Bind', 'copilot', 'assists__pilot']]],
+				['Values', [['Bind', ['copilot', 'assists__pilot']]]],
 			]);
 		});
 	},

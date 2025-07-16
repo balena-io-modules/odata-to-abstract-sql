@@ -35,7 +35,7 @@ test('/pilot?$top=5&$skip=100', 'PATCH', { name }, (result) => {
 	it('should update pilot limited by 5 and offset by 100', () => {
 		expect(result)
 			.to.be.a.query.that.updates.fields('name')
-			.values(['Bind', 'pilot', 'name'])
+			.values(['Bind', ['pilot', 'name']])
 			.from('pilot')
 			.where([
 				'In',
