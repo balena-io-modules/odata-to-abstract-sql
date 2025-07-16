@@ -1,4 +1,16 @@
 - commits:
+    - subject: Specify UTC time zone for DateTrunc
+      hash: 0b53421d1ce6bf53c8c178a59eb433bd4ecbad4a
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: joshbwlng
+      nested: []
+  version: 8.0.0
+  title: ""
+  date: 2025-07-16T03:33:06.953Z
+- commits:
     - subject: Update dependency @balena/sbvr-types to v11
       hash: fc4d759f780ce55243c14317b1c6278d4ab4e7bb
       body: |
@@ -2020,6 +2032,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2042,6 +2055,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2093,6 +2107,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2221,6 +2236,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2249,6 +2265,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2306,6 +2323,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2340,6 +2358,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2499,6 +2518,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
