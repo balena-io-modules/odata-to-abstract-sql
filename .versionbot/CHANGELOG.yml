@@ -1,4 +1,105 @@
 - commits:
+    - subject: Stop using deprecated bind node format
+      hash: 2104e5fff48d18398048500358f613b98a00e003
+      body: |
+        Update @balena/abstract-sql-compiler from 10.6.0 to 10.6.2
+        Update @balena/odata-parser from 4.2.1 to 4.2.6
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Include comments in generated output to preserve jsdoc info
+              hash: 7045c5bd5244459330a7899ad0fbb974a429ca14
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.6.2
+          title: ""
+          date: 2025-07-16T12:44:51.636Z
+        - commits:
+            - subject: Update dev dependencies
+              hash: 444f515b81454a512eaf3a28f49f7b25938b4b9c
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.6.1
+          title: ""
+          date: 2025-07-16T11:37:51.776Z
+        - commits:
+            - subject: Update @balena/lint to 9.x
+              hash: c1809b591bae1b5f1872d5a30eab2eb90337d3cd
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.6
+          title: ""
+          date: 2025-04-10T03:22:06.692Z
+        - commits:
+            - subject: "Tests: convert to typescript"
+              hash: 0f71c04f5812b10f4a9e09bdf280217c64caa0ee
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Improve typings
+              hash: 3a782a7b87c1f83bb279c509b62dfb6f796e5fe7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.5
+          title: ""
+          date: 2025-04-09T12:12:31.048Z
+        - commits:
+            - subject: 'Build: switch tsconfig to use module "Node16" with type "commonjs"'
+              hash: 2a6499f3c5d259680f9a0f84379c8aed57636a62
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.4
+          title: ""
+          date: 2025-04-09T09:30:46.885Z
+        - commits:
+            - subject: Avoid setting $count `options` for $orderby when not provided
+              hash: 4e1f9750aed95dba4731d1fe9e7a46a000ea4ab6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+          version: odata-parser-4.2.3
+          title: ""
+          date: 2025-04-01T08:42:18.322Z
+        - commits:
+            - subject: Update dependency mocha to v11
+              hash: 118d83467fc89b977ad89f7b9444897739399693
+              body: |
+                Update mocha from 10.8.2 to 11.1.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.2
+          title: ""
+          date: 2025-03-25T16:34:08.496Z
+  version: 8.0.1
+  title: ""
+  date: 2025-07-16T12:59:09.322Z
+- commits:
     - subject: Specify UTC time zone for DateTrunc
       hash: 0b53421d1ce6bf53c8c178a59eb433bd4ecbad4a
       body: ""
@@ -2033,6 +2134,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2055,6 +2157,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2107,6 +2210,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2237,6 +2341,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2265,6 +2370,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2324,6 +2430,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2358,6 +2465,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2518,6 +2626,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
