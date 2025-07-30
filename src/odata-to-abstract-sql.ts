@@ -340,7 +340,7 @@ const modifyAbstractSql = <
 	T extends BindNode | ReferencedFieldNode | ResourceNode,
 >(
 	match: T[0],
-	abstractSql: AbstractSqlQuery,
+	abstractSql: AnyTypeNodes,
 	fn: (abstractSql: T) => void,
 ): void => {
 	if (Array.isArray(abstractSql)) {
@@ -1112,12 +1112,9 @@ export class OData2AbstractSQL {
 	AliasSelectField(
 		resource: Resource,
 		fieldName: string,
-		computed?: AbstractSqlQuery,
+		computed?: AbstractSqlField['computed'],
 		alias: string = fieldName,
-	):
-		| ReferencedFieldNode
-		| AliasNode<ReferencedFieldNode>
-		| AliasNode<AbstractSqlQuery> {
+	): ReferencedFieldNode | AliasNode<AnyTypeNodes> {
 		if (computed) {
 			computed = this.rewriteComputed(
 				computed,
@@ -1943,7 +1940,12 @@ export class OData2AbstractSQL {
 		computed: NonNullable<AbstractSqlField['computed']>,
 		tableName: string,
 		tableAlias?: string,
-	): AbstractSqlQuery {
+	): AnyTypeNodes {
+		if (computed === true) {
+			throw new Error(
+				`Computed field marked as 'true'/provided by definition but no definition provided`,
+			);
+		}
 		const rewrittenComputed = _.cloneDeep(computed);
 		this.rewriteResourceAsTable(rewrittenComputed);
 
@@ -1961,7 +1963,7 @@ export class OData2AbstractSQL {
 		return rewrittenComputed;
 	}
 
-	rewriteResourceAsTable(abstractSql: AbstractSqlQuery): void {
+	rewriteResourceAsTable(abstractSql: AnyTypeNodes): void {
 		modifyAbstractSql('Resource', abstractSql, (resource: ResourceNode) => {
 			const resourceName = resource[1];
 			const referencedResource = this.clientModel.tables[resourceName];
