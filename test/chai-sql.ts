@@ -2,7 +2,7 @@ import _ from 'lodash';
 import chai from 'chai';
 import chaiThings from 'chai-things';
 import fs from 'fs';
-import { createTranslator } from '@balena/lf-to-abstract-sql';
+import LfToAbstractSql from '@balena/lf-to-abstract-sql';
 import { SBVRParser } from '@balena/sbvr-parser';
 import sbvrTypes from '@balena/sbvr-types';
 import type {
@@ -127,7 +127,7 @@ chai.use(function ($chai, utils) {
 
 const generateClientModel = function (input: string) {
 	const typeVocab = fs.readFileSync(
-		require.resolve('@balena/sbvr-types/Type.sbvr'),
+		new URL(import.meta.resolve('@balena/sbvr-types/Type.sbvr')),
 		'utf8',
 	);
 
@@ -139,13 +139,16 @@ const generateClientModel = function (input: string) {
 	SBVRParserInstance.AddCustomAttribute('Database Table Name:');
 	SBVRParserInstance.AddBuiltInVocab(typeVocab);
 
-	const LF2AbstractSQLTranslator = createTranslator(sbvrTypes);
+	const LF2AbstractSQLTranslator = LfToAbstractSql.createTranslator(sbvrTypes);
 
 	const lf = SBVRParserInstance.matchAll(input, 'Process');
 	return LF2AbstractSQLTranslator(lf, 'Process');
 };
 
-const sbvrModel = fs.readFileSync(require.resolve('./model.sbvr'), 'utf8');
+const sbvrModel = fs.readFileSync(
+	new URL(import.meta.resolve('./model.sbvr')),
+	'utf8',
+);
 export const clientModel = generateClientModel(sbvrModel);
 
 clientModel.tables['copilot'].fields.push({

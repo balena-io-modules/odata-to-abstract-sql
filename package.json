@@ -2,7 +2,7 @@
   "name": "@balena/odata-to-abstract-sql",
   "version": "8.0.2",
   "description": "A consumer of the OData parser, written in OMeta",
-  "type": "commonjs",
+  "type": "module",
   "main": "out/odata-to-abstract-sql.js",
   "scripts": {
     "lint": "balena-lint -t tsconfig.js.json src test && tsc --noEmit && tsc --noEmit --project tsconfig.js.json",
@@ -45,7 +45,7 @@
   "mocha": {
     "reporter": "spec",
     "recursive": true,
-    "require": "ts-node/register/transpile-only",
+    "loader": "ts-node/esm/transpile-only",
     "bail": true,
     "exclude": "test/**/*.d.ts",
     "_": "test/**/*.ts"
