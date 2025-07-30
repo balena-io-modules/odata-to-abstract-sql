@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import chai from 'chai';
+import * as chai from 'chai';
 import chaiThings from 'chai-things';
 import fs from 'fs';
 import LfToAbstractSql from '@balena/lf-to-abstract-sql';
