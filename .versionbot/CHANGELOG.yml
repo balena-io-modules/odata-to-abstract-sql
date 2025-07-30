@@ -1,4 +1,16 @@
 - commits:
+    - subject: Improve typings
+      hash: b302828cf24e8bf20d24c8247863b8ba9352de09
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 8.0.2
+  title: ""
+  date: 2025-07-30T15:23:24.794Z
+- commits:
     - subject: Stop using deprecated bind node format
       hash: 2104e5fff48d18398048500358f613b98a00e003
       body: |
@@ -2135,6 +2147,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2157,6 +2170,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2210,6 +2224,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2342,6 +2357,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2370,6 +2386,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2431,6 +2448,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2465,6 +2483,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2626,6 +2645,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
