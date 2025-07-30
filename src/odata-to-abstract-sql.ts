@@ -63,7 +63,6 @@ import type {
 	StrictDateTypeNodes,
 	StrictBooleanTypeNodes,
 	AndNode,
-	OrNode,
 	GreaterThanNode,
 	GreaterThanOrEqualNode,
 	LessThanNode,
@@ -292,22 +291,32 @@ class Query {
 	compile(
 		queryType: 'SelectQuery' | 'InsertQuery' | 'UpdateQuery' | 'DeleteQuery',
 	): SelectQueryNode | InsertQueryNode | UpdateQueryNode | DeleteQueryNode {
-		const compiled: AbstractSqlType[] = [];
-		let where = this.where;
+		const compiled: Array<
+			Exclude<
+				(
+					| SelectQueryNode
+					| InsertQueryNode
+					| UpdateQueryNode
+					| DeleteQueryNode
+				)[number],
+				string
+			>
+		> = [];
 		if (queryType === 'SelectQuery') {
-			compiled.push(['Select', this.select] as SelectNode);
+			compiled.push(['Select', this.select]);
 		}
 		this.from.forEach((tableName) => {
-			compiled.push(['From', tableName] as AbstractSqlQuery);
+			compiled.push(['From', tableName]);
 		});
 		this.joins.forEach((joinNode) => {
 			compiled.push(joinNode);
 		});
-		if (where.length > 0) {
-			if (where.length > 1) {
-				where = [['And', ...where]];
-			}
-			compiled.push(['Where', ...where]);
+		if (this.where.length > 0) {
+			const whereNode =
+				this.where.length === 1
+					? this.where[0]
+					: (['And', ...this.where] satisfies AndNode);
+			compiled.push(['Where', whereNode]);
 		}
 		return [queryType, ...compiled, ...this.extras] as
 			| SelectQueryNode
@@ -354,15 +363,11 @@ export const rewriteBinds = (
 		return;
 	}
 	inc += existingBinds.length;
-	modifyAbstractSql(
-		'Bind',
-		definition.abstractSql as AbstractSqlQuery,
-		(bind: BindNode) => {
-			if (typeof bind[1] === 'number') {
-				bind[1] += inc;
-			}
-		},
-	);
+	modifyAbstractSql('Bind', definition.abstractSql, (bind: BindNode) => {
+		if (typeof bind[1] === 'number') {
+			bind[1] += inc;
+		}
+	});
 	existingBinds.push(...binds);
 };
 
@@ -712,9 +717,9 @@ export class OData2AbstractSQL {
 						definition.abstractSql = bindVarSelectQuery;
 					} else {
 						let found = false;
-						const replaceInsertTableNodeWithBinds = (
-							part: SelectQueryNode[number],
-						): SelectQueryNode[number] => {
+						const replaceInsertTableNodeWithBinds = <T extends number>(
+							part: SelectQueryNode[T],
+						): SelectQueryNode[T] => {
 							if (isFromNode(part)) {
 								if (isTableBeingModified(part[1])) {
 									found = true;
@@ -935,7 +940,10 @@ export class OData2AbstractSQL {
 	OrderByProperties(orderings: OrderByPropertyPath[]): Array<OrderByNode[1]> {
 		return orderings.map((ordering) => {
 			const field = this.ReferencedProperty(ordering);
-			return [ordering.order.toUpperCase(), field] as OrderByNode[1];
+			return [
+				ordering.order.toUpperCase() as Uppercase<typeof ordering.order>,
+				field,
+			];
 		});
 	}
 	BindVars(
@@ -1154,9 +1162,15 @@ export class OData2AbstractSQL {
 			return ['ReferencedField', tableAlias, relationshipMapping[0]];
 		}
 	}
-	BooleanMatch(match: any, optional: true): BooleanTypeNodes | undefined;
-	BooleanMatch(match: any): BooleanTypeNodes;
-	BooleanMatch(match: any, optional = false): BooleanTypeNodes | undefined {
+	BooleanMatch(
+		match: true | false | [string, ...any[]],
+		optional: true,
+	): BooleanTypeNodes | undefined;
+	BooleanMatch(match: true | false | [string, ...any[]]): BooleanTypeNodes;
+	BooleanMatch(
+		match: true | false | [string, ...any[]],
+		optional = false,
+	): BooleanTypeNodes | undefined {
 		switch (match) {
 			case true:
 			case false:
@@ -1174,7 +1188,7 @@ export class OData2AbstractSQL {
 						case 'le': {
 							const op1 = this.Operand(rest[0]);
 							const op2 = this.Operand(rest[1]);
-							return [comparison[type as keyof typeof comparison], op1, op2] as
+							return [comparison[type], op1, op2] as
 								| IsNotDistinctFromNode
 								| IsDistinctFromNode
 								| GreaterThanNode
@@ -1188,7 +1202,7 @@ export class OData2AbstractSQL {
 							return [
 								_.capitalize(type),
 								...rest.map((v) => this.BooleanMatch(v)),
-							] as AndNode | OrNode;
+							];
 						case 'not': {
 							const bool = this.BooleanMatch(rest[0]);
 							return ['Not', bool];
@@ -1302,7 +1316,7 @@ export class OData2AbstractSQL {
 		throw new SyntaxError('Could not match operand');
 	}
 	Math(
-		match: any,
+		match: [string, ...any[]],
 	): AddNode | SubtractNode | MultiplyNode | DivideNode | undefined {
 		const [type, ...rest] = match;
 		switch (type) {
@@ -1311,7 +1325,7 @@ export class OData2AbstractSQL {
 			case 'mul':
 			case 'div':
 				return [
-					operations[type as keyof typeof operations],
+					operations[type],
 					this.Operand(rest[0]),
 					this.Operand(rest[1]),
 				] as AddNode | SubtractNode | MultiplyNode | DivideNode;
