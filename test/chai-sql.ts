@@ -18,6 +18,7 @@ import type {
 	ReferencedFieldNode,
 	TextNode,
 } from '@balena/abstract-sql-compiler';
+import { optimizeSchema } from '@balena/abstract-sql-compiler';
 
 chai.use(chaiThings);
 
@@ -142,7 +143,20 @@ const generateClientModel = function (input: string) {
 	const LF2AbstractSQLTranslator = LfToAbstractSql.createTranslator(sbvrTypes);
 
 	const lf = SBVRParserInstance.matchAll(input, 'Process');
-	return LF2AbstractSQLTranslator(lf, 'Process');
+	const abstractSql = LF2AbstractSQLTranslator(lf, 'Process');
+
+	abstractSql.tables['copilot'].fields.push({
+		fieldName: 'is blocked',
+		dataType: 'Boolean',
+		computed: ['Boolean', false],
+	});
+
+	abstractSql.tables['copilot'].fields.push({
+		fieldName: 'rank',
+		dataType: 'Text',
+		computed: ['Text', 'Junior'],
+	});
+	return optimizeSchema(abstractSql);
 };
 
 const sbvrModel = fs.readFileSync(
@@ -150,20 +164,6 @@ const sbvrModel = fs.readFileSync(
 	'utf8',
 );
 export const clientModel = generateClientModel(sbvrModel);
-
-clientModel.tables['copilot'].fields.push({
-	fieldName: 'is blocked',
-	dataType: 'Boolean',
-	// The cast is needed because AbstractSqlQuery cannot express a constant value.
-	computed: ['Boolean', false],
-});
-
-clientModel.tables['copilot'].fields.push({
-	fieldName: 'rank',
-	dataType: 'Text',
-	// The cast is needed because AbstractSqlQuery cannot express a constant value.
-	computed: ['Text', 'Junior'],
-});
 
 const odataNameToSqlName = (odataName: string) =>
 	odataName.replace(/__/g, '-').replace(/_/g, ' ');
@@ -238,7 +238,7 @@ export function operandToAbstractSQLFactory(
 			const fieldParts = operand.split('/');
 			if (fieldParts.length > 1) {
 				let alias = parentAlias;
-				let previousResource = _(parentAlias).split('.').last();
+				let previousResource = _(parentAlias).split('.').last()!;
 				for (const resourceName of fieldParts.slice(0, -1)) {
 					const sqlName = odataNameToSqlName(resourceName);
 					const sqlNameParts = sqlName.split('-');
