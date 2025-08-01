@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import * as chai from 'chai';
 import chaiThings from 'chai-things';
-import fs from 'fs';
+import fs from 'node:fs';
 import LfToAbstractSql from '@balena/lf-to-abstract-sql';
 import { SBVRParser } from '@balena/sbvr-parser';
 import sbvrTypes from '@balena/sbvr-types';
