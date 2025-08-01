@@ -1,7 +1,6 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { expect } from 'chai';
-import * as chaiSql from './chai-sql';
-const {
+import {
 	sqlNameToOdataName,
 	shortenAlias,
 	operandToAbstractSQLFactory,
@@ -11,9 +10,9 @@ const {
 	pilotCanFlyPlaneFields,
 	planeFields,
 	$count,
-} = chaiSql;
+} from './chai-sql.js';
 const operandToAbstractSQL = operandToAbstractSQLFactory();
-import test from './test';
+import test from './test.js';
 
 const createAggregate = function (args) {
 	let {

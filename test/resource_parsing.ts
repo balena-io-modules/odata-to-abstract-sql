@@ -8,10 +8,10 @@ import {
 	teamFields,
 	pilotCanFlyPlaneFields,
 	$count,
-} from './chai-sql';
+} from './chai-sql.js';
 
-import test from './test';
-import * as ODataParser from '@balena/odata-parser';
+import test from './test.js';
+import ODataParser from '@balena/odata-parser';
 
 test('/', (result) => {
 	it('Service root should return $serviceroot', () => {

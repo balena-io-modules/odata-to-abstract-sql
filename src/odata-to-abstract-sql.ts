@@ -32,7 +32,6 @@ import type {
 	InNode,
 	BindNode,
 	CastNode,
-	AbstractSqlField,
 	TableNode,
 	Definition as ModernDefinition,
 	ResourceNode,
@@ -340,7 +339,7 @@ const modifyAbstractSql = <
 	T extends BindNode | ReferencedFieldNode | ResourceNode,
 >(
 	match: T[0],
-	abstractSql: AbstractSqlQuery,
+	abstractSql: AnyTypeNodes,
 	fn: (abstractSql: T) => void,
 ): void => {
 	if (Array.isArray(abstractSql)) {
@@ -383,10 +382,7 @@ export const isBindReference = (maybeBind: {
 };
 
 const isDynamicResource = (resource: Resource): boolean => {
-	return (
-		resource.definition != null ||
-		resource.fields.some((f) => f.computed != null)
-	);
+	return resource.definition != null;
 };
 
 const addBodyKey = (
@@ -659,9 +655,8 @@ export class OData2AbstractSQL {
 						'SelectQuery',
 						[
 							'Select',
-							(resource.modifyFields ?? resource.fields)
-								.filter((field) => field.computed == null)
-								.map((field): AliasNode<CastNode> => {
+							(resource.modifyFields ?? resource.fields).map(
+								(field): AliasNode<CastNode> => {
 									const alias = field.fieldName;
 									const bindVar = bindVars?.find((v) => v[0] === alias);
 									const value = bindVar?.[1] ?? ['Null'];
@@ -671,7 +666,8 @@ export class OData2AbstractSQL {
 										);
 									}
 									return ['Alias', ['Cast', value, field.dataType], alias];
-								}),
+								},
+							),
 						],
 					],
 					'$insert',
@@ -1089,17 +1085,12 @@ export class OData2AbstractSQL {
 					resource: Resource;
 					name: string;
 				};
-				const sqlName = odataNameToSqlName(field.name);
-				const resourceField = field.resource.fields.find(
-					({ fieldName }) => fieldName === sqlName,
-				);
-				return [field.resource, field.name, resourceField?.computed];
+				return [field.resource, field.name];
 			});
 		} else {
 			odataFieldNames = resource.fields.map((field) => [
 				resource,
 				sqlNameToODataName(field.fieldName),
-				field.computed,
 			]);
 		}
 		const fields = _.differenceWith(
@@ -1112,25 +1103,12 @@ export class OData2AbstractSQL {
 	AliasSelectField(
 		resource: Resource,
 		fieldName: string,
-		computed?: AbstractSqlQuery,
-		alias: string = fieldName,
-	):
-		| ReferencedFieldNode
-		| AliasNode<ReferencedFieldNode>
-		| AliasNode<AbstractSqlQuery> {
-		if (computed) {
-			computed = this.rewriteComputed(
-				computed,
-				resource.name,
-				resource.tableAlias,
-			);
-			return ['Alias', computed, alias];
-		}
+	): ReferencedFieldNode | AliasNode<ReferencedFieldNode> {
 		const referencedField = this.ReferencedField(resource, fieldName);
-		if (referencedField[2] === alias) {
+		if (referencedField[2] === fieldName) {
 			return referencedField;
 		}
-		return ['Alias', referencedField, alias];
+		return ['Alias', referencedField, fieldName];
 	}
 	ReferencedField(
 		resource: Resource,
@@ -1879,44 +1857,13 @@ export class OData2AbstractSQL {
 				return ['Alias', tableRef, tableAlias];
 			}
 		};
-		if (bypassDefinition !== true) {
-			if (resource.definition) {
-				const definition = this.rewriteDefinition(
-					resource.definition,
-					extraBindVars,
-					bindVarsLength,
-				);
-				return maybeAlias(definition.abstractSql);
-			}
-			const computedFields = resource.fields.filter((f) => f.computed != null);
-			if (computedFields.length > 0) {
-				const computedFieldQuery = new Query();
-				computedFieldQuery.select = [
-					['Field', '*'],
-					...computedFields.map((field) =>
-						this.AliasSelectField(
-							resource,
-							sqlNameToODataName(field.fieldName),
-							field.computed,
-							field.fieldName,
-						),
-					),
-				];
-				computedFieldQuery.fromResource(
-					this,
-					{
-						tableAlias: resource.name,
-						...resource,
-					},
-					{
-						extraBindVars,
-						bindVarsLength,
-					},
-					true,
-				);
-
-				return maybeAlias(computedFieldQuery.compile('SelectQuery'));
-			}
+		if (bypassDefinition !== true && resource.definition != null) {
+			const definition = this.rewriteDefinition(
+				resource.definition,
+				extraBindVars,
+				bindVarsLength,
+			);
+			return maybeAlias(definition.abstractSql);
 		}
 		return maybeAlias([
 			'Table',
@@ -1939,29 +1886,7 @@ export class OData2AbstractSQL {
 		return rewrittenDefinition;
 	}
 
-	rewriteComputed(
-		computed: NonNullable<AbstractSqlField['computed']>,
-		tableName: string,
-		tableAlias?: string,
-	): AbstractSqlQuery {
-		const rewrittenComputed = _.cloneDeep(computed);
-		this.rewriteResourceAsTable(rewrittenComputed);
-
-		if (tableAlias != null && tableAlias !== tableName) {
-			modifyAbstractSql(
-				'ReferencedField',
-				rewrittenComputed,
-				(referencedField: ReferencedFieldNode) => {
-					if (referencedField[1] === tableName) {
-						referencedField[1] = tableAlias;
-					}
-				},
-			);
-		}
-		return rewrittenComputed;
-	}
-
-	rewriteResourceAsTable(abstractSql: AbstractSqlQuery): void {
+	rewriteResourceAsTable(abstractSql: AnyTypeNodes): void {
 		modifyAbstractSql('Resource', abstractSql, (resource: ResourceNode) => {
 			const resourceName = resource[1];
 			const referencedResource = this.clientModel.tables[resourceName];

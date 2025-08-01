@@ -3,8 +3,8 @@ import {
 	operandToAbstractSQLFactory,
 	pilotFields,
 	teamFields,
-} from './chai-sql';
-import test, { itExpectsError } from './test';
+} from './chai-sql.js';
+import test, { itExpectsError } from './test.js';
 
 const operandToAbstractSQL = operandToAbstractSQLFactory();
 

@@ -1,6 +1,6 @@
-import { clientModel } from './chai-sql';
-import * as ODataParser from '@balena/odata-parser';
-import { OData2AbstractSQL } from '../out/odata-to-abstract-sql';
+import { clientModel } from './chai-sql.js';
+import ODataParser from '@balena/odata-parser';
+import { OData2AbstractSQL } from '../out/odata-to-abstract-sql.js';
 const translator = new OData2AbstractSQL(clientModel);
 
 const { skip } = describe;

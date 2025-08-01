@@ -2,8 +2,11 @@
   "name": "@balena/odata-to-abstract-sql",
   "version": "8.0.2",
   "description": "A consumer of the OData parser, written in OMeta",
-  "type": "commonjs",
+  "type": "module",
   "main": "out/odata-to-abstract-sql.js",
+  "files": [
+    "out/"
+  ],
   "scripts": {
     "lint": "balena-lint -t tsconfig.js.json src test && tsc --noEmit && tsc --noEmit --project tsconfig.js.json",
     "lint-fix": "balena-lint -t tsconfig.js.json --fix src test",
@@ -16,7 +19,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^10.6.2",
+    "@balena/abstract-sql-compiler": "^11.0.0",
     "@balena/odata-parser": "^4.2.6",
     "@types/lodash": "^4.17.20",
     "@types/memoizee": "^0.4.12",
@@ -30,22 +33,24 @@
     "@balena/lint": "^9.3.2",
     "@balena/sbvr-parser": "^1.4.12",
     "@balena/sbvr-types": "^11.0.0",
-    "@types/chai": "^4.3.20",
+    "@swc-node/register": "^1.10.10",
+    "@types/chai": "^5.2.2",
     "@types/chai-things": "0.0.38",
     "@types/mocha": "^10.0.10",
-    "chai": "^4.5.0",
+    "@types/node": "^20.19.9",
+    "chai": "^5.2.1",
     "chai-things": "~0.2.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
     "mocha": "^11.7.1",
     "require-npm4-to-publish": "^1.0.0",
-    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "mocha": {
     "reporter": "spec",
     "recursive": true,
-    "require": "ts-node/register/transpile-only",
+    "require": "@swc-node/register/esm-register",
+    "enable-source-maps": true,
     "bail": true,
     "exclude": "test/**/*.d.ts",
     "_": "test/**/*.ts"

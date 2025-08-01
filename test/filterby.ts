@@ -9,11 +9,11 @@ import {
 	pilotCanFlyPlaneFields,
 	teamFields,
 	$count,
-} from './chai-sql';
+} from './chai-sql.js';
 
 let operandToAbstractSQLFactory = $operandToAbstractSQLFactory;
 
-import test from './test';
+import test from './test.js';
 import _ from 'lodash';
 
 let operandToAbstractSQL: ReturnType<typeof operandToAbstractSQLFactory>;

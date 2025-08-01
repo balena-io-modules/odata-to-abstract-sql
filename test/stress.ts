@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { pilotFields } from './chai-sql';
-import test from './test';
+import { pilotFields } from './chai-sql.js';
+import test from './test.js';
 import _ from 'lodash';
 
 const filterString = _.range(1, 2000)
