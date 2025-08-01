@@ -4,6 +4,9 @@
   "description": "A consumer of the OData parser, written in OMeta",
   "type": "module",
   "main": "out/odata-to-abstract-sql.js",
+  "files": [
+    "out/"
+  ],
   "scripts": {
     "lint": "balena-lint -t tsconfig.js.json src test && tsc --noEmit && tsc --noEmit --project tsconfig.js.json",
     "lint-fix": "balena-lint -t tsconfig.js.json --fix src test",
