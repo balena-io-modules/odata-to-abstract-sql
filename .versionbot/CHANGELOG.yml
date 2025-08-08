@@ -1,4 +1,16 @@
 - commits:
+    - subject: "Tests: Re-enable tests about avoiding recomputing computed fields"
+      hash: 893490a603337521121e520348cf4e06e0dfd357
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 9.0.1
+  title: ""
+  date: 2025-08-08T14:17:43.144Z
+- commits:
     - subject: Only publish the `out` directory
       hash: 1f210d29c2053207e31d28a520b43b7f1521f27d
       body: ""
@@ -2326,6 +2338,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2348,6 +2361,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2403,6 +2417,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2539,6 +2554,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2567,6 +2583,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2632,6 +2649,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2666,6 +2684,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2829,6 +2848,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
