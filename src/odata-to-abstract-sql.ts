@@ -639,6 +639,8 @@ export class OData2AbstractSQL {
 				(hasQueryOpts || isDynamicResource(resource) || pathKeyWhere != null) &&
 				(method === 'POST' || method === 'PUT-INSERT')
 			) {
+				const tableName = resource.modifyName ?? resource.name;
+
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
 				const subQuery = new Query();
 				subQuery.select = bindVars.map(
@@ -652,23 +654,27 @@ export class OData2AbstractSQL {
 				subQuery.from.push([
 					'Alias',
 					[
-						'SelectQuery',
+						'ConvertRow',
 						[
-							'Select',
-							(resource.modifyFields ?? resource.fields).map(
-								(field): AliasNode<CastNode> => {
-									const alias = field.fieldName;
-									const bindVar = bindVars?.find((v) => v[0] === alias);
-									const value = bindVar?.[1] ?? ['Null'];
-									if (value === 'Default') {
-										throw new Error(
-											'Cannot use default values for a filtered insert query',
-										);
-									}
-									return ['Alias', ['Cast', value, field.dataType], alias];
-								},
-							),
+							'SelectQuery',
+							[
+								'Select',
+								(resource.modifyFields ?? resource.fields).map(
+									(field): AliasNode<CastNode> => {
+										const alias = field.fieldName;
+										const bindVar = bindVars?.find((v) => v[0] === alias);
+										const value = bindVar?.[1] ?? ['Null'];
+										if (value === 'Default') {
+											throw new Error(
+												'Cannot use default values for a filtered insert query',
+											);
+										}
+										return ['Alias', ['Cast', value, field.dataType], alias];
+									},
+								),
+							],
 						],
+						['Table', tableName],
 					],
 					'$insert',
 				]);
@@ -705,7 +711,6 @@ export class OData2AbstractSQL {
 							'Only SelectQuery or Table definitions supported for inserts',
 						);
 					}
-					const tableName = unionResource.modifyName ?? unionResource.name;
 					const isTableBeingModified = (part: any): part is TableNode =>
 						isTableNode(part) && part[1] === tableName;
 
