@@ -72,6 +72,7 @@ import type {
 	FromTypeNode,
 	EqualsAnyNode,
 	JoinTypeNodes,
+	AggregateJSONNode,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -219,6 +220,7 @@ class Query {
 		| FieldNode
 		| CountNode
 		| AliasNode<SelectNode[1][number]>
+		| AggregateJSONNode
 	> = [];
 	public from: Array<FromNode[1]> = [];
 	public where: Array<WhereNode[1]> = [];
@@ -1627,9 +1629,8 @@ export class OData2AbstractSQL {
 
 			const expandQuery = new Query();
 			expandQuery.select.push([
-				'Alias',
-				['AggregateJSON', ['ReferencedField', expandResource.tableAlias, '*']],
-				expand.name,
+				'AggregateJSON',
+				['ReferencedField', expandResource.tableAlias, '*'],
 			]);
 			expandQuery.from.push([
 				'Alias',
