@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove an unnecessary alias node from `$expand`s output
+      hash: 5e94f8a654fa6c008ea56fbd9e902b212edfb1c7
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.1
+  title: ""
+  date: 2025-08-18T21:50:44.901Z
+- commits:
     - subject: Make use of `ConvertRow` to ensure the correct type for out fake
         $insert rows
       hash: 4f85a9a22f7e9fc145cd6f3c3b8a2208acf6e40f
@@ -2502,6 +2514,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2524,6 +2537,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2581,6 +2595,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2721,6 +2736,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2749,6 +2765,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2818,6 +2835,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2852,6 +2870,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3017,6 +3036,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
