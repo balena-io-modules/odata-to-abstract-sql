@@ -407,6 +407,11 @@ const addBodyKey = (
 	}
 };
 
+type Opts = {
+	/** If `true` then we always aliases to the minimum unique prefix rather than only when would otherwise exceed the max alias length */
+	minimizeAliases?: boolean;
+};
+
 export class OData2AbstractSQL {
 	private extraBodyVars: Dictionary<BindReference> = {};
 	public extraBindVars = [] as unknown as ODataBinds;
@@ -418,7 +423,7 @@ export class OData2AbstractSQL {
 	constructor(
 		private clientModel: RequiredAbstractSqlModelSubset,
 		private methods: Dictionary<ResourceFunction> = {},
-		{ minimizeAliases = false } = {},
+		{ minimizeAliases = false }: Opts = {},
 	) {
 		const MAX_ALIAS_LENGTH = 63;
 		const shortAliases = generateShortAliases(clientModel);
