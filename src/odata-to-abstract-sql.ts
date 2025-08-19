@@ -3,6 +3,7 @@ import memoize from 'memoizee';
 import stringHash from 'string-hash';
 import {
 	isAliasNode,
+	isFieldNode,
 	isFromNode,
 	isSelectNode,
 	isSelectQueryNode,
@@ -211,7 +212,11 @@ const addNestedFieldSelect = (
 		fieldName,
 		fieldNameAlias,
 	);
-	selectNode.push(['ReferencedField', aliasName, fieldNameAlias]);
+	if (!selectNode.some((n) => isFieldNode(n) && n[1] === '*')) {
+		// If we already have a `SELECT *` then we don't need to propagate the `$modifyid` as that will already be happening
+		// and trying to do so again would create potentially ambiguous references
+		selectNode.push(['ReferencedField', aliasName, fieldNameAlias]);
+	}
 };
 
 class Query {
