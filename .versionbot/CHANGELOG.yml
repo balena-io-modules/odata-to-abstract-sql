@@ -1,4 +1,16 @@
 - commits:
+    - subject: Avoid adding `$modifyid` to the SELECT when it is already covered by *
+      hash: 7c8ef6fa36a6e6a724dfff586fe27524b8d2d489
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.2
+  title: ""
+  date: 2025-08-19T13:08:05.545Z
+- commits:
     - subject: Remove an unnecessary alias node from `$expand`s output
       hash: 5e94f8a654fa6c008ea56fbd9e902b212edfb1c7
       body: ""
@@ -2515,6 +2527,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2537,6 +2550,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2595,6 +2609,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2737,6 +2752,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2765,6 +2781,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2836,6 +2853,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2870,6 +2888,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3036,6 +3055,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
