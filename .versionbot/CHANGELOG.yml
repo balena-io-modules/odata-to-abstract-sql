@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add jsdoc documentation for `minimizeAliases` option
+      hash: 00b3b9bab41520a06870c64ba2e5b3a494790f33
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.3
+  title: ""
+  date: 2025-08-19T15:40:11.393Z
+- commits:
     - subject: Avoid adding `$modifyid` to the SELECT when it is already covered by *
       hash: 7c8ef6fa36a6e6a724dfff586fe27524b8d2d489
       body: ""
@@ -2528,6 +2540,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2550,6 +2563,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2609,6 +2623,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2753,6 +2768,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2781,6 +2797,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2854,6 +2871,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2888,6 +2906,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3055,6 +3074,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
