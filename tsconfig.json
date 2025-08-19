@@ -7,7 +7,6 @@
 		"noUnusedParameters": true,
 		"noUnusedLocals": true,
 		"preserveConstEnums": true,
-		"removeComments": true,
 		"sourceMap": true,
 		"declaration": true,
 		"skipLibCheck": true,
