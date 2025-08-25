@@ -38,7 +38,7 @@
     "@types/chai-things": "0.0.38",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.19.9",
-    "chai": "^5.2.1",
+    "chai": "^6.0.0",
     "chai-things": "~0.2.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
