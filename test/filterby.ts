@@ -157,16 +157,13 @@ test('/pilot?$filter=name in (null)', (result) => {
 });
 
 test('/pilot?$filter=p/name eq 2', (result) => {
-	// TODO: This should fail
-	it('should select from pilot when filtering using a non-existing alias', () => {
+	it('should fail to select from pilot when filtering using a non-existing alias', () => {
 		expect(result)
-			.to.be.a.query.that.selects(pilotFields)
-			.from('pilot')
-			.where([
-				'IsNotDistinctFrom',
-				['ReferencedField', 'pilot', 'name'],
-				['Bind', 0],
-			]);
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'p'`,
+			);
 	});
 });
 
@@ -199,34 +196,24 @@ test('/pilot?$filter=name eq 2 or p eq 2', (result) => {
 });
 
 test('/pilot?$filter=name eq 2 or p/name eq 2', (result) => {
-	// TODO: This should fail
 	it('should select from pilot when filtering using a non-existing alias in an or', () => {
 		expect(result)
-			.to.be.a.query.that.selects(pilotFields)
-			.from('pilot')
-			.where([
-				'Or',
-				[
-					'IsNotDistinctFrom',
-					['ReferencedField', 'pilot', 'name'],
-					['Bind', 0],
-				],
-				[
-					'IsNotDistinctFrom',
-					['ReferencedField', 'pilot', 'name'],
-					['Bind', 1],
-				],
-			]);
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'p'`,
+			);
 	});
 });
 
 test(`/pilot?$filter=startswith(p/name,'test1')`, (result) => {
-	// TODO: This should fail
-	it('should select from pilot when filtering using a non-existing alias in a method', () => {
+	it('should fail to select from pilot when filtering using a non-existing alias in a method', () => {
 		expect(result)
-			.to.be.a.query.that.selects(pilotFields)
-			.from('pilot')
-			.where(['Startswith', ['ReferencedField', 'pilot', 'name'], ['Bind', 0]]);
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'p'`,
+			);
 	});
 });
 
@@ -1361,12 +1348,13 @@ const lambdaTest = function (methodName) {
 
 		// unknown alias
 		test(`/pilot?$filter=identification_method/${methodName}(d:x/identification_type eq 'passport')`, (result) => {
-			// TODO: This should fail
 			it(`should select from pilot when filtering using a non-existing alias in a select path inside an ${methodName}`, () => {
 				expect(result)
-					.to.be.a.query.that.selects(pilotFields)
-					.from('pilot')
-					.where(where);
+					.to.be.instanceOf(SyntaxError)
+					.and.to.have.property(
+						'message',
+						`Could not resolve relationship mapping from 'pilot-has-identification type' to 'x'`,
+					);
 			});
 		});
 
@@ -1400,8 +1388,11 @@ const lambdaTest = function (methodName) {
 		// unknown sub-property
 		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:d/identification_type/x eq 'idcard')`, (result) => {
 			expect(result)
-				.to.be.instanceOf(TypeError)
-				.and.to.have.property('message', `match is not iterable`);
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property(
+					'message',
+					`Could not match resource: "identification_type"`,
+				);
 		});
 
 		// missing alias
@@ -1416,13 +1407,12 @@ const lambdaTest = function (methodName) {
 
 		// unknown alias
 		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:x/identification_type eq 'idcard')`, (result) => {
-			// TODO: This should fail
-			it('should select from pilot where ...', () => {
-				expect(result)
-					.to.be.a.query.that.selects(pilotFields)
-					.from('pilot')
-					.where(twoPartWhere);
-			});
+			expect(result)
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property(
+					'message',
+					`Could not resolve relationship mapping from 'pilot-has-identification type' to 'x'`,
+				);
 		});
 
 		const nestedTwoPartWhere = getWhereForBind(0, 1);
@@ -1455,8 +1445,11 @@ const lambdaTest = function (methodName) {
 		// unknown sub-property
 		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or d/identification_type/x eq 'idcard')`, (result) => {
 			expect(result)
-				.to.be.instanceOf(TypeError)
-				.and.to.have.property('message', `match is not iterable`);
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property(
+					'message',
+					`Could not match resource: "identification_type"`,
+				);
 		});
 
 		// missing alias
@@ -1471,12 +1464,13 @@ const lambdaTest = function (methodName) {
 
 		// unknown alias
 		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or x/identification_type eq 'idcard')`, (result) => {
-			// TODO: This should fail
 			it('should select from pilot where ...', () => {
 				expect(result)
-					.to.be.a.query.that.selects(pilotFields)
-					.from('pilot')
-					.where(nestedTwoPartWhere);
+					.to.be.instanceOf(SyntaxError)
+					.and.to.have.property(
+						'message',
+						`Could not resolve relationship mapping from 'pilot-has-identification type' to 'x'`,
+					);
 			});
 		});
 	});
@@ -1604,49 +1598,13 @@ const lambdaTest = function (methodName) {
 				methodName +
 				"(d:x/plane/name eq 'Concorde')",
 			(result) => {
-				const badSubWhere = [
-					'And',
-					[
-						'Equals',
-						['ReferencedField', 'pilot', 'id'],
-						['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
-					],
-				];
-				const filterWhere = getFilterWhereForBind(0);
-				// All is implemented as where none fail
-				if (methodName === 'all') {
-					// @ts-expect-error Pushing valid AbstractSql
-					badSubWhere.push(['Not', filterWhere]);
-				} else {
-					badSubWhere.push(filterWhere);
-				}
-				let badWhere = [
-					'Exists',
-					[
-						'SelectQuery',
-						['Select', []],
-						[
-							'From',
-							[
-								'Alias',
-								['Table', 'pilot-can fly-plane'],
-								'pilot.pilot-can fly-plane',
-							],
-						],
-						['Where', badSubWhere],
-					],
-				];
-				// All is implemented as where none fail
-				if (methodName === 'all') {
-					// @ts-expect-error the types should be fine but it's not feasible to do in js
-					badWhere = ['Not', badWhere];
-				}
-				// TODO: This should fail
-				it(`should select from pilot when filtering using a non-existing alias in a select path inside an ${methodName}`, () => {
+				it(`should fail to select from pilot when filtering using a non-existing alias in a select path inside an ${methodName}`, () => {
 					expect(result)
-						.to.be.a.query.that.selects(pilotFields)
-						.from('pilot')
-						.where(badWhere);
+						.to.be.instanceOf(SyntaxError)
+						.and.to.have.property(
+							'message',
+							`Could not resolve relationship mapping from 'pilot-can fly-plane' to 'x'`,
+						);
 				});
 			},
 		);
@@ -1790,20 +1748,13 @@ const lambdaTest = function (methodName) {
 				methodName +
 				"(d:x/name eq 'Concorde')",
 			(result) => {
-				// TODO: This should fail
-				it(`should select from pilot when filtering using a non-existing alias inside an ${methodName}`, () => {
+				it(`should fail to select from pilot when filtering using a non-existing alias inside an ${methodName}`, () => {
 					expect(result)
-						.to.be.a.query.that.selects(pilotFields)
-						.from('pilot')
-						.leftJoin([
-							['pilot-can fly-plane', 'pilot.pilot-can fly-plane'],
-							[
-								'Equals',
-								['ReferencedField', 'pilot', 'id'],
-								['ReferencedField', 'pilot.pilot-can fly-plane', 'pilot'],
-							],
-						])
-						.where(where);
+						.to.be.instanceOf(SyntaxError)
+						.and.to.have.property(
+							'message',
+							`Could not resolve relationship mapping from 'plane' to 'x'`,
+						);
 				});
 			},
 		);
