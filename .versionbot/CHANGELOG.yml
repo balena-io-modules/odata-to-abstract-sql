@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency chai to v6
+      hash: dda1a7188b430a9b9fbb6ad26c14d8f04784c967
+      body: |
+        Update chai from 5.3.3 to 6.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.4
+  title: ""
+  date: 2025-09-11T11:47:33.834Z
+- commits:
     - subject: Add jsdoc documentation for `minimizeAliases` option
       hash: 00b3b9bab41520a06870c64ba2e5b3a494790f33
       body: ""
@@ -2541,6 +2554,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2563,6 +2577,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2623,6 +2638,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2769,6 +2785,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2797,6 +2814,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2872,6 +2890,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2906,6 +2925,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3074,6 +3094,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
