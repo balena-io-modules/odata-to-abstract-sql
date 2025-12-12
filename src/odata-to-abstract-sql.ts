@@ -21,6 +21,7 @@ import type {
 	FromNode,
 	WhereNode,
 	OrderByNode,
+	LockingClauseNode,
 	LimitNode,
 	OffsetNode,
 	NumberTypeNodes,
@@ -231,7 +232,12 @@ class Query {
 	public where: Array<WhereNode[1]> = [];
 	public joins: JoinTypeNodes[] = [];
 	public extras: Array<
-		FieldsNode | ValuesNode | OrderByNode | LimitNode | OffsetNode
+		| FieldsNode
+		| ValuesNode
+		| OrderByNode
+		| LimitNode
+		| OffsetNode
+		| LockingClauseNode
 	> = [];
 
 	merge(otherQuery: Query): void {
@@ -807,6 +813,48 @@ export class OData2AbstractSQL {
 			if (hasQueryOpts) {
 				this.AddQueryOptions(resource, path, subQuery);
 			}
+
+			let lockStrength: LockingClauseNode[1] = 'UPDATE';
+			if (
+				method === 'PATCH' &&
+				// That's always set for PATCHes, so we only check it to keep TS happy.
+				bindVars != null
+			) {
+				// The FOR UPDATE lock mode is also acquired by any DELETE on a row,
+				// and also by an UPDATE that modifies the values of certain columns.
+				// Currently, the set of columns considered for the UPDATE case are those
+				// that have a unique index on them that can be used in a foreign key
+				// (so partial indexes and expressional indexes are not considered).
+				// FOR NO KEY UPDATE ... is acquired by any UPDATE that does not acquire a FOR UPDATE lock.
+				// See: https://www.postgresql.org/docs/17/explicit-locking.html#LOCKING-ROWS
+				const fieldsPartOfUniqueIndexes = new Set([
+					...resource.fields
+						.filter(
+							(field) =>
+								field.index === 'UNIQUE' || field.index === 'PRIMARY KEY',
+						)
+						.map((field) => field.fieldName),
+					...resource.indexes
+						.filter(
+							(idx) =>
+								(idx.type === 'UNIQUE' && idx.predicate == null) ||
+								idx.type === 'PRIMARY KEY',
+						)
+						.flatMap((idx) => idx.fields),
+				]);
+				const updatesFieldPartOfUniqueIndex = bindVars.some((b) =>
+					fieldsPartOfUniqueIndexes.has(b[0]),
+				);
+				if (!updatesFieldPartOfUniqueIndex) {
+					lockStrength = 'NO KEY UPDATE';
+				}
+			}
+			subQuery.extras.push([
+				'LockingClause',
+				lockStrength,
+				[resource.tableAlias],
+			]);
+
 			query.where.push([
 				'In',
 				referencedIdField,
