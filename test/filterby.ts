@@ -14,7 +14,7 @@ import {
 let operandToAbstractSQLFactory = $operandToAbstractSQLFactory;
 
 import test from './test.js';
-import _ from 'lodash';
+import { capitalize } from 'es-toolkit';
 
 let operandToAbstractSQL: ReturnType<typeof operandToAbstractSQLFactory>;
 
@@ -110,7 +110,7 @@ const createMethodCall = function (method, ...args) {
 			if (Object.prototype.hasOwnProperty.call(methodMaps, method)) {
 				method = methodMaps[method];
 			} else {
-				method = _.capitalize(method);
+				method = capitalize(method);
 			}
 			const result = [method].concat(
 				args.map((op) => operandToAbstractSQL(op)),
@@ -1902,12 +1902,20 @@ const lambdaTest = function (methodName) {
 lambdaTest('any');
 lambdaTest('all');
 
+const originalFactory = operandToAbstractSQLFactory;
 // Switch operandToAbstractSQLFactory permanently to using 'team' as the resource,
 // as we are switch to using that as our base resource from here on.
-operandToAbstractSQLFactory = _.partialRight(
-	operandToAbstractSQLFactory,
-	'team',
-);
+operandToAbstractSQLFactory = (binds, resource) => {
+	// Case 1: Called with 1 argument -> (binds)
+	// partialRight behavior: fn(binds, 'team')
+	if (resource === undefined) {
+		return originalFactory(binds, 'team');
+	}
+
+	// Case 2: Called with 2 arguments -> (binds, resource)
+	// partialRight behavior: fn(binds, resource, 'team')
+	return originalFactory(binds, resource, 'team');
+};
 run(function () {
 	const favouriteColour = 'purple';
 	const { odata, abstractsql } = createExpression(
