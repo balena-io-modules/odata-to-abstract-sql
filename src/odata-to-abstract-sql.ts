@@ -1,4 +1,12 @@
-import _ from 'lodash';
+import {
+	differenceWith,
+	isEqual,
+	capitalize,
+	pick,
+	omitBy,
+	isNil,
+} from 'es-toolkit';
+import { get } from 'es-toolkit/compat';
 import memoize from 'memoizee';
 import stringHash from 'string-hash';
 import {
@@ -433,20 +441,21 @@ export class OData2AbstractSQL {
 				if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
 					return alias;
 				}
-				alias = _(alias.toLowerCase())
+				alias = alias
+					.toLowerCase()
 					.split('.')
 					.map((part) => {
 						if (minimizeAliases === false && aliasLength <= MAX_ALIAS_LENGTH) {
 							return part;
 						}
 						aliasLength -= part.length;
-						const shortAlias = _(part)
+						const shortAlias = part
 							.split('-')
 							.map((part2) => {
-								part2 = _(part2)
+								part2 = part2
 									.split(' ')
 									.map((part3) => {
-										part3 = _(part3)
+										part3 = part3
 											.split('$')
 											.map((part4) => shortAliases[part4] ?? part4)
 											.join('$');
@@ -500,7 +509,7 @@ export class OData2AbstractSQL {
 			this.reset();
 			this.bindVarsLength = bindVarsLength;
 			let tree: AbstractSqlQuery;
-			if (_.isEmpty(path)) {
+			if (Object.keys(path).length === 0) {
 				tree = ['$serviceroot'];
 			} else if (['$metadata', '$serviceroot'].includes(path.resource)) {
 				tree = [path.resource];
@@ -908,7 +917,7 @@ export class OData2AbstractSQL {
 					((index.type === 'UNIQUE' && index.predicate == null) ||
 						index.type === 'PRIMARY KEY') &&
 					sqlFieldNames.length === index.fields.length &&
-					_.isEqual(index.fields.slice().sort(), sqlFieldNames)
+					isEqual(index.fields.slice().sort(), sqlFieldNames)
 				);
 			})
 		) {
@@ -1073,12 +1082,11 @@ export class OData2AbstractSQL {
 				`Could not resolve relationship for '${resourceName}'`,
 			);
 		}
-		const relationshipPath = _(relationship)
+		const relationshipPath = relationship
 			.split('__')
 			.map(odataNameToSqlName)
-			.flatMap((sqlName) => this.Synonym(sqlName).split('-'))
-			.value();
-		const relationshipMapping = _.get(resourceRelations, relationshipPath);
+			.flatMap((sqlName) => this.Synonym(sqlName).split('-'));
+		const relationshipMapping = get(resourceRelations, relationshipPath);
 		if (!relationshipMapping?.$) {
 			throw new SyntaxError(
 				`Could not resolve relationship mapping from '${resourceName}' to '${relationshipPath}'`,
@@ -1110,10 +1118,10 @@ export class OData2AbstractSQL {
 				sqlNameToODataName(field.fieldName),
 			]);
 		}
-		const fields = _.differenceWith(
+		const fields = differenceWith(
 			odataFieldNames,
 			query.select,
-			(a, b) => a[1] === _.last(b),
+			(a, b) => a[1] === b.at(-1),
 		).map((args) => this.AliasSelectField(...args));
 		query.select = query.select.concat(fields);
 	}
@@ -1195,7 +1203,7 @@ export class OData2AbstractSQL {
 						case 'and':
 						case 'or':
 							return [
-								_.capitalize(type),
+								capitalize(type),
 								...rest.map((v) => this.BooleanMatch(v)),
 							];
 						case 'not': {
@@ -1270,7 +1278,7 @@ export class OData2AbstractSQL {
 			throw new SyntaxError('Unexpected function name');
 		}
 		const args = properties.args.map((v: any) => this.Operand(v));
-		return [sqlName ?? (_.capitalize(name) as Capitalize<T>), ...args];
+		return [sqlName ?? (capitalize(name) as Capitalize<T>), ...args];
 	}
 	Operand(
 		match: any,
@@ -1558,7 +1566,7 @@ export class OData2AbstractSQL {
 	DateMatch(match: any, optional: true): StrictDateTypeNodes | undefined;
 	DateMatch(match: any): StrictDateTypeNodes;
 	DateMatch(match: any, optional = false): StrictDateTypeNodes | undefined {
-		if (_.isDate(match)) {
+		if (match instanceof Date) {
 			return ['Date', match];
 		} else if (Array.isArray(match) && match[0] === 'call') {
 			const { method } = match[1];
@@ -1592,11 +1600,17 @@ export class OData2AbstractSQL {
 		if (match == null || typeof match !== 'object') {
 			return;
 		}
-		const duration = _(match)
-			.pick('negative', 'day', 'hour', 'minute', 'second')
-			.omitBy(_.isNil)
-			.value();
-		if (_(duration).omit('negative').isEmpty()) {
+		const picked = pick(match, ['negative', 'day', 'hour', 'minute', 'second']);
+
+		const duration = omitBy(picked, isNil);
+
+		// Destructure 'negative' out, collect the 'rest' into a new object
+		const { negative, ...rest } = duration;
+
+		// Check if 'rest' is empty
+		const isEmptyDuration = Object.keys(rest).length === 0;
+
+		if (isEmptyDuration) {
 			return;
 		}
 		return ['Duration', duration];
@@ -1786,7 +1800,7 @@ export class OData2AbstractSQL {
 		});
 		if (existingJoin != null) {
 			const existingJoinPredicate = existingJoin[2]?.[1];
-			if (!_.isEqual(navigation.where, existingJoinPredicate)) {
+			if (!isEqual(navigation.where, existingJoinPredicate)) {
 				// When we reach this point we have found an already existing JOIN with the
 				// same alias as the one we just created but different ON predicate.
 				// TODO: In this case we need to be able to generate a new alias for the newly JOINed resource.
@@ -1837,7 +1851,7 @@ export class OData2AbstractSQL {
 		this.defaultResource = undefined;
 	}
 	Synonym(sqlName: string) {
-		return _(sqlName)
+		return sqlName
 			.split('-')
 			.map((namePart) => {
 				const synonym = this.clientModel.synonyms[namePart];
@@ -1894,7 +1908,7 @@ export class OData2AbstractSQL {
 		extraBindVars: ODataBinds,
 		bindVarsLength: number,
 	): ModernDefinition {
-		const rewrittenDefinition = _.cloneDeep(
+		const rewrittenDefinition = structuredClone(
 			convertToModernDefinition(definition),
 		);
 		rewriteBinds(rewrittenDefinition, extraBindVars, bindVarsLength);
@@ -1953,12 +1967,12 @@ const addAliases = (
 		// We then traverse any non suffix nodes to make sure those parts get their short versions. This should only happen
 		// in the case of a '' suffix because it means that the other parts are supersets, eg `of`/`often` and must be added
 		// with a longer short alias, eg `of`/`oft`
-		_.forEach(node, (value, key) => {
+		for (const [key, value] of Object.entries(node)) {
 			if (key === '$suffix') {
-				return;
+				continue; // Skips this iteration
 			}
 			traverseNodes(str + key, value);
-		});
+		}
 	};
 
 	lowerCaseAliasParts.sort().forEach(buildTrie);
@@ -1988,69 +2002,80 @@ const getRelationships = (
 const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
 	const shortAliases: Dictionary<string> = {};
 
-	const aliasParts = _(getRelationships(clientModel.relationships))
-		.union(Object.keys(clientModel.synonyms))
-		.reject((key) => key === '$')
-		.map((alias) => alias.toLowerCase())
-		.value();
+	// 1. Safely get your source arrays (using ?? [] to handle nulls like Lodash would)
+	const rels = getRelationships(clientModel.relationships) ?? [];
+	const synonyms = Object.keys(clientModel.synonyms ?? {});
+
+	// 2. Create the Union (Spread into a Set to remove duplicates, then back to Array)
+	const uniqueKeys = Array.from(new Set([...rels, ...synonyms]));
+
+	// 3. Filter and Map
+	const aliasParts = uniqueKeys
+		.filter((key) => key !== '$') // Native replacement for .reject()
+		.map((alias) => alias.toLowerCase());
 
 	// Add the first level of aliases, of names split by `-`/` `/`$`, for short aliases on a word by word basis
-	let origAliasParts = _(aliasParts)
-		.flatMap((aliasPart) => aliasPart.split(/-| |\$/))
-		.uniq()
-		.value();
+	let origAliasParts = Array.from(
+		new Set(aliasParts.flatMap((aliasPart) => aliasPart.split(/-| |\$/))),
+	);
 	addAliases(shortAliases, origAliasParts);
 
 	// Add aliases for $ containing names
-	origAliasParts = _(aliasParts)
-		.flatMap((aliasPart) => aliasPart.split(/-| /))
-		.filter((aliasPart) => aliasPart.includes('$'))
-		.flatMap((aliasPart) => {
-			shortAliases[aliasPart] = aliasPart
-				.split('$')
-				.map((part) => shortAliases[part])
-				.join('$');
-			return [];
-		})
-		.uniq()
-		.value();
+	origAliasParts = Array.from(
+		new Set(
+			aliasParts
+				.flatMap((aliasPart) => aliasPart.split(/-| /))
+				.filter((aliasPart) => aliasPart.includes('$'))
+				.flatMap((aliasPart) => {
+					shortAliases[aliasPart] = aliasPart
+						.split('$')
+						.map((part) => shortAliases[part])
+						.join('$');
+					return [];
+				}),
+		),
+	);
 	addAliases(shortAliases, origAliasParts);
 
 	// Add the second level of aliases, of names that include a ` `, split by `-`, for short aliases on a verb/term basis
-	origAliasParts = _(aliasParts)
-		.flatMap((aliasPart) => aliasPart.split('-'))
-		.filter((aliasPart) => aliasPart.includes(' '))
-		.flatMap((aliasPart) =>
-			// Generate the 2nd level aliases for both the short and long versions
-			[
-				aliasPart,
-				aliasPart
-					.split(' ')
-					.map((part) => shortAliases[part])
-					.join(' '),
-			],
-		)
-		.uniq()
-		.value();
+	origAliasParts = Array.from(
+		new Set(
+			aliasParts
+				.flatMap((aliasPart) => aliasPart.split('-'))
+				.filter((aliasPart) => aliasPart.includes(' '))
+				.flatMap((aliasPart) =>
+					// Generate the 2nd level aliases for both the short and long versions
+					[
+						aliasPart,
+						aliasPart
+							.split(' ')
+							.map((part) => shortAliases[part])
+							.join(' '),
+					],
+				),
+		),
+	);
 
 	addAliases(shortAliases, origAliasParts);
 
 	// Add the third level of aliases, of names that include a `-`, for short aliases on a fact type basis
-	origAliasParts = _(aliasParts)
-		.filter((aliasPart) => aliasPart.includes('-'))
-		.flatMap((aliasPart) =>
-			// Generate the 3rd level aliases for both the short and long versions
+	origAliasParts = Array.from(
+		new Set(
+			aliasParts
+				.filter((aliasPart) => aliasPart.includes('-'))
+				.flatMap((aliasPart) =>
+					// Generate the 3rd level aliases for both the short and long versions
 
-			[
-				aliasPart,
-				aliasPart
-					.split('-')
-					.map((part) => shortAliases[part])
-					.join('-'),
-			],
-		)
-		.uniq()
-		.value();
+					[
+						aliasPart,
+						aliasPart
+							.split('-')
+							.map((part) => shortAliases[part])
+							.join('-'),
+					],
+				),
+		),
+	);
 
 	addAliases(shortAliases, origAliasParts);
 

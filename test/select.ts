@@ -5,7 +5,6 @@ import {
 	pilotFields,
 } from './chai-sql.js';
 import test, { itExpectsError } from './test.js';
-import _ from 'lodash';
 
 const operandToAbstractSQL = operandToAbstractSQLFactory();
 
@@ -28,7 +27,7 @@ test('/pilot?$select=favourite_colour', (result) => {
 	it('should select favourite_colour from pilot', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
-				_.filter(pilotFields, { 2: 'favourite_colour' }),
+				pilotFields.filter((field) => field[2] === 'favourite_colour'),
 			)
 			.from('pilot');
 	});
@@ -38,7 +37,7 @@ test('/pilot(1)?$select=favourite_colour', (result) => {
 	it('should select from pilot with id', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
-				_.filter(pilotFields, { 2: 'favourite_colour' }),
+				pilotFields.filter((field) => field[2] === 'favourite_colour'),
 			)
 			.from('pilot')
 			.where([
@@ -53,7 +52,7 @@ test("/pilot('TextKey')?$select=favourite_colour", (result) => {
 	it('should select from pilot with id', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
-				_.filter(pilotFields, { 2: 'favourite_colour' }),
+				pilotFields.filter((field) => field[2] === 'favourite_colour'),
 			)
 			.from('pilot')
 			.where([
