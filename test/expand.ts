@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { expect } from 'chai';
 import {
 	sqlNameToOdataName,
@@ -95,7 +94,7 @@ const aggregateJSON = {
 					attributeOfParent: true,
 					fields: planeFields,
 				}),
-				..._.reject(pilotCanFlyPlaneFields, { 2: 'plane' }),
+				...pilotCanFlyPlaneFields.filter((field) => field[2] !== 'plane'),
 			],
 		}),
 	},
@@ -105,7 +104,9 @@ test('/pilot?$expand=licence', (result) => {
 	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
-				[aggregateJSON.licence].concat(_.reject(pilotFields, { 2: 'licence' })),
+				[aggregateJSON.licence].concat(
+					pilotFields.filter((field) => field[2] !== 'licence'),
+				),
 			)
 			.from('pilot');
 	});
@@ -128,7 +129,7 @@ nestedExpandTest = (result) => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSON.pilotCanFlyPlane.plane, aggregateJSON.licence].concat(
-					_.reject(pilotFields, { 2: 'licence' }),
+					pilotFields.filter((field) => field[2] !== 'licence'),
 				),
 			)
 			.from('pilot');
@@ -150,7 +151,7 @@ nestedExpandTest = (result) => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSON.pilotCanFlyPlane.plane].concat(
-					_.filter(pilotFields, { 2: 'id' }),
+					pilotFields.filter((field) => field[2] === 'id'),
 				),
 			)
 			.from('pilot');
@@ -167,7 +168,7 @@ nestedExpandTest = (result) => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSON.pilotCanFlyPlane.plane, aggregateJSON.licence].concat(
-					_.filter(pilotFields, { 2: 'id' }),
+					pilotFields.filter((field) => field[2] === 'id'),
 				),
 			)
 			.from('pilot');
@@ -192,7 +193,7 @@ test('/pilot?$expand=can_fly__plane($select=id)', (result) => {
 						odataName: 'can_fly__plane',
 						sqlName: 'pilot-can fly-plane',
 						attributeOfParent: false,
-						fields: _.filter(pilotCanFlyPlaneFields, { 2: 'id' }),
+						fields: pilotCanFlyPlaneFields.filter((field) => field[2] === 'id'),
 					}),
 				].concat(pilotFields),
 			)
@@ -201,64 +202,60 @@ test('/pilot?$expand=can_fly__plane($select=id)', (result) => {
 });
 
 test('/pilot?$expand=licence($filter=id eq 1)', function (result) {
-	const agg = _.cloneDeep(aggregateJSON.licence);
-	_.chain(agg)
-		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error AbstractSql array being an array having .find
-		.find({ 0: 'From' })
-		.find({ 2: 'pilot.licence' })
-		.find({ 0: 'SelectQuery' })
-		.find({ 0: 'Where' })
-		.tap(function (aggWhere) {
-			const currentWhere = aggWhere.splice(1, Infinity);
-			return aggWhere.push(
+	const agg = structuredClone(aggregateJSON.licence);
+	const aggWhere = agg
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'From')
+		.find((x) => x[2] === 'pilot.licence')
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'Where');
+	if (aggWhere) {
+		const currentWhere = aggWhere.splice(1, Infinity);
+		aggWhere.push(
+			[
+				'And',
 				[
-					'And',
-					[
-						'IsNotDistinctFrom',
-						['ReferencedField', 'pilot.licence', 'id'],
-						['Bind', 0],
-					],
-				].concat(currentWhere),
-			);
-		})
-		.value();
+					'IsNotDistinctFrom',
+					['ReferencedField', 'pilot.licence', 'id'],
+					['Bind', 0],
+				],
+			].concat(currentWhere),
+		);
+	}
 	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
-				..._.reject(pilotFields, { 2: 'licence' }),
+				...pilotFields.filter((field) => field[2] !== 'licence'),
 			])
 			.from('pilot');
 	});
 });
 
 test('/pilot?$expand=licence($filter=is_of__pilot/id eq 1)', function (result) {
-	const agg = _.cloneDeep(aggregateJSON.licence);
-	_.chain(agg)
-		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error AbstractSql array being an array having .find
-		.find({ 0: 'From' })
-		.find({ 2: 'pilot.licence' })
-		.find({ 0: 'SelectQuery' })
-		.tap((aggSelect) =>
-			aggSelect.splice(aggSelect.length - 1, 0, [
-				'LeftJoin',
-				['Alias', ['Table', 'pilot'], 'pilot.licence.is of-pilot'],
+	const agg = structuredClone(aggregateJSON.licence);
+	const aggSelect = agg
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'From')
+		.find((x) => x[2] === 'pilot.licence')
+		.find((x) => x[0] === 'SelectQuery');
+	if (aggSelect) {
+		aggSelect.splice(aggSelect.length - 1, 0, [
+			'LeftJoin',
+			['Alias', ['Table', 'pilot'], 'pilot.licence.is of-pilot'],
+			[
+				'On',
 				[
-					'On',
-					[
-						'Equals',
-						['ReferencedField', 'pilot.licence', 'id'],
-						['ReferencedField', 'pilot.licence.is of-pilot', 'licence'],
-					],
+					'Equals',
+					['ReferencedField', 'pilot.licence', 'id'],
+					['ReferencedField', 'pilot.licence.is of-pilot', 'licence'],
 				],
-			]),
-		)
-		.find({ 0: 'Where' })
-		.tap(function (aggWhere) {
+			],
+		]);
+		const aggWhere = aggSelect.find((x) => x[0] === 'Where');
+		if (aggWhere) {
 			const currentWhere = aggWhere.splice(1, Infinity);
-			return aggWhere.push([
+			aggWhere.push([
 				'And',
 				[
 					'IsNotDistinctFrom',
@@ -267,95 +264,87 @@ test('/pilot?$expand=licence($filter=is_of__pilot/id eq 1)', function (result) {
 				],
 				...currentWhere,
 			]);
-		})
-		.value();
+		}
+	}
 	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
-				..._.reject(pilotFields, { 2: 'licence' }),
+				...pilotFields.filter((field) => field[2] !== 'licence'),
 			])
 			.from('pilot');
 	});
 });
 
 test('/pilot?$expand=licence($orderby=id)', function (result) {
-	const agg = _.cloneDeep(aggregateJSON.licence);
-	_.chain(agg)
-		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error AbstractSql array being an array having .find
-		.find({ 0: 'From' })
-		.find({ 2: 'pilot.licence' })
-		.find({ 0: 'SelectQuery' })
-		.value()
+	const agg = structuredClone(aggregateJSON.licence);
+	agg
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'From')
+		.find((x) => x[2] === 'pilot.licence')
+		.find((x) => x[0] === 'SelectQuery')
 		.push(['OrderBy', ['DESC', ['ReferencedField', 'pilot.licence', 'id']]]);
 	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
-				..._.reject(pilotFields, { 2: 'licence' }),
+				...pilotFields.filter((field) => field[2] !== 'licence'),
 			])
 			.from('pilot');
 	});
 });
 
 test('/pilot?$expand=licence($top=10)', function (result) {
-	const agg = _.cloneDeep(aggregateJSON.licence);
-	_.chain(agg)
-		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error AbstractSql array being an array having .find
-		.find({ 0: 'From' })
-		.find({ 2: 'pilot.licence' })
-		.find({ 0: 'SelectQuery' })
-		.value()
+	const agg = structuredClone(aggregateJSON.licence);
+	agg
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'From')
+		.find((x) => x[2] === 'pilot.licence')
+		.find((x) => x[0] === 'SelectQuery')
 		.push(['Limit', ['Bind', 0]]);
 	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
-				..._.reject(pilotFields, { 2: 'licence' }),
+				...pilotFields.filter((field) => field[2] !== 'licence'),
 			])
 			.from('pilot');
 	});
 });
 
 test('/pilot?$expand=licence($skip=10)', function (result) {
-	const agg = _.cloneDeep(aggregateJSON.licence);
-	_.chain(agg)
-		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error AbstractSql array being an array having .find
-		.find({ 0: 'From' })
-		.find({ 2: 'pilot.licence' })
-		.find({ 0: 'SelectQuery' })
-		.value()
+	const agg = structuredClone(aggregateJSON.licence);
+	agg
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'From')
+		.find((x) => x[2] === 'pilot.licence')
+		.find((x) => x[0] === 'SelectQuery')
 		.push(['Offset', ['Bind', 0]]);
 	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
-				..._.reject(pilotFields, { 2: 'licence' }),
+				...pilotFields.filter((field) => field[2] !== 'licence'),
 			])
 			.from('pilot');
 	});
 });
 
 test('/pilot?$expand=licence($select=id)', function (result) {
-	const agg = _.cloneDeep(aggregateJSON.licence);
-	const select = _.chain(agg)
-		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error AbstractSql array being an array having .find
-		.find({ 0: 'From' })
-		.find({ 2: 'pilot.licence' })
-		.find({ 0: 'SelectQuery' })
-		.find({ 0: 'Select' })
-		.value();
-	select[1] = _.filter(select[1], { 2: 'id' });
+	const agg = structuredClone(aggregateJSON.licence);
+	const select = agg
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'From')
+		.find((x) => x[2] === 'pilot.licence')
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'Select');
+	select[1] = select[1].filter((field) => field[2] === 'id');
 
 	it('should select from pilot.*, licence.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
-				..._.reject(pilotFields, { 2: 'licence' }),
+				...pilotFields.filter((field) => field[2] !== 'licence'),
 			])
 			.from('pilot');
 	});
@@ -365,7 +354,9 @@ test('/pilot?$expand=trained__pilot', (result) => {
 	it('should select from pilot.*, aggregated pilot.*', () => {
 		expect(result)
 			.to.be.a.query.that.selects(
-				[aggregateJSON.pilot].concat(_.reject(pilotFields, { 2: 'pilot' })),
+				[aggregateJSON.pilot].concat(
+					pilotFields.filter((field) => field[2] !== 'pilot'),
+				),
 			)
 			.from('pilot');
 	});
@@ -397,7 +388,7 @@ const aggregateJSONCount = {
 					attributeOfParent: true,
 					fields: $count,
 				}),
-				..._.reject(pilotCanFlyPlaneFields, { 2: 'plane' }),
+				...pilotCanFlyPlaneFields.filter((field) => field[2] !== 'plane'),
 			],
 		}),
 	},
@@ -408,7 +399,7 @@ test('/pilot?$expand=licence/$count', (result) => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
-					_.reject(pilotFields, { 2: 'licence' }),
+					pilotFields.filter((field) => field[2] !== 'licence'),
 				),
 			)
 			.from('pilot');
@@ -420,7 +411,7 @@ test('/pilot?$filter=id eq 5&$expand=licence/$count', (result) => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
-					_.reject(pilotFields, { 2: 'licence' }),
+					pilotFields.filter((field) => field[2] !== 'licence'),
 				),
 			)
 			.from('pilot')
@@ -437,7 +428,7 @@ test('/pilot?$orderby=id asc&$expand=licence/$count', (result) => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
-					_.reject(pilotFields, { 2: 'licence' }),
+					pilotFields.filter((field) => field[2] !== 'licence'),
 				),
 			)
 			.from('pilot')
@@ -446,20 +437,13 @@ test('/pilot?$orderby=id asc&$expand=licence/$count', (result) => {
 });
 
 test('/pilot?$expand=licence&$orderby=licence/name asc', function (result) {
-	const agg = _.cloneDeep(aggregateJSON.licence);
-	_.chain(agg)
-		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error AbstractSql array being an array having .find
-		.find({ 0: 'From' })
-		.find({ 2: 'pilot.licence' })
-		.find({ 0: 'SelectQuery' })
-		.value();
+	const agg = structuredClone(aggregateJSON.licence);
 
 	it('should select from pilot.*, licence.*, ordered by the licence name', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
-				..._.reject(pilotFields, { 2: 'licence' }),
+				...pilotFields.filter((field) => field[2] !== 'licence'),
 			])
 			.from('pilot')
 			.leftJoin([
@@ -476,33 +460,31 @@ test('/pilot?$expand=licence&$orderby=licence/name asc', function (result) {
 });
 
 test('/pilot?$expand=licence/$count($filter=id gt 5)', function (result) {
-	const agg = _.cloneDeep(aggregateJSONCount.licence);
-	_.chain(agg)
-		.find({ 0: 'SelectQuery' })
-		// @ts-expect-error  AbstractSql array being an array having .find
-		.find({ 0: 'From' })
-		.find({ 2: 'pilot.licence' })
-		.find({ 0: 'SelectQuery' })
-		.find({ 0: 'Where' })
-		.tap(function (aggWhere) {
-			const currentWhere = aggWhere.splice(1, Infinity);
-			return aggWhere.push(
+	const agg = structuredClone(aggregateJSONCount.licence);
+	const aggWhere = agg
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'From')
+		.find((x) => x[2] === 'pilot.licence')
+		.find((x) => x[0] === 'SelectQuery')
+		.find((x) => x[0] === 'Where');
+	if (aggWhere) {
+		const currentWhere = aggWhere.splice(1, Infinity);
+		aggWhere.push(
+			[
+				'And',
 				[
-					'And',
-					[
-						'GreaterThan',
-						['ReferencedField', 'pilot.licence', 'id'],
-						['Bind', 0],
-					],
-				].concat(currentWhere),
-			);
-		})
-		.value();
+					'GreaterThan',
+					['ReferencedField', 'pilot.licence', 'id'],
+					['Bind', 0],
+				],
+			].concat(currentWhere),
+		);
+	}
 	it('should select from pilot.*, count(*) licence for id gt 5', () => {
 		expect(result)
 			.to.be.a.query.that.selects([
 				agg,
-				..._.reject(pilotFields, { 2: 'licence' }),
+				...pilotFields.filter((field) => field[2] !== 'licence'),
 			])
 			.from('pilot');
 	});
@@ -513,7 +495,7 @@ test('/pilot?$expand=licence/$count($orderby=id asc)', (result) => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
-					_.reject(pilotFields, { 2: 'licence' }),
+					pilotFields.filter((field) => field[2] !== 'licence'),
 				),
 			)
 			.from('pilot');
@@ -525,7 +507,7 @@ test('/pilot?$expand=licence/$count($skip=5)', (result) => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
-					_.reject(pilotFields, { 2: 'licence' }),
+					pilotFields.filter((field) => field[2] !== 'licence'),
 				),
 			)
 			.from('pilot');
@@ -537,7 +519,7 @@ test('/pilot?$expand=licence/$count($top=5)', (result) => {
 		expect(result)
 			.to.be.a.query.that.selects(
 				[aggregateJSONCount.licence].concat(
-					_.reject(pilotFields, { 2: 'licence' }),
+					pilotFields.filter((field) => field[2] !== 'licence'),
 				),
 			)
 			.from('pilot');
@@ -546,9 +528,9 @@ test('/pilot?$expand=licence/$count($top=5)', (result) => {
 
 // Alias tests
 (function () {
-	const remainingPilotFields = _.reject(pilotFields, function (field) {
-		return field[2] === 'pilot';
-	});
+	const remainingPilotFields = pilotFields.filter(
+		(field) => field[2] !== 'pilot',
+	);
 	const recursions = 9;
 
 	const expandString = (function () {
