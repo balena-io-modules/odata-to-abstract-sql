@@ -49,6 +49,7 @@ test('/pilot?$top=5&$skip=100', 'PATCH', { name }, (result) => {
 					['From', ['Table', 'pilot']],
 					['Limit', ['Bind', 0]],
 					['Offset', ['Bind', 1]],
+					['LockingClause', 'NO KEY UPDATE', ['pilot']],
 				],
 			]);
 	});
@@ -69,6 +70,7 @@ test('/pilot?$top=5&$skip=100', 'DELETE', (result) => {
 					['From', ['Table', 'pilot']],
 					['Limit', ['Bind', 0]],
 					['Offset', ['Bind', 1]],
+					['LockingClause', 'UPDATE', ['pilot']],
 				],
 			]);
 	});
