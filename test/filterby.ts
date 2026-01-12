@@ -1902,12 +1902,11 @@ const lambdaTest = function (methodName) {
 lambdaTest('any');
 lambdaTest('all');
 
+const originalFactory = operandToAbstractSQLFactory;
 // Switch operandToAbstractSQLFactory permanently to using 'team' as the resource,
 // as we are switch to using that as our base resource from here on.
-operandToAbstractSQLFactory = _.partialRight(
-	operandToAbstractSQLFactory,
-	'team',
-);
+operandToAbstractSQLFactory = (binds, resource = 'team', defaultParentAlias) =>
+	originalFactory(binds, resource, defaultParentAlias);
 run(function () {
 	const favouriteColour = 'purple';
 	const { odata, abstractsql } = createExpression(

@@ -205,7 +205,7 @@ export function operandToAbstractSQLFactory(
 			binds.push(['Number', operand]);
 			return ['Bind', binds.length - 1];
 		}
-		if (_.isDate(operand)) {
+		if (operand instanceof Date) {
 			binds.push(['Date', operand]);
 			return ['Bind', binds.length - 1];
 		}
@@ -238,7 +238,7 @@ export function operandToAbstractSQLFactory(
 			const fieldParts = operand.split('/');
 			if (fieldParts.length > 1) {
 				let alias = parentAlias;
-				let previousResource = _(parentAlias).split('.').last()!;
+				let previousResource = parentAlias.split('.').at(-1)!;
 				for (const resourceName of fieldParts.slice(0, -1)) {
 					const sqlName = odataNameToSqlName(resourceName);
 					const sqlNameParts = sqlName.split('-');
@@ -255,7 +255,7 @@ export function operandToAbstractSQLFactory(
 					}
 					previousResource = refTable;
 				}
-				mapping = [alias, _.last(fieldParts)];
+				mapping = [alias, fieldParts.at(-1)];
 			} else {
 				mapping = [resource, odataNameToSqlName(operand)];
 			}
@@ -289,7 +289,7 @@ export const operandToOData = function (operand): string {
 	if (operand.odata != null) {
 		return operand.odata;
 	}
-	if (_.isDate(operand)) {
+	if (operand instanceof Date) {
 		return "datetime'" + encodeURIComponent(operand.toISOString()) + "'";
 	}
 	if (Array.isArray(operand)) {
@@ -369,7 +369,7 @@ export const aliasFields = (function () {
 		} else {
 			verb = '';
 		}
-		return fields.map(_.partial(aliasField, resourceAlias, verb));
+		return fields.map((field) => aliasField(resourceAlias, verb, field));
 	};
 })();
 
