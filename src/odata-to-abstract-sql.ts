@@ -90,9 +90,6 @@ import type {
 } from '@balena/odata-parser';
 export type { ODataBinds, ODataQuery, SupportedMethod };
 
-// TODO: Remove this custom error once AddJoins stops silencing errors.
-class KeySyntaxError extends SyntaxError {}
-
 type InternalSupportedMethod = Exclude<SupportedMethod, 'MERGE'> | 'PUT-INSERT';
 
 type RequiredAbstractSqlModelSubset = Pick<
@@ -860,7 +857,7 @@ export class OData2AbstractSQL {
 			if (followedForeignKey != null) {
 				// We should be able to allow this if needed after v gets merged.
 				// https://github.com/balena-io-modules/odata-to-abstract-sql/pull/160
-				throw new KeySyntaxError(
+				throw new SyntaxError(
 					'Using a key bind after a navigation expression is not supported.',
 				);
 			}
@@ -913,7 +910,7 @@ export class OData2AbstractSQL {
 				);
 			})
 		) {
-			throw new KeySyntaxError(
+			throw new SyntaxError(
 				'Specified fields for path key that are not directly unique',
 			);
 		}
@@ -993,6 +990,9 @@ export class OData2AbstractSQL {
 				parentResource,
 				resourceName,
 			);
+			if (relationshipMapping[1] == null) {
+				throw new SyntaxError(`Could not match resource: "${resourceName}"`);
+			}
 			resource = this.clientModel.tables[relationshipMapping[1][0]];
 		} else {
 			let sqlName = odataNameToSqlName(resourceName);
@@ -1709,45 +1709,43 @@ export class OData2AbstractSQL {
 		// This can be any node that odata-parser returns
 		match: (PropertyPath | MethodCall[1]) | Array<PropertyPath | MethodCall[1]>,
 	) {
-		// TODO: try removing
-		try {
-			if (Array.isArray(match)) {
-				match.forEach((v) => {
-					this.AddJoins(query, parentResource, v);
-				});
-			} else {
-				let nextProp = match;
-				let prop;
-				while (
-					// tslint:disable-next-line:no-conditional-assignment
-					(prop = nextProp) &&
-					// Confirm that prop is indeed a GenericPropertyPath<PropertyPath>
-					'name' in prop &&
-					prop.name &&
-					prop.property?.name
-				) {
-					nextProp = prop.property;
-					const resourceAlias = this.resourceAliases[prop.name];
-					if (resourceAlias) {
-						parentResource = resourceAlias;
-					} else {
-						parentResource = this.AddJoinNavigation(
-							query,
-							parentResource,
-							prop.name,
-							prop.key,
-						);
-					}
-				}
-				if (nextProp != null && 'args' in nextProp && nextProp.args != null) {
-					this.AddJoins(query, parentResource, nextProp.args);
+		if (Array.isArray(match)) {
+			match.forEach((v) => {
+				this.AddJoins(query, parentResource, v);
+			});
+		} else {
+			let nextProp = match;
+			let prop;
+			while (
+				// tslint:disable-next-line:no-conditional-assignment
+				(prop = nextProp) &&
+				// Confirm that prop is indeed a GenericPropertyPath<PropertyPath>
+				typeof prop === 'object' &&
+				'name' in prop &&
+				prop.name &&
+				prop.property?.name
+			) {
+				nextProp = prop.property;
+				const resourceAlias = this.resourceAliases[prop.name];
+				if (resourceAlias) {
+					parentResource = resourceAlias;
+				} else {
+					parentResource = this.AddJoinNavigation(
+						query,
+						parentResource,
+						prop.name,
+						prop.key,
+					);
 				}
 			}
-		} catch (e) {
-			if (e instanceof KeySyntaxError) {
-				throw e;
+			if (
+				nextProp != null &&
+				typeof nextProp === 'object' &&
+				'args' in nextProp &&
+				nextProp.args != null
+			) {
+				this.AddJoins(query, parentResource, nextProp.args);
 			}
-			// ignore
 		}
 	}
 	AddJoinNavigation(
@@ -1758,22 +1756,12 @@ export class OData2AbstractSQL {
 	): AliasedResource {
 		const navigation = this.NavigateResources(resource, extraResource);
 		if (key != null) {
-			try {
-				const keyWhere = this.BaseKey(
-					navigation.resource,
-					key,
-					navigation.navigationResourceField,
-				);
-				navigation.where = ['And', navigation.where, keyWhere];
-			} catch (e) {
-				if (e instanceof SyntaxError) {
-					// Since there is a TODO in the AddJoins to stop silencing errors, instead of
-					// silencing the new Syntax errors that can be thrown by the added BaseKey().
-					// we decided use a new custom error to detect those new errors and re-throw them.
-					throw new KeySyntaxError(e.message, { cause: e });
-				}
-				throw e;
-			}
+			const keyWhere = this.BaseKey(
+				navigation.resource,
+				key,
+				navigation.navigationResourceField,
+			);
+			navigation.where = ['And', navigation.where, keyWhere];
 		}
 		const existingJoin = query.joins.find((join) => {
 			const existingFrom = join[1];
@@ -1784,23 +1772,24 @@ export class OData2AbstractSQL {
 					existingFrom[2] === navigation.resource.tableAlias)
 			);
 		});
-		if (existingJoin != null) {
-			const existingJoinPredicate = existingJoin[2]?.[1];
-			if (!_.isEqual(navigation.where, existingJoinPredicate)) {
-				// When we reach this point we have found an already existing JOIN with the
-				// same alias as the one we just created but different ON predicate.
-				// TODO: In this case we need to be able to generate a new alias for the newly JOINed resource.
-				// Since we atm do not support that we throw early, since otherwise the generated query would be invalid.
-				throw new KeySyntaxError(
-					`Adding JOINs on the same resource with different ON clauses is not supported. Found ${navigation.resource.tableAlias}`,
-				);
-			}
 
+		if (existingJoin == null) {
+			query.joinResource(this, navigation.resource, navigation.where);
+		} else if (
+			!_.isEqual(
+				navigation.where,
+				// existingJoinPredicate
+				existingJoin[2]?.[1],
+			)
+		) {
+			// When we reach this point we have found an already existing JOIN with the
+			// same alias as the one we just created but different ON predicate.
+			// TODO: In this case we need to be able to generate a new alias for the newly JOINed resource.
+			// Since we atm do not support that we throw early, since otherwise the generated query would be invalid.
 			throw new SyntaxError(
-				`Could not navigate resources '${resource.name}' and '${extraResource}'`,
+				`Adding JOINs on the same resource with different ON clauses is not supported. Found ${navigation.resource.tableAlias}`,
 			);
 		}
-		query.joinResource(this, navigation.resource, navigation.where);
 		return navigation.resource;
 	}
 	AddNavigation(
@@ -1816,14 +1805,11 @@ export class OData2AbstractSQL {
 					(isAliasNode(from) && from[2] === navigation.resource.tableAlias),
 			)
 		) {
+			// Add a FROM for the extraResource only if there isn't already one
 			query.fromResource(this, navigation.resource);
 			query.where.push(navigation.where);
-			return navigation.resource;
-		} else {
-			throw new SyntaxError(
-				`Could not navigate resources '${resource.name}' and '${extraResource}'`,
-			);
 		}
+		return navigation.resource;
 	}
 
 	reset() {
