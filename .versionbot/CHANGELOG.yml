@@ -1,4 +1,16 @@
 - commits:
+    - subject: Convert lodash get usage to native equivalent
+      hash: 69cc153b713f2e47db3a5eba6c97731038df6d0e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.6
+  title: ""
+  date: 2026-02-06T09:34:18.652Z
+- commits:
     - subject: Replace some lodash usage with native alternatives
       hash: 340d3cb7cf6b2aabe7d2f24f3444fd7e5697a9b7
       body: ""
@@ -2568,6 +2580,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2590,6 +2603,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2652,6 +2666,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2802,6 +2817,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2830,6 +2846,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2909,6 +2926,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2943,6 +2961,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3113,6 +3132,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
