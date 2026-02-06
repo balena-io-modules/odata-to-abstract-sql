@@ -74,6 +74,7 @@ import type {
 	EqualsAnyNode,
 	JoinTypeNodes,
 	AggregateJSONNode,
+	RelationshipLeafNode,
 } from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
@@ -993,7 +994,7 @@ export class OData2AbstractSQL {
 				parentResource,
 				resourceName,
 			);
-			resource = this.clientModel.tables[relationshipMapping[1][0]];
+			resource = this.clientModel.tables[relationshipMapping[1]![0]];
 		} else {
 			let sqlName = odataNameToSqlName(resourceName);
 			sqlName = this.Synonym(sqlName);
@@ -1078,13 +1079,16 @@ export class OData2AbstractSQL {
 			.split('__')
 			.map(odataNameToSqlName)
 			.flatMap((sqlName) => this.Synonym(sqlName).split('-'));
-		const relationshipMapping = _.get(resourceRelations, relationshipPath);
+		const relationshipMapping = relationshipPath.reduce(
+			(obj: Relationship, path) => (obj as RelationshipInternalNode)?.[path],
+			resourceRelations,
+		);
 		if (!relationshipMapping?.$) {
 			throw new SyntaxError(
 				`Could not resolve relationship mapping from '${resourceName}' to '${relationshipPath}'`,
 			);
 		}
-		return relationshipMapping.$;
+		return (relationshipMapping as RelationshipLeafNode).$;
 	}
 	AddCountField(path: any, query: Query) {
 		if (path.count) {
@@ -1695,11 +1699,11 @@ export class OData2AbstractSQL {
 		return {
 			resource: linkedResource,
 			// Include the FK used, to re-use it in any follow-up alternate Key check.
-			navigationResourceField: relationshipMapping[1][1],
+			navigationResourceField: relationshipMapping[1]![1],
 			where: [
 				'Equals',
 				['ReferencedField', tableAlias, relationshipMapping[0]],
-				['ReferencedField', linkedTableAlias, relationshipMapping[1][1]],
+				['ReferencedField', linkedTableAlias, relationshipMapping[1]![1]],
 			],
 		};
 	}
