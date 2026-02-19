@@ -1,4 +1,18 @@
 - commits:
+    - subject: "Add id-token: write permission for NPM OIDC publishing"
+      hash: 2ecb7d97071cf317132f6c11909f580106b247d1
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 10.0.7
+  title: ""
+  date: 2026-02-19T01:56:51.493Z
+- commits:
     - subject: Convert lodash get usage to native equivalent
       hash: 69cc153b713f2e47db3a5eba6c97731038df6d0e
       body: ""
@@ -2581,6 +2595,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2603,6 +2618,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2666,6 +2682,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2818,6 +2835,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2846,6 +2864,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2927,6 +2946,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2961,6 +2981,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3132,6 +3153,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
