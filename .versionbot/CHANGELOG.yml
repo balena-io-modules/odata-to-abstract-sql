@@ -1,4 +1,17 @@
 - commits:
+    - subject: Pin product-os/flowzone action to a53cf4b
+      hash: b81d85e2e40775cabaafd2718c52c22843a83108
+      body: |
+        Update product-os/flowzone
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.8
+  title: ""
+  date: 2026-03-24T18:21:02.406Z
+- commits:
     - subject: "Add id-token: write permission for NPM OIDC publishing"
       hash: 2ecb7d97071cf317132f6c11909f580106b247d1
       body: ""
@@ -2596,6 +2609,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2618,6 +2632,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2682,6 +2697,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2836,6 +2852,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2864,6 +2881,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2947,6 +2965,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2981,6 +3000,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3153,6 +3173,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
