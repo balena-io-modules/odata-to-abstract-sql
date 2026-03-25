@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update product-os/flowzone digest to eb703ea
+      hash: 3d52b40299b18119c87ead457617a30007b5402e
+      body: |
+        Update product-os/flowzone
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.9
+  title: ""
+  date: 2026-03-25T20:09:10.363Z
+- commits:
     - subject: Pin product-os/flowzone action to a53cf4b
       hash: b81d85e2e40775cabaafd2718c52c22843a83108
       body: |
@@ -2610,6 +2623,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2632,6 +2646,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2697,6 +2712,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2853,6 +2869,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2881,6 +2898,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2966,6 +2984,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3000,6 +3019,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3173,6 +3193,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
