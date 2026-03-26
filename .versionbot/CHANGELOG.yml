@@ -1,4 +1,16 @@
 - commits:
+    - subject: Revert flowzone pinning to master
+      hash: 4df578af3ff2ff591f293bb7110835a60ebb835f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Kyle Harding
+      nested: []
+  version: 10.0.22
+  title: ""
+  date: 2026-03-26T17:22:21.140Z
+- commits:
     - subject: Update product-os/flowzone digest to 8ea01d3
       hash: 445911085854a05e628e3fbbe09d36cc86559be8
       body: |
@@ -2792,6 +2804,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2814,6 +2827,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2892,6 +2906,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3074,6 +3089,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3102,6 +3118,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3213,6 +3230,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3247,6 +3265,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3433,6 +3452,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
