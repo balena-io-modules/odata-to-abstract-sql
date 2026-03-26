@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update product-os/flowzone digest to b79645a
+      hash: d11731ad4b433129cf423268905f4c2b75c2a828
+      body: |
+        Update product-os/flowzone
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.14
+  title: ""
+  date: 2026-03-26T02:50:13.555Z
+- commits:
     - subject: Update product-os/flowzone digest to 4815186
       hash: e064cd64732c217741984fcf202bdfbd7e662ac9
       body: |
@@ -2680,6 +2693,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2702,6 +2716,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2772,6 +2787,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2938,6 +2954,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2966,6 +2983,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3061,6 +3079,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3095,6 +3114,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3273,6 +3293,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
