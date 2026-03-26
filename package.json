@@ -37,7 +37,7 @@
     "@types/chai": "^5.2.2",
     "@types/chai-things": "0.0.38",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^20.19.9",
+    "@types/node": "^24.0.0",
     "chai": "^6.0.0",
     "chai-things": "~0.2.0",
     "husky": "^9.1.7",
