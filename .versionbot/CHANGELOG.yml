@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency lint-staged to v17
+      hash: d38a10fc470c9d120e852546809ad690afb4e132
+      body: |
+        Update lint-staged from 16.4.0 to 17.0.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.24
+  title: ""
+  date: 2026-06-11T04:34:20.356Z
+- commits:
     - subject: Rename .lintstagedrc to .lintstagedrc.json
       hash: ded3bd5a1ffe4e22bdf9124b1d476dc563661b27
       body: |
@@ -2819,6 +2832,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2841,6 +2855,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2921,6 +2936,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3107,6 +3123,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3135,6 +3152,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3250,6 +3268,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3284,6 +3303,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3472,6 +3492,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
