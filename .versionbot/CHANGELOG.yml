@@ -1,4 +1,17 @@
 - commits:
+    - subject: Rename .lintstagedrc to .lintstagedrc.json
+      hash: ded3bd5a1ffe4e22bdf9124b1d476dc563661b27
+      body: |
+        In preparation for lint-staged v17 which recommends this rename
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+  version: 10.0.23
+  title: ""
+  date: 2026-06-11T04:26:43.060Z
+- commits:
     - subject: Revert flowzone pinning to master
       hash: 4df578af3ff2ff591f293bb7110835a60ebb835f
       body: ""
@@ -2805,6 +2818,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2827,6 +2841,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2906,6 +2921,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3090,6 +3106,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3118,6 +3135,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3231,6 +3249,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3265,6 +3284,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3452,6 +3472,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
