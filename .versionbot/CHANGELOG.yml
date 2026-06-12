@@ -1,4 +1,17 @@
 - commits:
+    - subject: Pin dependencies
+      hash: c2bc4747ef2e7bbfdc6646cc9199f218058f84f8
+      body: |
+        Update @swc-node/register
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.25
+  title: ""
+  date: 2026-06-12T01:48:00.558Z
+- commits:
     - subject: Update dependency lint-staged to v17
       hash: d38a10fc470c9d120e852546809ad690afb4e132
       body: |
@@ -2833,6 +2846,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2855,6 +2869,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2936,6 +2951,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3124,6 +3140,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3152,6 +3169,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3269,6 +3287,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3303,6 +3322,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3492,6 +3512,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
