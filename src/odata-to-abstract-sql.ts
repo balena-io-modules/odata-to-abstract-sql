@@ -101,8 +101,6 @@ type RequiredAbstractSqlModelSubset = Pick<
 	'synonyms' | 'relationships' | 'tables'
 >;
 
-type Dictionary<T> = Record<string, T>;
-
 interface LegacyDefinition {
 	extraBinds: ODataBinds;
 	abstractSqlQuery: SelectQueryNode | UnionQueryNode | ResourceNode | TableNode;
@@ -398,7 +396,7 @@ const addBodyKey = (
 	fieldName: string,
 	bind: BindReference,
 	bodyKeys: string[],
-	extraBodyVars: Dictionary<BindReference>,
+	extraBodyVars: Record<string, BindReference>,
 ) => {
 	// Add the id field value to the body if it doesn't already exist and we're doing an INSERT or a REPLACE.
 	const qualifiedIDField = resourceName + '.' + fieldName;
@@ -414,16 +412,16 @@ type Opts = {
 };
 
 export class OData2AbstractSQL {
-	private extraBodyVars: Dictionary<BindReference> = {};
+	private extraBodyVars: Record<string, BindReference> = {};
 	public extraBindVars = [] as unknown as ODataBinds;
-	private resourceAliases: Dictionary<AliasedResource> = {};
+	private resourceAliases: Record<string, AliasedResource> = {};
 	public defaultResource: Resource | undefined;
 	public bindVarsLength = 0;
 	private checkAlias: (alias: string) => string;
 
 	constructor(
 		private clientModel: RequiredAbstractSqlModelSubset,
-		private methods: Dictionary<ResourceFunction> = {},
+		private methods: Record<string, ResourceFunction> = {},
 		{ minimizeAliases = false }: Opts = {},
 	) {
 		const MAX_ALIAS_LENGTH = 63;
@@ -489,7 +487,7 @@ export class OData2AbstractSQL {
 		methods?: OData2AbstractSQL['methods'],
 	): {
 		tree: AbstractSqlQuery;
-		extraBodyVars: Dictionary<BindReference>;
+		extraBodyVars: Record<string, BindReference>;
 		extraBindVars: ODataBinds;
 	} {
 		const method: InternalSupportedMethod =
@@ -1044,7 +1042,7 @@ export class OData2AbstractSQL {
 				: 'resourceMappings';
 		if (resource[resourceMappingsProp] == null) {
 			const tableAlias = resource.tableAlias ?? resource.name;
-			const resourceMappings: Dictionary<[string, string]> = {};
+			const resourceMappings: Record<string, [string, string]> = {};
 			const fields =
 				modifyFields === true && resource.modifyFields
 					? resource.modifyFields
@@ -1924,7 +1922,7 @@ export class OData2AbstractSQL {
 }
 
 const addAliases = (
-	shortAliases: Dictionary<string>,
+	shortAliases: Record<string, string>,
 	lowerCaseAliasParts: string[],
 ) => {
 	const trie = {};
@@ -1990,7 +1988,7 @@ const getRelationships = (
 };
 
 const generateShortAliases = (clientModel: RequiredAbstractSqlModelSubset) => {
-	const shortAliases: Dictionary<string> = {};
+	const shortAliases: Record<string, string> = {};
 
 	const rels = getRelationships(clientModel.relationships);
 	const synonyms = Object.keys(clientModel.synonyms ?? {});
