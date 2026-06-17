@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove the `Dictionary` type sugar in favor of using `Record` directly
+      hash: 8961ddadb34ba42954c3bda433229b9cf7912db3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.26
+  title: ""
+  date: 2026-06-17T13:25:10.904Z
+- commits:
     - subject: Pin dependencies
       hash: c2bc4747ef2e7bbfdc6646cc9199f218058f84f8
       body: |
@@ -2847,6 +2859,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2869,6 +2882,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2951,6 +2965,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3141,6 +3156,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3169,6 +3185,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3288,6 +3305,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3322,6 +3340,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3512,6 +3531,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
