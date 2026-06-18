@@ -3,7 +3,12 @@
 	"compilerOptions": {
 		"noImplicitAny": false,
 		"noImplicitThis": false,
-		"strictFunctionTypes": false
+		"strictFunctionTypes": false,
+		"rootDir": ".",
+		"types": [
+			"mocha",
+			"node"
+		]
 	},
 	"include": [
 		"*",

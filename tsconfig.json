@@ -10,6 +10,7 @@
 		"sourceMap": true,
 		"declaration": true,
 		"skipLibCheck": true,
+		"rootDir": "src",
 		"outDir": "out"
 	},
 	"include": ["src/**/*"],
