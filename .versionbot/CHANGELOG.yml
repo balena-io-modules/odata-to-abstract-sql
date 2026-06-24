@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency lint-staged to v17.0.8
+      hash: a566024dd9e3d5e8cb27197e16dbf1c42d64fbcc
+      body: |
+        Update lint-staged from 17.0.7 to 17.0.8
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.28
+  title: ""
+  date: 2026-06-24T01:34:30.374Z
+- commits:
     - subject: Update typescript to 6.x
       hash: eab72bd2741758c9a6e78388b43d777c9e19c678
       body: ""
@@ -2873,6 +2886,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2895,6 +2909,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2979,6 +2994,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3173,6 +3189,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3201,6 +3218,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3324,6 +3342,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3358,6 +3377,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3550,6 +3570,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
