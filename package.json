@@ -41,7 +41,7 @@
     "chai": "6.2.2",
     "chai-things": "0.2.0",
     "husky": "9.1.7",
-    "lint-staged": "17.0.7",
+    "lint-staged": "17.0.8",
     "mocha": "11.7.6",
     "require-npm4-to-publish": "1.0.0",
     "typescript": "6.0.3"
