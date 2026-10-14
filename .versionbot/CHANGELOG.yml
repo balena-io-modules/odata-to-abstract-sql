@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add validation for number of operands for fixed operand node types
+      hash: d3fc3f316bfa974914897cadcd1b400439d5ba31
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.29
+  title: ""
+  date: 2026-10-14T16:06:28.182Z
+- commits:
     - subject: Update dependency lint-staged to v17.0.8
       hash: a566024dd9e3d5e8cb27197e16dbf1c42d64fbcc
       body: |
@@ -2887,6 +2899,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2909,6 +2922,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2994,6 +3008,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3190,6 +3205,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3218,6 +3234,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3343,6 +3360,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3377,6 +3395,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3570,6 +3589,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
