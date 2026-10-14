@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency lint-staged to v17.6.0
+      hash: ed9176bdb6d00aafa2cbaf8106c8f499816178d7
+      body: |
+        Update lint-staged from 17.0.8 to 17.6.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.30
+  title: ""
+  date: 2026-10-14T17:05:37.230Z
+- commits:
     - subject: Add validation for number of operands for fixed operand node types
       hash: d3fc3f316bfa974914897cadcd1b400439d5ba31
       body: ""
@@ -2900,6 +2913,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2922,6 +2936,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3008,6 +3023,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3206,6 +3222,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3234,6 +3251,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3361,6 +3379,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3395,6 +3414,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3589,6 +3609,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
