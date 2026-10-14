@@ -299,10 +299,7 @@ class Query {
 		const compiled: Array<
 			Exclude<
 				(
-					| SelectQueryNode
-					| InsertQueryNode
-					| UpdateQueryNode
-					| DeleteQueryNode
+					SelectQueryNode | InsertQueryNode | UpdateQueryNode | DeleteQueryNode
 				)[number],
 				string
 			>
@@ -324,10 +321,7 @@ class Query {
 			compiled.push(['Where', whereNode]);
 		}
 		return [queryType, ...compiled, ...this.extras] as
-			| SelectQueryNode
-			| InsertQueryNode
-			| UpdateQueryNode
-			| DeleteQueryNode;
+			SelectQueryNode | InsertQueryNode | UpdateQueryNode | DeleteQueryNode;
 	}
 }
 
@@ -655,13 +649,11 @@ export class OData2AbstractSQL {
 
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
 				const subQuery = new Query();
-				subQuery.select = bindVars.map(
-					(bindVar): ReferencedFieldNode => [
-						'ReferencedField',
-						'$insert',
-						bindVar[0],
-					],
-				);
+				subQuery.select = bindVars.map((bindVar): ReferencedFieldNode => [
+					'ReferencedField',
+					'$insert',
+					bindVar[0],
+				]);
 
 				subQuery.from.push([
 					'Alias',
