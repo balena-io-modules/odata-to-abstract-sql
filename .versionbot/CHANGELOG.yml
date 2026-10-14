@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency mocha to v11.8.0
+      hash: 73e178b48c6a8e27fce8ce63b3ad3719210bbc7e
+      body: |
+        Update mocha from 11.7.6 to 11.8.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.31
+  title: ""
+  date: 2026-10-14T18:05:03.066Z
+- commits:
     - subject: Update dependency lint-staged to v17.6.0
       hash: ed9176bdb6d00aafa2cbaf8106c8f499816178d7
       body: |
@@ -2914,6 +2927,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2936,6 +2950,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3023,6 +3038,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3223,6 +3239,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3251,6 +3268,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3380,6 +3398,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3414,6 +3433,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3609,6 +3629,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
