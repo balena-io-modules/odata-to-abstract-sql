@@ -173,11 +173,7 @@ export function sqlNameToOdataName(sqlName: string) {
 }
 
 type AbstractSqlBind =
-	| BindNode
-	| NullNode
-	| DateTruncNode
-	| ReferencedFieldNode
-	| DurationNode;
+	BindNode | NullNode | DateTruncNode | ReferencedFieldNode | DurationNode;
 export function operandToAbstractSQLFactory(
 	binds: Array<BooleanNode | NumberNode | DateNode | NullNode | TextNode> = [],
 	defaultResource = 'pilot',

@@ -299,10 +299,7 @@ class Query {
 		const compiled: Array<
 			Exclude<
 				(
-					| SelectQueryNode
-					| InsertQueryNode
-					| UpdateQueryNode
-					| DeleteQueryNode
+					SelectQueryNode | InsertQueryNode | UpdateQueryNode | DeleteQueryNode
 				)[number],
 				string
 			>
@@ -324,10 +321,7 @@ class Query {
 			compiled.push(['Where', whereNode]);
 		}
 		return [queryType, ...compiled, ...this.extras] as
-			| SelectQueryNode
-			| InsertQueryNode
-			| UpdateQueryNode
-			| DeleteQueryNode;
+			SelectQueryNode | InsertQueryNode | UpdateQueryNode | DeleteQueryNode;
 	}
 }
 
@@ -655,13 +649,11 @@ export class OData2AbstractSQL {
 
 				// For insert statements we need to use an INSERT INTO ... SELECT * FROM (binds) WHERE ... style query
 				const subQuery = new Query();
-				subQuery.select = bindVars.map(
-					(bindVar): ReferencedFieldNode => [
-						'ReferencedField',
-						'$insert',
-						bindVar[0],
-					],
-				);
+				subQuery.select = bindVars.map((bindVar): ReferencedFieldNode => [
+					'ReferencedField',
+					'$insert',
+					bindVar[0],
+				]);
 
 				subQuery.from.push([
 					'Alias',
@@ -1183,6 +1175,9 @@ export class OData2AbstractSQL {
 						case 'ge':
 						case 'lt':
 						case 'le': {
+							if (rest.length > 2) {
+								throw new SyntaxError(`Too many arguments for ${type}`);
+							}
 							const op1 = this.Operand(rest[0]);
 							const op2 = this.Operand(rest[1]);
 							return [comparison[type], op1, op2] as
@@ -1201,6 +1196,9 @@ export class OData2AbstractSQL {
 								...rest.map((v) => this.BooleanMatch(v)),
 							];
 						case 'not': {
+							if (rest.length > 1) {
+								throw new SyntaxError(`Too many arguments for ${type}`);
+							}
 							const bool = this.BooleanMatch(rest[0]);
 							return ['Not', bool];
 						}
@@ -1321,6 +1319,9 @@ export class OData2AbstractSQL {
 			case 'sub':
 			case 'mul':
 			case 'div':
+				if (rest.length > 2) {
+					throw new SyntaxError(`Too many arguments for ${type}`);
+				}
 				return [
 					operations[type],
 					this.Operand(rest[0]),
