@@ -1183,6 +1183,9 @@ export class OData2AbstractSQL {
 						case 'ge':
 						case 'lt':
 						case 'le': {
+							if (rest.length > 2) {
+								throw new SyntaxError(`Too many arguments for ${type}`);
+							}
 							const op1 = this.Operand(rest[0]);
 							const op2 = this.Operand(rest[1]);
 							return [comparison[type], op1, op2] as
@@ -1201,6 +1204,9 @@ export class OData2AbstractSQL {
 								...rest.map((v) => this.BooleanMatch(v)),
 							];
 						case 'not': {
+							if (rest.length > 1) {
+								throw new SyntaxError(`Too many arguments for ${type}`);
+							}
 							const bool = this.BooleanMatch(rest[0]);
 							return ['Not', bool];
 						}
@@ -1321,6 +1327,9 @@ export class OData2AbstractSQL {
 			case 'sub':
 			case 'mul':
 			case 'div':
+				if (rest.length > 2) {
+					throw new SyntaxError(`Too many arguments for ${type}`);
+				}
 				return [
 					operations[type],
 					this.Operand(rest[0]),
