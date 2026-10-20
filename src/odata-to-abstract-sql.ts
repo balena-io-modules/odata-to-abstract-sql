@@ -819,7 +819,8 @@ export class OData2AbstractSQL {
 				if (isBindReference(key)) {
 					addBodyKey(
 						resource.resourceName,
-						resource.idField,
+						// Body keys use OData names, which differ from the sql name for an id field such as `favourite colour`
+						sqlNameToODataName(resource.idField),
 						key,
 						bodyKeys,
 						this.extraBodyVars,
