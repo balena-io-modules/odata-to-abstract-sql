@@ -414,6 +414,21 @@ test('/pilot?$expand=licence/$count', (result) => {
 	});
 });
 
+// The expanded resources would otherwise be selected alongside the count, which is invalid sql
+for (const url of [
+	'/pilot/$count?$expand=licence',
+	'/pilot?$expand=licence/$count($expand=is_of__pilot)',
+	'/pilot?$expand=can_fly__plane/$count/plane',
+]) {
+	test(url, (result) => {
+		it('should fail as $expand cannot be used with $count', () => {
+			expect(result)
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property('message', 'Cannot use $expand with $count');
+		});
+	});
+}
+
 test('/pilot?$filter=id eq 5&$expand=licence/$count', (result) => {
 	it('should select from pilot.*, count(*) licence, for pilot/id eq 5', () => {
 		expect(result)
@@ -498,41 +513,20 @@ test('/pilot?$expand=licence/$count($filter=id gt 5)', function (result) {
 	});
 });
 
-test('/pilot?$expand=licence/$count($orderby=id asc)', (result) => {
-	it('should select from pilot.*, count(*) and ignore orderby', () => {
-		expect(result)
-			.to.be.a.query.that.selects(
-				[aggregateJSONCount.licence].concat(
-					pilotFields.filter((field) => field[2] !== 'licence'),
-				),
-			)
-			.from('pilot');
+// $orderby/$top/$skip cannot affect a count, so they are rejected rather than silently ignored
+for (const [url, option] of [
+	['/pilot?$expand=licence/$count($orderby=id asc)', '$orderby'],
+	['/pilot?$expand=licence/$count($skip=5)', '$skip'],
+	['/pilot?$expand=licence/$count($top=5)', '$top'],
+]) {
+	test(url, (result) => {
+		it(`should fail as ${option} cannot be used with $count`, () => {
+			expect(result)
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property('message', `Cannot use ${option} with $count`);
+		});
 	});
-});
-
-test('/pilot?$expand=licence/$count($skip=5)', (result) => {
-	it('should select from pilot.*, count(*) and ignore skip', () => {
-		expect(result)
-			.to.be.a.query.that.selects(
-				[aggregateJSONCount.licence].concat(
-					pilotFields.filter((field) => field[2] !== 'licence'),
-				),
-			)
-			.from('pilot');
-	});
-});
-
-test('/pilot?$expand=licence/$count($top=5)', (result) => {
-	it('should select from pilot.*, count(*) and ignore top', () => {
-		expect(result)
-			.to.be.a.query.that.selects(
-				[aggregateJSONCount.licence].concat(
-					pilotFields.filter((field) => field[2] !== 'licence'),
-				),
-			)
-			.from('pilot');
-	});
-});
+}
 
 // Alias tests
 (function () {
