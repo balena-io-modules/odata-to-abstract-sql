@@ -125,6 +125,14 @@ test('/pilot?$select=was_trained_by__pilot/p', (result) => {
 	});
 });
 
+test('/pilot?$select=licence/$count', (result) => {
+	it('should fail to select a $count as it is not a field', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property('message', '$select can only reference fields');
+	});
+});
+
 test('/pilot?$select=trained__pilot/name', (result) => {
 	it('should select name from pilot', () => {
 		expect(result)
