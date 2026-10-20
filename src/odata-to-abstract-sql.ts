@@ -1892,11 +1892,21 @@ export class OData2AbstractSQL {
 			convertToModernDefinition(definition),
 		);
 		rewriteBinds(rewrittenDefinition, extraBindVars, bindVarsLength);
-		this.rewriteResourceAsTable(rewrittenDefinition.abstractSql);
+		// Nested resources must add their binds to the same bind vars as the definition itself, otherwise when a definition
+		// is rewritten into scratch bind vars and then applied (eg for filtered inserts) the nested binds get offset twice
+		this.rewriteResourceAsTable(
+			rewrittenDefinition.abstractSql,
+			extraBindVars,
+			bindVarsLength,
+		);
 		return rewrittenDefinition;
 	}
 
-	rewriteResourceAsTable(abstractSql: AnyTypeNodes): void {
+	rewriteResourceAsTable(
+		abstractSql: AnyTypeNodes,
+		extraBindVars: ODataBinds = this.extraBindVars,
+		bindVarsLength: number = this.bindVarsLength,
+	): void {
 		modifyAbstractSql('Resource', abstractSql, (resource: ResourceNode) => {
 			const resourceName = resource[1];
 			const referencedResource = this.clientModel.tables[resourceName];
@@ -1905,8 +1915,8 @@ export class OData2AbstractSQL {
 			}
 			const tableRef = this.getTableReference(
 				referencedResource,
-				this.extraBindVars,
-				this.bindVarsLength,
+				extraBindVars,
+				bindVarsLength,
 			);
 			(resource as AbstractSqlType[]).splice(0, resource.length, ...tableRef);
 		});
