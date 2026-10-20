@@ -415,3 +415,25 @@ test(`/pilot?$select=name,identification_method(identification_type='passport')/
 		'expected SyntaxError: Adding JOINs on the same res… to be an instance of Array',
 	);
 });
+
+test('/pilot?$select=constructor', (result) => {
+	it('should fail to select a "constructor" field that does not exist', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'constructor'`,
+			);
+	});
+});
+
+test('/pilot?$select=__proto__', (result) => {
+	it('should fail to select a "__proto__" field that does not exist', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to ',proto,'`,
+			);
+	});
+});
