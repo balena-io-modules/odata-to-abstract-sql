@@ -190,8 +190,8 @@ test(`/pilot?$filter=name eq 'test' or name in (null, 1) or name in (null) or st
 test('/pilot?$filter=name eq 2 or p eq 2', (result) => {
 	it('should select from pilot when filtering using a non-existing property in an or', () => {
 		expect(result)
-			.to.be.instanceOf(TypeError)
-			.and.to.have.property('message', `match is not iterable`);
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property('message', 'Could not match operand');
 	});
 });
 
@@ -1381,8 +1381,8 @@ const lambdaTest = function (methodName) {
 		// unknown property w/o alias
 		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport') or identification_method/${methodName}(d:x eq 'idcard')`, (result) => {
 			expect(result)
-				.to.be.instanceOf(TypeError)
-				.and.to.have.property('message', `match is not iterable`);
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property('message', 'Could not match operand');
 		});
 
 		// unknown sub-property
@@ -1438,8 +1438,8 @@ const lambdaTest = function (methodName) {
 		// unknown property w/o alias
 		test(`/pilot?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport' or x eq 'idcard')`, (result) => {
 			expect(result)
-				.to.be.instanceOf(TypeError)
-				.and.to.have.property('message', `match is not iterable`);
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property('message', 'Could not match operand');
 		});
 
 		// unknown sub-property
