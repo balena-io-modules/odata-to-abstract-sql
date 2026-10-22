@@ -1092,10 +1092,11 @@ export class OData2AbstractSQL {
 		if (path.options?.$select?.properties) {
 			this.AddJoins(query, resource, path.options.$select.properties);
 			odataFieldNames = path.options.$select.properties.map((prop: any) => {
-				const field = this.Property(prop) as {
-					resource: Resource;
-					name: string;
-				};
+				const field = this.Property(prop);
+				if (Array.isArray(field)) {
+					// Eg `$select=licence/$count`, which resolves to a subquery rather than a field
+					throw new SyntaxError('$select can only reference fields');
+				}
 				return [field.resource, field.name];
 			});
 		} else {
