@@ -1,4 +1,25 @@
 - commits:
+    - subject: Fix a TypeError when using $select with a $count
+      hash: e45380147da7c221948676cee3b47e1cf5f9633b
+      body: >
+        `$select=licence/$count` resolves to a count subquery rather than a
+        field,
+
+        but the result of `Property` was cast to a field reference without
+        checking,
+
+        leading to `TypeError: Cannot read properties of undefined (reading
+
+        'resourceMappings')`. It now throws a `SyntaxError`.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.34
+  title: ""
+  date: 2026-10-22T23:16:50.586Z
+- commits:
     - subject: Fix the error for a non text function
       hash: 635b4b000628107d73b975e68ebfa47287ce14b6
       body: ""
@@ -2955,6 +2976,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2977,6 +2999,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3067,6 +3090,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3273,6 +3297,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3301,6 +3326,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3436,6 +3462,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3470,6 +3497,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3668,6 +3696,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
