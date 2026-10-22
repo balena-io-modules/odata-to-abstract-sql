@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix the error for a non text function
+      hash: 635b4b000628107d73b975e68ebfa47287ce14b6
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.33
+  title: ""
+  date: 2026-10-22T14:45:52.639Z
+- commits:
     - subject: Update dependency flowzonify to v0.4.18
       hash: f7b1cea1f2e076062d4655fc5b795f29043747cb
       body: |
@@ -2942,6 +2954,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2964,6 +2977,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3053,6 +3067,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3257,6 +3272,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3285,6 +3301,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3418,6 +3435,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3452,6 +3470,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3649,6 +3668,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
