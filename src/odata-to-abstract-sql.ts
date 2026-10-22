@@ -1550,7 +1550,7 @@ export class OData2AbstractSQL {
 					if (optional) {
 						return;
 					}
-					throw new SyntaxError(`${method} is not a number function`);
+					throw new SyntaxError(`${method} is not a text function`);
 			}
 		} else if (optional) {
 			return;
