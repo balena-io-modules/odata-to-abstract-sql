@@ -1,4 +1,27 @@
 - commits:
+    - subject: Fix path keys being ignored for id fields whose OData name differs
+      hash: 6b47aab2075876c0d3f168f460f3bf35fd16f082
+      body: >
+        For POST/PUT with a path key the key is added to the body so it is
+
+        inserted/kept, but it was added using the sql name of the id field
+        whilst
+
+        the body keys are matched using OData names. For an id field such as
+
+        `favourite colour` this meant `POST /team('purple')` inserted no id and
+        the
+
+        update half of `PUT /team('purple')` reset the id to its default.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.36
+  title: ""
+  date: 2026-10-23T11:35:28.207Z
+- commits:
     - subject: Remove the KeySyntaxError in favor of a plain SyntaxError
       hash: bf1ef361f7f248b3d46f468f3869b59d218db432
       body: ""
@@ -3008,6 +3031,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3030,6 +3054,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3122,6 +3147,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3332,6 +3358,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3360,6 +3387,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3499,6 +3527,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3533,6 +3562,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3733,6 +3763,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
