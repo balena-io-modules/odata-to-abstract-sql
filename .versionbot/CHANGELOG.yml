@@ -1,4 +1,29 @@
 - commits:
+    - subject: Fix a TypeError when navigating via a field that is not a resource
+      hash: 7afb40c768899dce8e42366eb711f10e82328928
+      body: >
+        Navigating through a field that is not a navigation, eg
+        `/pilot(1)/name`,
+
+        `$expand=name` or `$filter=name/any(n: n eq 1)`, resolved the
+        relationship
+
+        to a local field mapping with no target resource and then threw
+
+        `TypeError: Cannot read properties of undefined (reading '0')`. It now
+
+        throws a `SyntaxError`, matching the change in the unmerged
+
+        `remove-the-blind-try-catch` branch (63c1579).
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.38
+  title: ""
+  date: 2026-10-23T14:02:27.497Z
+- commits:
     - subject: Fix a TypeError for $filter operands that cannot be matched
       hash: 10baaae1be57f6fa1447c55a9ba0039ad7479c8a
       body: >
@@ -3057,6 +3082,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3079,6 +3105,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3173,6 +3200,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3387,6 +3415,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3415,6 +3444,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3558,6 +3588,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3592,6 +3623,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3794,6 +3826,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
