@@ -1,4 +1,34 @@
 - commits:
+    - subject: Remove the KeySyntaxError in favor of a plain SyntaxError
+      hash: bf1ef361f7f248b3d46f468f3869b59d218db432
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Improve the Error thrown when trying to access properties of fields
+        that are no resource
+      hash: e25e80831a5b4305c1d43b01e85a9ff200c2b909
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Fix allowing invalid parts in property paths in $select, $filter &
+        $orderby
+      hash: b9bfaa381c98aab7ee7f1bc2dbd20d0ae95de0c4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 10.0.35
+  title: ""
+  date: 2026-10-23T07:33:54.889Z
+- commits:
     - subject: Fix a TypeError when using $select with a $count
       hash: e45380147da7c221948676cee3b47e1cf5f9633b
       body: >
@@ -2977,6 +3007,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2999,6 +3030,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3090,6 +3122,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3298,6 +3331,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3326,6 +3360,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3463,6 +3498,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3497,6 +3533,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3696,6 +3733,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
