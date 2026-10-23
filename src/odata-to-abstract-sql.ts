@@ -1313,9 +1313,12 @@ export class OData2AbstractSQL {
 		throw new SyntaxError('Could not match operand');
 	}
 	Math(
-		match: [string, ...any[]],
+		match: unknown,
 	): AddNode | SubtractNode | MultiplyNode | DivideNode | undefined {
-		const [type, ...rest] = match;
+		if (!Array.isArray(match)) {
+			return;
+		}
+		const [type, ...rest]: unknown[] = match;
 		switch (type) {
 			case 'add':
 			case 'sub':
