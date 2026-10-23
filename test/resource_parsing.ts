@@ -680,6 +680,105 @@ test('/team', 'POST', { favourite_colour: 'purple' }, (result) => {
 	});
 });
 
+{
+	const teamKeyWhere = [
+		'IsNotDistinctFrom',
+		['ReferencedField', 'team', 'favourite colour'],
+		['Bind', 0],
+	];
+	const teamKeyInsertValues = [
+		'SelectQuery',
+		['Select', [['ReferencedField', '$insert', 'favourite colour']]],
+		[
+			'From',
+			[
+				'Alias',
+				[
+					'ConvertRow',
+					[
+						'SelectQuery',
+						[
+							'Select',
+							[
+								['Alias', ['Cast', ['Null'], 'Date Time'], 'created at'],
+								['Alias', ['Cast', ['Null'], 'Date Time'], 'modified at'],
+								[
+									'Alias',
+									['Cast', ['Bind', ['team', 'favourite_colour']], 'Color'],
+									'favourite colour',
+								],
+							],
+						],
+					],
+					['Table', 'team'],
+				],
+				'$insert',
+			],
+		],
+		[
+			'Where',
+			[
+				'Exists',
+				[
+					'SelectQuery',
+					['Select', []],
+					[
+						'From',
+						[
+							'Alias',
+							[
+								'SelectQuery',
+								['Select', [['ReferencedField', '$insert', '*']]],
+							],
+							'team',
+						],
+					],
+					['Where', teamKeyWhere],
+				],
+			],
+		],
+	];
+
+	const postBody = {};
+	test("/team('purple')", 'POST', postBody, (result) => {
+		it('should insert a team using the key as its "favourite colour" id', () => {
+			expect(result)
+				.to.be.a.query.that.inserts.fields('favourite colour')
+				.values(...teamKeyInsertValues)
+				.from('team');
+		});
+		it('should add the key to the body using the OData field name', () => {
+			expect(postBody).to.deep.equal({
+				'team.favourite_colour': { bind: 0 },
+			});
+		});
+	});
+
+	test("/team('purple')", 'PUT', {}, (result) => {
+		describe('should upsert the team with the "favourite colour" id of "purple"', function () {
+			it('should be an upsert', () =>
+				expect(result).to.be.a.query.that.upserts);
+			it('that inserts using the key as its id', () => {
+				expect(result[1])
+					.to.be.a.query.that.inserts.fields('favourite colour')
+					.values(...teamKeyInsertValues)
+					.from('team');
+			});
+			it('and updates without resetting its id to the default', () => {
+				expect(result[2])
+					.to.be.a.query.that.updates.fields(
+						'created at',
+						'modified at',
+						'favourite colour',
+					)
+					.values('Default', 'Default', ['Bind', ['team', 'favourite_colour']])
+					.from('team')
+					.where(teamKeyWhere);
+			});
+		});
+	});
+}
+
 test('/pilot/$count/$count', (result) => {
 	it('should fail because it is invalid', () => {
 		expect(result).to.be.instanceOf(ODataParser.SyntaxError);
