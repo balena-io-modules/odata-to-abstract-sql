@@ -195,6 +195,14 @@ test('/pilot?$filter=name eq 2 or p eq 2', (result) => {
 	});
 });
 
+test('/pilot?$filter=name/any(n: n eq 1)', (result) => {
+	it('should fail to use a lambda on a field that is not a resource', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property('message', `Could not match resource: "name"`);
+	});
+});
+
 test('/pilot?$filter=name eq 2 or p/name eq 2', (result) => {
 	it('should select from pilot when filtering using a non-existing alias in an or', () => {
 		expect(result)

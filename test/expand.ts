@@ -112,6 +112,14 @@ test('/pilot?$expand=licence', (result) => {
 	});
 });
 
+test('/pilot?$expand=name', (result) => {
+	it('should fail to expand a field that is not a resource', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property('message', `Could not match resource: "name"`);
+	});
+});
+
 let nestedExpandTest = (result) => {
 	it('should select from pilot ..., (select ... FROM ...)', () => {
 		expect(result)

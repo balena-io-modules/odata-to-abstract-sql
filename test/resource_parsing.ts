@@ -170,6 +170,14 @@ test('/pilot(1)/p/licence', (result) => {
 	});
 });
 
+test('/pilot(1)/name', (result) => {
+	it('should fail to navigate to a field that is not a resource', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property('message', `Could not match resource: "name"`);
+	});
+});
+
 test('/licence(1)/is_of__pilot', (result) => {
 	it('should select from the pilots of licence with id', () => {
 		expect(result)
