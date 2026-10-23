@@ -48,12 +48,13 @@ test('/pilot?$orderby=name asc', (result) => {
 });
 
 test('/pilot?$orderby=p/name asc', (result) => {
-	// TODO: This should fail
-	it('should order by name asc using a non-existing alias', () => {
+	it('should fail to order by name asc using a non-existing alias', () => {
 		expect(result)
-			.to.be.a.query.that.selects(pilotFields)
-			.from('pilot')
-			.orderby(['ASC', operandToAbstractSQL('name')]);
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'p'`,
+			);
 	});
 });
 
