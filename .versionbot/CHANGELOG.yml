@@ -1,4 +1,28 @@
 - commits:
+    - subject: Fix a TypeError for $filter operands that cannot be matched
+      hash: 10baaae1be57f6fa1447c55a9ba0039ad7479c8a
+      body: >
+        `Operand` tries each matcher in turn and `Math` is the last of them, but
+        it
+
+        destructured its input as an array without checking, so an operand that
+
+        failed every other matcher (eg an unknown property such as
+
+        `$filter=foo eq 1`) threw `TypeError: match is not iterable` rather than
+        the
+
+        `SyntaxError: Could not match operand` that invalid input should
+        produce.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.37
+  title: ""
+  date: 2026-10-23T11:55:48.728Z
+- commits:
     - subject: Fix path keys being ignored for id fields whose OData name differs
       hash: 6b47aab2075876c0d3f168f460f3bf35fd16f082
       body: >
@@ -3032,6 +3056,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3054,6 +3079,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3147,6 +3173,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3359,6 +3386,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3387,6 +3415,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3528,6 +3557,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3562,6 +3592,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3763,6 +3794,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
