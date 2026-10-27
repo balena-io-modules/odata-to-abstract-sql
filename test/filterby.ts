@@ -15,6 +15,7 @@ let operandToAbstractSQLFactory = $operandToAbstractSQLFactory;
 
 import test from './test.js';
 import _ from 'lodash';
+import type { LockingClauseNode } from '@balena/abstract-sql-compiler';
 
 let operandToAbstractSQL: ReturnType<typeof operandToAbstractSQLFactory>;
 
@@ -554,7 +555,8 @@ run(function () {
 			)
 			.from('pilot');
 	};
-	const updateWhere = [
+
+	const getUpdateWhere = (lockStrength: LockingClauseNode[1]) => [
 		'In',
 		['ReferencedField', 'pilot', 'id'],
 		[
@@ -564,6 +566,7 @@ run(function () {
 			pilotPilotCanFlyPlaneLeftJoin,
 			pilotPilotCanFlyPlanePlaneLeftJoin,
 			['Where', abstractsql],
+			['LockingClause', lockStrength, ['pilot']],
 		],
 	];
 
@@ -600,7 +603,7 @@ run(function () {
 				.to.be.a.query.that.updates.fields('name')
 				.values(['Bind', ['pilot', 'name']])
 				.from('pilot')
-				.where(updateWhere);
+				.where(getUpdateWhere('NO KEY UPDATE'));
 		});
 	});
 
@@ -649,7 +652,7 @@ run(function () {
 						'Default',
 					)
 					.from('pilot')
-					.where(updateWhere);
+					.where(getUpdateWhere('UPDATE'));
 			});
 		});
 	});
@@ -701,6 +704,7 @@ run(function () {
 							],
 						],
 						['Where', abstractsql],
+						['LockingClause', 'UPDATE', ['pilot']],
 					],
 				]);
 		});
@@ -801,7 +805,14 @@ run([['Number', 1]], function () {
 			)
 			.from('pilot');
 	};
-	const updateWhere = [
+
+	test('/pilot(1)?$filter=' + odata, 'POST', { name }, (result) => {
+		it('should insert into pilot where "' + odata + '"', () => {
+			insertTest(result);
+		});
+	});
+
+	const getUpdateWhere = (lockStrength: LockingClauseNode[1]) => [
 		'And',
 		['IsNotDistinctFrom', ['ReferencedField', 'pilot', 'id'], ['Bind', 0]],
 		[
@@ -815,15 +826,10 @@ run([['Number', 1]], function () {
 				],
 				['From', ['Table', 'pilot']],
 				['Where', abstractsql],
+				['LockingClause', lockStrength, ['pilot']],
 			],
 		],
 	];
-
-	test('/pilot(1)?$filter=' + odata, 'POST', { name }, (result) => {
-		it('should insert into pilot where "' + odata + '"', () => {
-			insertTest(result);
-		});
-	});
 
 	test('/pilot(1)?$filter=' + odata, 'PATCH', { name }, (result) => {
 		it('should update the pilot with id 1', () => {
@@ -831,7 +837,7 @@ run([['Number', 1]], function () {
 				.to.be.a.query.that.updates.fields('name')
 				.values(['Bind', ['pilot', 'name']])
 				.from('pilot')
-				.where(updateWhere);
+				.where(getUpdateWhere('NO KEY UPDATE'));
 		});
 	});
 
@@ -874,7 +880,7 @@ run([['Number', 1]], function () {
 						'Default',
 					)
 					.from('pilot')
-					.where(updateWhere);
+					.where(getUpdateWhere('UPDATE'));
 			});
 		});
 	});
@@ -2097,6 +2103,7 @@ test(
 									['Bind', 0],
 								],
 							],
+							['LockingClause', 'NO KEY UPDATE', ['copilot']],
 						],
 					],
 				],
@@ -2156,6 +2163,7 @@ test(
 									['Bind', 0],
 								],
 							],
+							['LockingClause', 'UPDATE', ['copilot']],
 						],
 					],
 				],
