@@ -29,7 +29,7 @@
     "string-hash": "^1.1.3"
   },
   "devDependencies": {
-    "@balena/lf-to-abstract-sql": "^5.0.9",
+    "@balena/lf-to-abstract-sql": "^6.0.0",
     "@balena/lint": "^9.3.2",
     "@balena/sbvr-parser": "^1.4.12",
     "@balena/sbvr-types": "^11.0.0",
