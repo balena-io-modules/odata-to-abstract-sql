@@ -8,9 +8,9 @@ import {
 	teamFields,
 	pilotCanFlyPlaneFields,
 	$count,
-} from './chai-sql.js';
+} from './chai-sql.ts';
 
-import test from './test.js';
+import test from './test.ts';
 import ODataParser from '@balena/odata-parser';
 
 test('/', (result) => {

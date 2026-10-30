@@ -409,12 +409,16 @@ export class OData2AbstractSQL {
 	public defaultResource: Resource | undefined;
 	public bindVarsLength = 0;
 	private checkAlias: (alias: string) => string;
+	private clientModel;
+	private methods;
 
 	constructor(
-		private clientModel: RequiredAbstractSqlModelSubset,
-		private methods: Record<string, ResourceFunction> = {},
+		clientModel: RequiredAbstractSqlModelSubset,
+		methods: Record<string, ResourceFunction> = {},
 		{ minimizeAliases = false }: Opts = {},
 	) {
+		this.clientModel = clientModel;
+		this.methods = methods;
 		const MAX_ALIAS_LENGTH = 63;
 		const shortAliases = generateShortAliases(clientModel);
 		this.checkAlias = memoize(

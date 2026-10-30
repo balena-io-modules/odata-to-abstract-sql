@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { pilotFields } from './chai-sql.js';
-import test from './test.js';
+import { pilotFields } from './chai-sql.ts';
+import test from './test.ts';
 
 const filterString = Array.from({ length: 2000 }, (_v, i) => 'id eq ' + i).join(
 	' or ',
