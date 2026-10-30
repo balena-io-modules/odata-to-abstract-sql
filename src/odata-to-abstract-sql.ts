@@ -570,6 +570,10 @@ export class OData2AbstractSQL {
 		let addPathKey = true;
 
 		if (hasQueryOpts && path.options?.$expand) {
+			if (path.count) {
+				// The expanded resources would be selected alongside the count, which is invalid sql
+				throw new SyntaxError('Cannot use $expand with $count');
+			}
 			this.Expands(resource, query, path.options.$expand.properties);
 		}
 		let bindVars: ReturnType<OData2AbstractSQL['BindVars']> | undefined;
@@ -1623,6 +1627,10 @@ export class OData2AbstractSQL {
 			}
 			// We need to nest the expand query in order to be able to alias column names to match the OData version.
 			const nestedExpandQuery = new Query();
+			if (expand.count && (expand.property || expand.options?.$expand)) {
+				// The nested expanded resources would be selected alongside the count, which is invalid sql
+				throw new SyntaxError('Cannot use $expand with $count');
+			}
 			if (expand.property) {
 				this.Expands(expandResource, nestedExpandQuery, [expand.property]);
 			}
@@ -1673,19 +1681,25 @@ export class OData2AbstractSQL {
 		if (path.options.$filter) {
 			this.SelectFilter(path.options.$filter, query, resource);
 		}
-		// When querying /$count, $orderby/$top/$skip must be ignored
-		if (!path.count) {
-			if (path.options.$orderby) {
-				this.OrderBy(path.options.$orderby, query, resource);
+		if (path.count) {
+			// $orderby/$top/$skip cannot affect a count, so rather than silently ignoring them we reject them
+			for (const option of ['$orderby', '$top', '$skip'] as const) {
+				if (path.options[option]) {
+					throw new SyntaxError(`Cannot use ${option} with $count`);
+				}
 			}
-			if (path.options.$top) {
-				const limit = this.NumberMatch(path.options.$top);
-				query.extras.push(['Limit', limit]);
-			}
-			if (path.options.$skip) {
-				const offset = this.NumberMatch(path.options.$skip);
-				query.extras.push(['Offset', offset]);
-			}
+			return;
+		}
+		if (path.options.$orderby) {
+			this.OrderBy(path.options.$orderby, query, resource);
+		}
+		if (path.options.$top) {
+			const limit = this.NumberMatch(path.options.$top);
+			query.extras.push(['Limit', limit]);
+		}
+		if (path.options.$skip) {
+			const offset = this.NumberMatch(path.options.$skip);
+			query.extras.push(['Offset', offset]);
 		}
 	}
 	NavigateResources(
