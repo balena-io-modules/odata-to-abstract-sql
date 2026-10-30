@@ -1,4 +1,18 @@
 - commits:
+    - subject: Remove unused .eslintrc.cjs
+      hash: adc6390a96d125ea6b4ae2a2dbb460d3fba47967
+      body: |
+        @balena/lint 9 uses ESLint's flat config (eslint.config.js), so this
+        legacy config file was not being read.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.39
+  title: ""
+  date: 2026-10-30T12:05:56.435Z
+- commits:
     - subject: Fix a TypeError when navigating via a field that is not a resource
       hash: 7afb40c768899dce8e42366eb711f10e82328928
       body: >
@@ -3083,6 +3097,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3105,6 +3120,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3200,6 +3216,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3416,6 +3433,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3444,6 +3462,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3589,6 +3608,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3623,6 +3643,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3826,6 +3847,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
