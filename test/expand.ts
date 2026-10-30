@@ -9,9 +9,9 @@ import {
 	pilotCanFlyPlaneFields,
 	planeFields,
 	$count,
-} from './chai-sql.js';
+} from './chai-sql.ts';
 const operandToAbstractSQL = operandToAbstractSQLFactory();
-import test from './test.js';
+import test from './test.ts';
 
 const createAggregate = function (args) {
 	let {

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { pilotFields } from './chai-sql.js';
-import test from './test.js';
+import { pilotFields } from './chai-sql.ts';
+import test from './test.ts';
 
 test('/pilot?$top=5', (result) => {
 	it('should select from pilot limited by 5', () => {

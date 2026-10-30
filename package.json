@@ -33,7 +33,6 @@
     "@balena/lint": "^9.3.2",
     "@balena/sbvr-parser": "^1.4.12",
     "@balena/sbvr-types": "^11.0.0",
-    "@swc-node/register": "1.11.1",
     "@types/chai": "5.2.3",
     "@types/chai-things": "0.0.38",
     "@types/mocha": "10.0.10",
@@ -49,7 +48,6 @@
   "mocha": {
     "reporter": "spec",
     "recursive": true,
-    "require": "@swc-node/register/esm-register",
     "enable-source-maps": true,
     "bail": true,
     "exclude": "test/**/*.d.ts",
