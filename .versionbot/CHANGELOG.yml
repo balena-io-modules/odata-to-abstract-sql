@@ -1,4 +1,17 @@
 - commits:
+    - subject: "Tests: switch from @swc-node/register to node type stripping"
+      hash: cb9f9c7520967b40414974e8647c2e55484e4d9e
+      body: |
+        https://balena.fibery.io/Work/Project/3059
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.40
+  title: ""
+  date: 2026-10-30T12:16:07.575Z
+- commits:
     - subject: Remove unused .eslintrc.cjs
       hash: adc6390a96d125ea6b4ae2a2dbb460d3fba47967
       body: |
@@ -3098,6 +3111,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3120,6 +3134,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3216,6 +3231,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3434,6 +3450,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3462,6 +3479,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3609,6 +3627,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3643,6 +3662,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3847,6 +3867,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
