@@ -1,4 +1,27 @@
 - commits:
+    - subject: Reject $expand/$orderby/$top/$skip when combined with $count
+      hash: 911e02d6092a94bf029fa072f110facd8517e590
+      body: |
+        `/pilot/$count?$expand=licence` selected the expanded licence subquery
+        alongside `COUNT(*)`, which is invalid sql as the subquery references an
+        ungrouped column. The same happened for a nested `$expand` within an
+        expanded `$count`, eg `$expand=licence/$count($expand=is_of__pilot)` or
+        `$expand=can_fly__plane/$count/plane`.
+
+        `$orderby`, `$top` and `$skip` cannot affect a count either, and were
+        silently dropped.
+
+        These are now all rejected with a `SyntaxError` rather than failing when
+        the query is run or having part of the request silently ignored.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.41
+  title: ""
+  date: 2026-11-02T17:00:09.686Z
+- commits:
     - subject: "Tests: switch from @swc-node/register to node type stripping"
       hash: cb9f9c7520967b40414974e8647c2e55484e4d9e
       body: |
@@ -3112,6 +3135,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3134,6 +3158,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3231,6 +3256,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3451,6 +3477,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3479,6 +3506,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3628,6 +3656,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3662,6 +3691,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3867,6 +3897,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
