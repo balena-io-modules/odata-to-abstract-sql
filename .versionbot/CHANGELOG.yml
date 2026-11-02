@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency mocha to v12
+      hash: db66a83d7b03994d056f321a33a97dbde0fcbc16
+      body: |
+        Update mocha from 11.8.0 to 12.0.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.42
+  title: ""
+  date: 2026-11-02T22:35:21.532Z
+- commits:
     - subject: Reject $expand/$orderby/$top/$skip when combined with $count
       hash: 911e02d6092a94bf029fa072f110facd8517e590
       body: |
@@ -3136,6 +3149,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3158,6 +3172,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3256,6 +3271,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3478,6 +3494,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3506,6 +3523,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3657,6 +3675,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3691,6 +3710,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3897,6 +3917,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
