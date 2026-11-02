@@ -314,7 +314,6 @@ export const operandToOData = function (operand): string {
 		}
 		if (operand.second != null) {
 			if (!t) {
-				t = true;
 				duration.push('T');
 			}
 			duration.push(operand.second, 'S');
