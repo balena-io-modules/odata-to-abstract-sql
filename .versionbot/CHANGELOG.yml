@@ -1,4 +1,138 @@
 - commits:
+    - subject: Update dependency @balena/lf-to-abstract-sql to v6
+      hash: ffb832bb0c237aeda906aec2cc55cd3b5f8991a5
+      body: |
+        Update @balena/lf-to-abstract-sql from 5.0.31 to 6.0.5
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested:
+        - commits:
+            - subject: Update dependency mocha to v11.8.0
+              hash: 1eaac36d7d0b5217684f1f0a4d1dae2e93a175d5
+              body: |
+                Update mocha from 11.7.6 to 11.8.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-6.0.5
+          title: ""
+          date: 2026-09-28T10:06:27.162Z
+        - commits:
+            - subject: Update dependency flowzonify to v0.4.12
+              hash: 77340883106e354165a2d1d80a95e97f1e4f5bae
+              body: |
+                Update flowzonify from 0.0.0 to 0.4.12
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-6.0.4
+          title: ""
+          date: 2026-09-28T09:07:05.703Z
+        - commits:
+            - subject: Fix self-referential ternary fact types
+              hash: 085b9145bc02be61a788a2baf09b16292803d027
+              body: >
+                A fact type can have more than one role played by the same term
+                (eg a
+
+                self-referential ternary like `gadget1 assigns label to
+                gadget2`). The automatic
+
+                `has` relationship registered for each role is keyed only on the
+                term name, so a
+
+                second role for the same term created a duplicate `has` entry
+                that clobbered the
+
+                first role's mapping instead of each role being independently
+                reachable.
+
+
+                Only the first role to use a given term now registers the
+                automatic `has` entry;
+
+                later roles for that term remain reachable through their own
+                verb-qualified path,
+
+                which was already being registered separately. In future all of
+                these automatic
+
+                entries should be removed entirely, in favour of the user
+                creating the paths they
+
+                want explicitly via synonymous forms.
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otavio Jacobi
+              nested: []
+          version: lf-to-abstract-sql-6.0.3
+          title: ""
+          date: 2026-07-29T11:52:43.776Z
+        - commits:
+            - subject: Update dependency mocha to v11.7.6
+              hash: dafb36950cd68425035bb7aff44413197df423f0
+              body: |
+                Update mocha from 11.7.5 to 11.7.6
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-6.0.2
+          title: ""
+          date: 2026-06-10T06:18:17.808Z
+        - commits:
+            - subject: Pin dependencies
+              hash: 29e461fc87c26dc22db88dee8a24b564595eef4b
+              body: |
+                Update chai
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-6.0.1
+          title: ""
+          date: 2026-05-16T00:16:07.414Z
+        - commits:
+            - subject: Drop support for nodejs < 22.2.0
+              hash: 6499c4f1b5e05382c3efc667619e1840130bad86
+              body: ""
+              footer:
+                Change-type: major
+                change-type: major
+              author: Thodoris Greasidis
+              nested: []
+            - subject: Replace attribute check with single this.tables lookup
+              hash: da88a79627609665328142984b8c60baf30413ae
+              body: |
+                this.attributes was a redundant registry that
+                only AttrDatabaseAttribute ever wrote to, causing
+                the term-form case to be missed. All other rules
+                already use GetTable() === 'Attribute' so align
+                ProcessAtomicFormulationsAttributes with the same
+                pattern.
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: jaomaloy <jan.maloy@balena.io>
+                signed-off-by: jaomaloy <jan.maloy@balena.io>
+              author: jaomaloy
+              nested: []
+          version: lf-to-abstract-sql-6.0.0
+          title: ""
+          date: 2026-04-06T16:06:16.378Z
+  version: 10.0.43
+  title: ""
+  date: 2026-11-02T23:12:45.921Z
+- commits:
     - subject: Update dependency mocha to v12
       hash: db66a83d7b03994d056f321a33a97dbde0fcbc16
       body: |
@@ -3150,6 +3284,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3172,6 +3307,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3271,6 +3407,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3495,6 +3632,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3523,6 +3661,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3676,6 +3815,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3710,6 +3850,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3917,6 +4058,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
