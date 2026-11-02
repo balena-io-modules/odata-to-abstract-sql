@@ -850,41 +850,21 @@ test('/pilot(5)/licence/$count', (result) => {
 	});
 });
 
-test('/pilot/$count?$orderby=id asc', (result) => {
-	it('should select count(*) from pilot and ignore orderby', () => {
-		expect(result)
-			.to.be.a.query.that.selects($count)
-			.from('pilot')
-			.and.has.a.lengthOf(3);
+// $orderby/$top/$skip cannot affect a count, so they are rejected rather than silently ignored
+for (const [url, option] of [
+	['/pilot/$count?$orderby=id asc', '$orderby'],
+	['/pilot/$count?$skip=5', '$skip'],
+	['/pilot/$count?$top=5', '$top'],
+	['/pilot/$count?$top=5&$skip=5', '$top'],
+]) {
+	test(url, (result) => {
+		it(`should fail as ${option} cannot be used with $count`, () => {
+			expect(result)
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property('message', `Cannot use ${option} with $count`);
+		});
 	});
-});
-
-test('/pilot/$count?$skip=5', (result) => {
-	it('should select count(*) from pilot and ignore skip', () => {
-		expect(result)
-			.to.be.a.query.that.selects($count)
-			.from('pilot')
-			.and.has.a.lengthOf(3);
-	});
-});
-
-test('/pilot/$count?$top=5', (result) => {
-	it('should select count(*) from pilot and ignore top', () => {
-		expect(result)
-			.to.be.a.query.that.selects($count)
-			.from('pilot')
-			.and.has.a.lengthOf(3);
-	});
-});
-
-test('/pilot/$count?$top=5&$skip=5', (result) => {
-	it('should select count(*) from pilot and ignore top and skip', () => {
-		expect(result)
-			.to.be.a.query.that.selects($count)
-			.from('pilot')
-			.and.has.a.lengthOf(3);
-	});
-});
+}
 
 test('/pilot/$count?$select=id', (result) => {
 	it('should select count(*) from pilot and ignore select', () => {
