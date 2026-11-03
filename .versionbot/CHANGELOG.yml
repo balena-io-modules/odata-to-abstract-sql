@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update @balena/lint to 11.x
+      hash: a287fdc23efe189b95159a92fcc8fabb0417ab8b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.45
+  title: ""
+  date: 2026-11-03T05:21:30.806Z
+- commits:
     - subject: Update dependency @balena/sbvr-types to v12
       hash: 70dd14f5230ef89cb759059e90ed9840b1aa0905
       body: |
@@ -3434,6 +3446,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3456,6 +3469,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3557,6 +3571,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3785,6 +3800,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3813,6 +3829,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3970,6 +3987,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4004,6 +4022,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4213,6 +4232,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
