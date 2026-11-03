@@ -1,4 +1,152 @@
 - commits:
+    - subject: Update dependency @balena/sbvr-types to v12
+      hash: 70dd14f5230ef89cb759059e90ed9840b1aa0905
+      body: |
+        Update @balena/sbvr-types from 11.3.14 to 12.0.6
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested:
+        - commits:
+            - subject: "Color: Use `Edm.Byte` for the OData color components"
+              hash: 961a83b8d1d236bf4f0629772e0b85d0b6779dbe
+              body: >
+                `Edm.Int8` is not an OData primitive type. The components are
+                0-255,
+
+                which is `Edm.Byte`. A test now checks that every type uses
+                valid OData
+
+                primitive types.
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-12.0.6
+          title: ""
+          date: 2026-10-28T14:50:06.834Z
+        - commits:
+            - subject: Always use LF line endings for the husky hooks
+              hash: 33f6069b3d47068989536685df7e39a7be4c67e6
+              body: |
+                The hooks are run by sh, which fails on CRLF line endings
+                (`.husky/pre-commit: 1: : not found`), so committing failed in
+                checkouts that convert line endings, eg made on Windows.
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-12.0.5
+          title: ""
+          date: 2026-10-28T14:35:26.558Z
+        - commits:
+            - subject: Reference the node types from the declarations that use `Buffer`
+              hash: 3cb5e42787d3b9a255f7e5d2b97ad6c702824acc
+              body: >
+                The `File` and `Hashed` declarations use `Buffer` but did not
+                reference
+
+                the node types, and TypeScript 6 no longer includes `@types/*`
+                by
+
+                default. So for consumers that don't list `node` in their
+                `types`,
+
+                `Buffer` silently became `any` (eg `Types['File']['Read']`
+                accepted a
+
+                number) or, without `skipLibCheck`, failed to compile.
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-12.0.4
+          title: ""
+          date: 2026-10-27T22:21:03.800Z
+        - commits:
+            - subject: Type `DatabaseTypeFn`'s default value argument
+              hash: f1a188d23b86ec31a83523d4233a65e038042024
+              body: >
+                The `Boolean`, `Serial` and `Big Serial` type functions all
+                accept a
+
+                default value as a third argument, but `DatabaseTypeFn` only
+                declared
+
+                two, so callers such as abstract-sql-compiler could not pass it
+                without
+
+                their own type, and its `dataTypeGen` dropped field default
+                values.
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-12.0.3
+          title: ""
+          date: 2026-10-27T07:31:36.922Z
+        - commits:
+            - subject: "Color: Return null when fetching a NULL color"
+              hash: 7ab07d8992647b989ac8e85d6f975f530a72a4fa
+              body: >
+                pinejs runs `fetchProcessing` for every row, including NULL
+                values, and
+
+                a NULL color threw "Fetched color is not an integer: object",
+                failing
+
+                the whole request for any resource with an unset color.
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-12.0.2
+          title: ""
+          date: 2026-10-26T16:40:17.449Z
+        - commits:
+            - subject: "Color: Fix the `Blue Component` native property"
+              hash: 26dc7ef09e9b08234879232eef8600ba35c28b2d
+              body: >
+                `Blue Component` shifted the value right by 255 bits instead of
+                masking
+
+                the low 8 bits, so rules using it compared against 0 (or -1)
+                instead of
+
+                the blue component. The README example had the same mistake.
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-12.0.1
+          title: ""
+          date: 2026-10-26T16:13:33.248Z
+        - commits:
+            - subject: "Boolean: Return null when fetching a NULL boolean"
+              hash: cc339c6973d8779553a02bcd637664640150e8ee
+              body: >
+                A NULL boolean was returned as `false`, so a nullable boolean
+                field
+
+                could not be told apart from one set to false.
+
+
+                We have never used nullable booleans in practice, but they
+                should work
+
+                if we ever choose to.
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+          version: sbvr-types-12.0.0
+          title: ""
+          date: 2026-10-26T15:31:47.309Z
+  version: 10.0.44
+  title: ""
+  date: 2026-11-03T00:08:18.983Z
+- commits:
     - subject: Update dependency @balena/lf-to-abstract-sql to v6
       hash: ffb832bb0c237aeda906aec2cc55cd3b5f8991a5
       body: |
@@ -3285,6 +3433,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3307,6 +3456,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3407,6 +3557,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3633,6 +3784,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3661,6 +3813,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3816,6 +3969,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3850,6 +4004,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4058,6 +4213,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
