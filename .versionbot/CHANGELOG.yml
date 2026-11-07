@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency chai to v6.3.0
+      hash: e5897290c5d020e0b2cdcf67f19ec6cf040e0a2f
+      body: |
+        Update chai from 6.2.2 to 6.3.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.46
+  title: ""
+  date: 2026-11-07T01:10:13.551Z
+- commits:
     - subject: Update @balena/lint to 11.x
       hash: a287fdc23efe189b95159a92fcc8fabb0417ab8b
       body: ""
@@ -3447,6 +3460,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3469,6 +3483,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3571,6 +3586,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3801,6 +3817,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3829,6 +3846,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3988,6 +4006,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4022,6 +4041,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4232,6 +4252,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
