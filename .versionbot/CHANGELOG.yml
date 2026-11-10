@@ -1,4 +1,37 @@
 - commits:
+    - subject: Fix nested definition binds being offset twice for filtered inserts
+      hash: 052794836793635805ecaab93e5304ca419995e1
+      body: >
+        When a resource's definition has binds and references a `Resource` whose
+
+        definition also has binds, the nested binds were offset twice for POST
+        and
+
+        for the insert half of PUT. The definition is first rewritten into
+        scratch
+
+        bind vars (so the table being inserted into can be replaced), but nested
+
+        resources were always rewritten into `this.extraBindVars`, and then the
+
+        whole definition was offset again when applied. This made nested binds
+
+        reference the wrong values (POST) or non-existent binds (PUT).
+
+
+        `rewriteResourceAsTable` now uses the same bind vars as the definition
+
+        being rewritten, defaulting to the previous behavior when called
+        directly.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.47
+  title: ""
+  date: 2026-11-10T00:41:41.908Z
+- commits:
     - subject: Update dependency chai to v6.3.0
       hash: e5897290c5d020e0b2cdcf67f19ec6cf040e0a2f
       body: |
@@ -3461,6 +3494,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3483,6 +3517,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3586,6 +3621,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3818,6 +3854,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3846,6 +3883,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4007,6 +4045,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4041,6 +4080,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4252,6 +4292,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
