@@ -599,6 +599,46 @@ test('/pilot(1)/$links/licence', (result) => {
 	});
 });
 
+for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+	test('/pilot(1)/$links/licence', method, (result) => {
+		it(`should fail to ${method} links rather than modifying the pilot`, () => {
+			expect(result)
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property('message', 'Cannot modify $links');
+		});
+	});
+}
+
+for (const url of [
+	'/pilot(1)/$links/licence(2)/name',
+	'/pilot(1)/$links/licence/$links/pilot',
+]) {
+	test(url, (result) => {
+		it('should fail rather than ignoring the path after the link', () => {
+			expect(result)
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property('message', 'Cannot navigate past $links');
+		});
+	});
+}
+
+for (const url of [
+	'/pilot(1)/$links/licence?$filter=id eq 2',
+	'/pilot(1)/$links/licence?$top=1',
+	'/pilot(1)/$links/licence/$count',
+]) {
+	test(url, (result) => {
+		it('should fail rather than ignoring the query options or $count', () => {
+			expect(result)
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property(
+					'message',
+					'Cannot use query options or $count with $links',
+				);
+		});
+	});
+}
+
 test('/pilot(1)/$links/licence(2)', (result) => {
 	it('should select the licence id 2, for generating the link', () => {
 		expect(result)
