@@ -69,7 +69,7 @@ import type {
 	LessThanOrEqualNode,
 	IsNotDistinctFromNode,
 	IsDistinctFromNode,
-	UnknownTypeNodes,
+	DateTruncNode,
 	FromTypeNode,
 	EqualsAnyNode,
 	JoinTypeNodes,
@@ -115,7 +115,7 @@ const convertToModernDefinition = (
 	};
 };
 
-interface Resource extends Omit<AbstractSqlTable, 'definition'> {
+export interface Resource extends Omit<AbstractSqlTable, 'definition'> {
 	tableAlias?: string;
 	definition?: Definition;
 	resourceMappings?: {
@@ -125,15 +125,21 @@ interface Resource extends Omit<AbstractSqlTable, 'definition'> {
 }
 type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
 type RequiredField<T, F extends keyof T> = Overwrite<T, Required<Pick<T, F>>>;
-type AliasedResource = RequiredField<Resource, 'tableAlias'>;
+export type AliasedResource = RequiredField<Resource, 'tableAlias'>;
 
 export type ResourceFunction = (
 	this: OData2AbstractSQL,
 	property: {
-		method: ['call', { method: string; args: any[] }];
+		method: MethodCall;
 		[key: string]: any;
 	},
 ) => BooleanTypeNodes | { resource: Resource; name: string };
+
+export interface LambdaMethodCall {
+	method: string;
+	identifier: string;
+	expression: FilterOption;
+}
 
 const comparison = {
 	eq: 'IsNotDistinctFrom',
@@ -367,9 +373,9 @@ export const rewriteBinds = (
 	existingBinds.push(...binds);
 };
 
-export const isBindReference = (maybeBind: {
-	[key: string]: unknown;
-}): maybeBind is BindReference => {
+export const isBindReference = (
+	maybeBind: unknown,
+): maybeBind is BindReference => {
 	return (
 		maybeBind != null &&
 		typeof maybeBind === 'object' &&
@@ -479,7 +485,7 @@ export class OData2AbstractSQL {
 		$method: SupportedMethod,
 		bodyKeys: string[],
 		bindVarsLength: number,
-		methods?: OData2AbstractSQL['methods'],
+		methods?: Record<string, ResourceFunction>,
 	): {
 		tree: AbstractSqlQuery;
 		extraBodyVars: Record<string, BindReference>;
@@ -1089,7 +1095,7 @@ export class OData2AbstractSQL {
 		}
 		return (relationshipMapping as RelationshipLeafNode).$;
 	}
-	AddCountField(path: any, query: Query) {
+	AddCountField(path: ResourceOptions, query: Query) {
 		if (path.count) {
 			query.select.push(['Alias', ['Count', '*'], '$count']);
 		}
@@ -1344,7 +1350,7 @@ export class OData2AbstractSQL {
 				return;
 		}
 	}
-	Lambda(resourceName: string, lambda: any): BooleanTypeNodes {
+	Lambda(resourceName: string, lambda: LambdaMethodCall): BooleanTypeNodes {
 		const resourceAliases = this.resourceAliases;
 		const defaultResource = this.defaultResource;
 		try {
@@ -1400,12 +1406,13 @@ export class OData2AbstractSQL {
 				// following abstractsql to sql compiler have to check engine to translate to proper eninge based sql query
 				if (fieldDefinition?.dataType === 'Date Time') {
 					// TODO: If we know we're specifically looking for a boolean property then we should reject properties we know are not booleans, until then the case makes it rely on the odata query being correct
-					return [
+					const dateTrunc: DateTruncNode = [
 						'DateTrunc',
 						['EmbeddedText', 'milliseconds'],
 						this.ReferencedField(prop.resource, prop.name),
 						['EmbeddedText', 'UTC'],
-					] as any as UnknownTypeNodes;
+					];
+					return dateTrunc as unknown as BooleanTypeNodes;
 				}
 			}
 
@@ -1414,7 +1421,7 @@ export class OData2AbstractSQL {
 	}
 
 	Method(prop: {
-		method: ['call', { method: string; args: any[] }];
+		method: MethodCall;
 	}): BooleanTypeNodes | { resource: Resource; name: string } {
 		if (!prop.method) {
 			throw new SyntaxError('Method is missing method entry');
