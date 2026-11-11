@@ -1,4 +1,33 @@
 - commits:
+    - subject: Improve the typings of the public api and some internals
+      hash: 45b82752a06420be5d1b9fb8d242decf043b3643
+      body: >
+        - `isBindReference` accepts `unknown`, as it is a type guard, so callers
+        no
+          longer need to check that a value is an object first
+        - Export the `Resource`, `AliasedResource` and `LambdaMethodCall` types,
+          which are used by the exported `ResourceFunction` and public members such
+          as `defaultResource`, `NavigateResources` and `Lambda`, so they can be
+          referenced by consumers
+        - Use the `MethodCall` type from odata-parser for
+        `ResourceFunction`/`Method`
+
+        - Type the `methods` param of `match` directly rather than via a private
+          member, which made it `any` in the published typings, so it is now type
+          checked like the constructor's, and type the params of `AddCountField`
+          and `Lambda`
+        - Type check the `DateTrunc` node created for date time properties
+        rather
+          than casting it via `any`
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.48
+  title: ""
+  date: 2026-11-11T23:56:17.428Z
+- commits:
     - subject: Fix nested definition binds being offset twice for filtered inserts
       hash: 052794836793635805ecaab93e5304ca419995e1
       body: >
@@ -3495,6 +3524,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3517,6 +3547,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3621,6 +3652,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3855,6 +3887,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3883,6 +3916,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4046,6 +4080,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4080,6 +4115,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4292,6 +4328,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
