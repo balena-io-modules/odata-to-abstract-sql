@@ -1125,25 +1125,25 @@ run(() =>
 	operandTest(createMethodCall('time', 'hire_date'), 'eq', "'12:10:25.222'"),
 );
 run(() =>
-	operandTest(createMethodCall('totaloffsetminutes', 'hire_date'), 'eq', 60),
-);
-run(() =>
 	operandTest(createMethodCall('now'), 'eq', new Date('2012-12-03T07:16:23Z')),
 );
-run(() =>
-	operandTest(
-		createMethodCall('maxdatetime'),
-		'eq',
-		new Date('9999-12-31T11:59:59Z'),
-	),
-);
-run(() =>
-	operandTest(
-		createMethodCall('mindatetime'),
-		'eq',
-		new Date('1970-01-01T00:00:00Z'),
-	),
-);
+// These are valid OData but cannot be compiled by the abstract sql compiler, so they must be rejected
+for (const [method, filter] of [
+	['totaloffsetminutes', 'totaloffsetminutes(hire_date) eq 60'],
+	['maxdatetime', 'hire_date eq maxdatetime()'],
+	['mindatetime', 'hire_date eq mindatetime()'],
+	['isof', "isof(name, 'Edm.String')"],
+	['maxdatetime', 'year(maxdatetime()) eq 1'],
+	['isof', "licence/any(l: isof(l/name, 'Edm.String'))"],
+]) {
+	test(`/pilot?$filter=${filter}`, (result) => {
+		it(`should fail as ${method} is not supported`, () => {
+			expect(result)
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property('message', `${method} is not supported`);
+		});
+	});
+}
 run(() =>
 	operandTest(
 		createMethodCall('totalseconds', {

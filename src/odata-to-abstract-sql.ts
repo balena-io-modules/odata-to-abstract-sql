@@ -1231,12 +1231,14 @@ export class OData2AbstractSQL {
 								case 'contains':
 								case 'endswith':
 								case 'startswith':
-								case 'isof':
 								case 'substringof':
 									return this.FunctionMatch(
 										method,
 										match,
 									) as StrictBooleanTypeNodes;
+								case 'isof':
+									// The abstract sql compiler cannot compile this so we reject it rather than generate it
+									throw new SyntaxError(`${method} is not supported`);
 								default:
 									if (optional) {
 										return;
@@ -1508,12 +1510,14 @@ export class OData2AbstractSQL {
 				case 'minute':
 				case 'second':
 				case 'fractionalseconds':
-				case 'totaloffsetminutes':
 				case 'totalseconds':
 				case 'round':
 				case 'floor':
 				case 'ceiling':
 					return this.FunctionMatch(method, match) as NumberTypeNodes;
+				case 'totaloffsetminutes':
+					// The abstract sql compiler cannot compile this so we reject it rather than generate it
+					throw new SyntaxError(`${method} is not supported`);
 				case 'length':
 					return this.FunctionMatch(
 						'length',
@@ -1594,7 +1598,8 @@ export class OData2AbstractSQL {
 					) as CurrentTimestampNode;
 				case 'maxdatetime':
 				case 'mindatetime':
-					return this.FunctionMatch(method, match) as StrictDateTypeNodes;
+					// The abstract sql compiler cannot compile these so we reject them rather than generate them
+					throw new SyntaxError(`${method} is not supported`);
 				case 'date':
 					return this.FunctionMatch('date', match, 'ToDate') as ToDateNode;
 				case 'time':
