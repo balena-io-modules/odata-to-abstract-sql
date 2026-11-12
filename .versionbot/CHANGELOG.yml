@@ -1,4 +1,27 @@
 - commits:
+    - subject: Reject OData functions that the abstract sql compiler cannot compile
+      hash: 218d088eaa9fe2dacb5dfc90820552a1268fb036
+      body: >
+        `isof`, `totaloffsetminutes`, `maxdatetime` and `mindatetime` were
+
+        translated into `Isof`/`Totaloffsetminutes`/`Maxdatetime`/`Mindatetime`
+
+        nodes that the abstract sql compiler does not support, so any request
+        using
+
+        them only failed later with a generic `Invalid "UnknownValue" type`
+        error.
+
+        They are now rejected up front with a `SyntaxError` naming the function.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 10.0.49
+  title: ""
+  date: 2026-11-12T01:04:14.919Z
+- commits:
     - subject: Improve the typings of the public api and some internals
       hash: 45b82752a06420be5d1b9fb8d242decf043b3643
       body: >
@@ -3525,6 +3548,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3547,6 +3571,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3652,6 +3677,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3888,6 +3914,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3916,6 +3943,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4081,6 +4109,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4115,6 +4144,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4328,6 +4358,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
