@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency lint-staged to v17.6.1
+      hash: 67323e49a9fb3febf04da97e2fde3fe6d496fcdd
+      body: |
+        Update lint-staged from 17.6.0 to 17.6.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.50
+  title: ""
+  date: 2026-11-21T01:07:32.154Z
+- commits:
     - subject: Reject OData functions that the abstract sql compiler cannot compile
       hash: 218d088eaa9fe2dacb5dfc90820552a1268fb036
       body: >
@@ -3549,6 +3562,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3571,6 +3585,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3677,6 +3692,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3915,6 +3931,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3943,6 +3960,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4110,6 +4128,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4144,6 +4163,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4358,6 +4378,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
