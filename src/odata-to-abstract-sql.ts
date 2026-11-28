@@ -602,6 +602,16 @@ export class OData2AbstractSQL {
 			if (!path.link.resource) {
 				throw new SyntaxError('PathSegment has a link without a resource?');
 			}
+			if (method !== 'GET') {
+				// TODO: Support modifying links, which would need to update the link rather than the resource itself
+				throw new SyntaxError('Cannot modify $links');
+			}
+			if (path.link.property != null || path.link.link != null) {
+				throw new SyntaxError('Cannot navigate past $links');
+			}
+			if (path.link.count || containsQueryOption(path.link.options)) {
+				throw new SyntaxError('Cannot use query options or $count with $links');
+			}
 			const linkResource = this.Resource(path.link.resource, resource);
 			let aliasedField: AliasNode<ReferencedFieldNode>;
 			let referencedField: ReferencedFieldNode;
