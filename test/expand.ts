@@ -578,3 +578,14 @@ for (const [url, option] of [
 		});
 	});
 })();
+
+test('/pilot?$expand=constructor', (result) => {
+	it('should fail to expand a "constructor" navigation that does not exist', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'constructor'`,
+			);
+	});
+});

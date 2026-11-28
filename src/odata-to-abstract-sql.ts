@@ -384,6 +384,27 @@ export const isBindReference = (
 	);
 };
 
+/**
+ * Gets an entry of a model lookup, eg `clientModel.tables`, ignoring the properties that every object inherits from
+ * `Object.prototype`, eg `constructor`, so that client supplied names such as `/constructor` cannot match them.
+ * This compares against `Object.prototype` rather than using `Object.hasOwn` so that lookups which lazily create
+ * their entries, eg via a `Proxy`, keep working.
+ */
+const getModelEntry = <T>(
+	lookup: Partial<Record<string, T>>,
+	key: string,
+): T | undefined => {
+	const entry = lookup[key];
+	if (
+		// `Object.prototype.__proto__` is `null`, so `__proto__` has to be checked by name
+		key === '__proto__' ||
+		entry === (Object.prototype as Partial<Record<string, unknown>>)[key]
+	) {
+		return;
+	}
+	return entry;
+};
+
 const isDynamicResource = (resource: Resource): boolean => {
 	return resource.definition != null;
 };
@@ -411,7 +432,7 @@ type Opts = {
 export class OData2AbstractSQL {
 	private extraBodyVars: Record<string, BindReference> = {};
 	public extraBindVars = [] as unknown as ODataBinds;
-	private resourceAliases: Record<string, AliasedResource> = {};
+	private resourceAliases = new Map<string, AliasedResource>();
 	public defaultResource: Resource | undefined;
 	public bindVarsLength = 0;
 	private checkAlias: (alias: string) => string;
@@ -986,11 +1007,11 @@ export class OData2AbstractSQL {
 			.filter((f): f is NonNullable<typeof f> => f != null);
 	}
 	Resource(resourceName: string, parentResource?: Resource): AliasedResource {
-		const resourceAlias = this.resourceAliases[resourceName];
+		const resourceAlias = this.resourceAliases.get(resourceName);
 		if (resourceAlias) {
 			return resourceAlias;
 		}
-		let resource: AbstractSqlTable;
+		let resource: AbstractSqlTable | undefined;
 		if (parentResource) {
 			const relationshipMapping = this.ResolveRelationship(
 				parentResource,
@@ -1003,7 +1024,7 @@ export class OData2AbstractSQL {
 		} else {
 			let sqlName = odataNameToSqlName(resourceName);
 			sqlName = this.Synonym(sqlName);
-			resource = this.clientModel.tables[sqlName];
+			resource = getModelEntry(this.clientModel.tables, sqlName);
 		}
 		if (!resource) {
 			throw new SyntaxError('Could not match resource');
@@ -1068,13 +1089,15 @@ export class OData2AbstractSQL {
 		let resourceName;
 		if (typeof resource === 'object') {
 			resourceName = resource.resourceName;
-		} else if (this.resourceAliases[resource]) {
-			resourceName = this.resourceAliases[resource].resourceName;
 		} else {
-			resourceName = resource;
+			resourceName =
+				this.resourceAliases.get(resource)?.resourceName ?? resource;
 		}
 		resourceName = this.Synonym(resourceName);
-		const resourceRelations = this.clientModel.relationships[resourceName];
+		const resourceRelations = getModelEntry<RelationshipInternalNode>(
+			this.clientModel.relationships,
+			resourceName,
+		);
 		if (!resourceRelations) {
 			throw new SyntaxError(
 				`Could not resolve relationship for '${resourceName}'`,
@@ -1084,8 +1107,13 @@ export class OData2AbstractSQL {
 			.split('__')
 			.map(odataNameToSqlName)
 			.flatMap((sqlName) => this.Synonym(sqlName).split('-'));
-		const relationshipMapping = relationshipPath.reduce(
-			(obj: Relationship, path) => (obj as RelationshipInternalNode)?.[path],
+		const relationshipMapping = relationshipPath.reduce<
+			Relationship | undefined
+		>(
+			(obj, path) =>
+				obj == null
+					? undefined
+					: getModelEntry(obj as RelationshipInternalNode, path),
 			resourceRelations,
 		);
 		if (!relationshipMapping?.$) {
@@ -1141,13 +1169,12 @@ export class OData2AbstractSQL {
 		resource: Resource,
 		resourceField: string,
 	): ReferencedFieldNode {
-		const mapping = this.ResourceMapping(resource);
-		if (mapping[resourceField]) {
-			return [
-				'ReferencedField',
-				mapping[resourceField][0],
-				mapping[resourceField][1],
-			];
+		const fieldMapping = getModelEntry(
+			this.ResourceMapping(resource),
+			resourceField,
+		);
+		if (fieldMapping) {
+			return ['ReferencedField', fieldMapping[0], fieldMapping[1]];
 		} else {
 			const relationshipMapping = this.ResolveRelationship(
 				resource,
@@ -1362,8 +1389,8 @@ export class OData2AbstractSQL {
 				this.defaultResource!,
 				resourceName,
 			);
-			this.resourceAliases = { ...this.resourceAliases };
-			this.resourceAliases[lambda.identifier] = resource;
+			this.resourceAliases = new Map(this.resourceAliases);
+			this.resourceAliases.set(lambda.identifier, resource);
 
 			this.defaultResource = resource;
 			this.AddJoins(query, resource, lambda.expression);
@@ -1398,10 +1425,13 @@ export class OData2AbstractSQL {
 			// thus SBVR Date Time fields have to be truncated to millisecond precision
 			// getting schema dataType from field mapping
 			let fieldDefinition;
-			const mapping = this.ResourceMapping(prop.resource);
-			if (mapping[prop.name]) {
+			const fieldMapping = getModelEntry(
+				this.ResourceMapping(prop.resource),
+				prop.name,
+			);
+			if (fieldMapping) {
 				fieldDefinition = prop.resource.fields.find(
-					(f) => f.fieldName === mapping[prop.name][1],
+					(f) => f.fieldName === fieldMapping[1],
 				);
 
 				// when date time field from schema => hardcoded DateTrunc
@@ -1764,7 +1794,7 @@ export class OData2AbstractSQL {
 				prop.property?.name
 			) {
 				nextProp = prop.property;
-				const resourceAlias = this.resourceAliases[prop.name];
+				const resourceAlias = this.resourceAliases.get(prop.name);
 				if (resourceAlias) {
 					parentResource = resourceAlias;
 				} else {
@@ -1857,14 +1887,14 @@ export class OData2AbstractSQL {
 	}
 
 	putReset() {
-		this.resourceAliases = {};
+		this.resourceAliases = new Map();
 		this.defaultResource = undefined;
 	}
 	Synonym(sqlName: string) {
 		return sqlName
 			.split('-')
 			.map((namePart) => {
-				const synonym = this.clientModel.synonyms[namePart];
+				const synonym = getModelEntry(this.clientModel.synonyms, namePart);
 				if (synonym) {
 					return synonym;
 				}

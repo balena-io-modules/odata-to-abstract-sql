@@ -874,3 +874,22 @@ test('/pilot/$count?$select=id', (result) => {
 			.and.has.a.lengthOf(3);
 	});
 });
+
+// Names of properties that every object inherits from `Object.prototype` must not match anything in the model
+for (const resourceName of ['constructor', 'hasOwnProperty', '__proto__']) {
+	test(`/${resourceName}`, (result) => {
+		it(`should fail to select from a "${resourceName}" resource`, () => {
+			expect(result)
+				.to.be.instanceOf(SyntaxError)
+				.and.to.have.property('message', 'Could not match resource');
+		});
+	});
+}
+
+test('/constructor', 'POST', { name: 'Peter' }, (result) => {
+	it('should fail to insert into a "constructor" resource', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property('message', 'Could not match resource');
+	});
+});

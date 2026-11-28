@@ -336,6 +336,28 @@ test(`/pilot?$orderby=identification_method(1)/identification_number desc`, (res
 	});
 });
 
+test('/pilot?$orderby=constructor/name asc', (result) => {
+	it('should fail to order by a field of a "constructor" navigation that does not exist', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'constructor'`,
+			);
+	});
+});
+
+test('/pilot?$orderby=toString asc', (result) => {
+	it('should fail to order by a "toString" field that does not exist', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property(
+				'message',
+				`Could not resolve relationship mapping from 'pilot' to 'toString'`,
+			);
+	});
+});
+
 test(`/pilot?$orderby=identification_method(pilot=1)/identification_number desc`, (result) => {
 	it('should fail to order by an associated resource when providing the navigated FK of the associated resource as the only part of the alternate key', () => {
 		expect(result)

@@ -195,6 +195,14 @@ test('/pilot?$filter=name eq 2 or p eq 2', (result) => {
 	});
 });
 
+test('/pilot?$filter=__proto__ eq 1', (result) => {
+	it('should fail to filter on a "__proto__" property that does not exist', () => {
+		expect(result)
+			.to.be.instanceOf(SyntaxError)
+			.and.to.have.property('message', 'Could not match operand');
+	});
+});
+
 test('/pilot?$filter=name/any(n: n eq 1)', (result) => {
 	it('should fail to use a lambda on a field that is not a resource', () => {
 		expect(result)
@@ -1344,6 +1352,17 @@ const lambdaTest = function (methodName) {
 					.where(where);
 			});
 		});
+
+		for (const alias of ['constructor', '__proto__', 'toString']) {
+			test(`/pilot?$filter=identification_method/${methodName}(${alias}:${alias}/identification_type eq 'passport')`, (result) => {
+				it(`should select from pilot where ... using "${alias}" as the alias`, () => {
+					expect(result)
+						.to.be.a.query.that.selects(pilotFields)
+						.from('pilot')
+						.where(where);
+				});
+			});
+		}
 
 		test(`/pilot/$count?$filter=identification_method/${methodName}(d:d/identification_type eq 'passport')`, (result) => {
 			it('should select count(*) from pilot where ...', () => {
