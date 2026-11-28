@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency lint-staged to v17.6.2
+      hash: eee5331a906a51dafca77374b2c074ae0232d6eb
+      body: |
+        Update lint-staged from 17.6.1 to 17.6.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 10.0.51
+  title: ""
+  date: 2026-11-28T01:08:51.224Z
+- commits:
     - subject: Update dependency lint-staged to v17.6.1
       hash: 67323e49a9fb3febf04da97e2fde3fe6d496fcdd
       body: |
@@ -3563,6 +3576,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3585,6 +3599,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3692,6 +3707,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3932,6 +3948,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3960,6 +3977,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4129,6 +4147,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4163,6 +4182,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4378,6 +4398,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
